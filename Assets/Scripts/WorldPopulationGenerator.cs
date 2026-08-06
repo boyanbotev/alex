@@ -85,7 +85,7 @@ public class WorldPopulationGenerator : MonoBehaviour
             if (sr != null) sr.color = player.factionColor;
 
             // 2. Spawn Starting Unit (Warrior) on top of the Capital
-            GameObject unitObj = Instantiate(startingUnitPrefab, capital.centerTile.transform.position, Quaternion.identity);
+            GameObject unitObj = Instantiate(player.faction.unitPrefab, capital.centerTile.transform.position, Quaternion.identity);
             Unit unit = unitObj.GetComponent<Unit>();
 
             unit.owner = player;

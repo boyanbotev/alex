@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class Player : MonoBehaviour
 {
     public string factionName;
+    public Faction faction;
     public Color factionColor;
     public int stars = 5;
 

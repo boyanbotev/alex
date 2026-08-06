@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class SelectionController : MonoBehaviour
 {
     private Unit selectedUnit;
+    private City selectedCity;
     private List<Tile> highlightedTiles = new List<Tile>();
 
     private void Update()
@@ -74,6 +75,19 @@ public class SelectionController : MonoBehaviour
                 HighlightActions(selectedUnit);
             }
         }
+        else if (clickedTile.city != null)
+        {
+            City city = clickedTile.city;
+            if (city.owner == TurnManager.Instance.ActivePlayer)
+            {
+                Debug.Log("city belongs to active player");
+                selectedCity = city;
+                GridManager.Instance.ClearAllHighlights();
+                highlightedTiles.Clear();
+                UIManager.Instance.ShowSpawnButton(() => city.SpawnUnit(city.owner.faction.unitPrefab, 3));
+                // TODO: separation of concerns
+            }
+        }
     }
 
     private void HighlightActions(Unit unit)
@@ -126,6 +140,7 @@ public class SelectionController : MonoBehaviour
     private void DeselectAll()
     {
         selectedUnit = null;
+        selectedCity = null;
         highlightedTiles.Clear();
         GridManager.Instance.ClearAllHighlights();
     }
