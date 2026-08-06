@@ -19,10 +19,12 @@ public class Unit : MonoBehaviour
     [Header("State")]
     public bool hasMoved;
     public bool hasAttacked;
+    public bool isAlive;
 
     private void Start()
     {
         currentHealth = maxHealth;
+        isAlive = true;
     }
 
     public void MoveTo(Tile targetTile)
@@ -52,7 +54,7 @@ public class Unit : MonoBehaviour
         }
 
         hasAttacked = true;
-        hasMoved = true; // In Polytopia, attacking ends movement
+        hasMoved = true;
     }
 
     public void TakeDamage(int damage)
@@ -82,6 +84,7 @@ public class Unit : MonoBehaviour
 
     private void Die()
     {
+        isAlive = false;
         if (currentTile != null) currentTile.currentUnit = null;
         if (owner != null) owner.units.Remove(this);
         if (homeCity != null) homeCity.units.Remove(this);

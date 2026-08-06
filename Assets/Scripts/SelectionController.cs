@@ -28,10 +28,6 @@ public class SelectionController : MonoBehaviour
         // Option A: Active Unit Action Executions
         if (selectedUnit != null)
         {
-            Debug.Log("selectedUnit" + selectedUnit);
-            Debug.Log("highlightedTiles.Count" + highlightedTiles.Count);
-            Debug.Log("clicked tile current unit" + clickedTile.currentUnit);
-            Debug.Log("!selectedUnit.hasMoved" + !selectedUnit.hasMoved);
             // Move to Empty Highlighted Tile
             if (highlightedTiles.Contains(clickedTile) && clickedTile.currentUnit == null && !selectedUnit.hasMoved)
             {
@@ -56,6 +52,17 @@ public class SelectionController : MonoBehaviour
                 {
                     Debug.Log("attack");
                     selectedUnit.Attack(targetUnit);
+
+                    Tile targetTile = targetUnit.currentTile;
+                    if (targetUnit.gameObject == null || !targetUnit.isAlive)
+                    {
+                        selectedUnit.MoveTo(targetTile);
+
+                        if (targetTile.city != null)
+                        {
+                            targetTile.city.Claim(selectedUnit.owner);
+                        }
+                    }
                     DeselectAll();
                     return;
                 }
