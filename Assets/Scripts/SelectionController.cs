@@ -1,0 +1,132 @@
+using UnityEngine;
+using System.Collections.Generic;
+
+public class SelectionController : MonoBehaviour
+{
+    private Unit selectedUnit;
+    private List<Tile> highlightedTiles = new List<Tile>();
+
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            HandleClick();
+        }
+    }
+
+    private void HandleClick()
+    {
+        Tile clickedTile = GetClickedTile();
+        if (clickedTile == null)
+        {
+            DeselectAll();
+            return;
+        }
+
+
+        // Option A: Active Unit Action Executions
+        if (selectedUnit != null)
+        {
+            Debug.Log("selectedUnit" + selectedUnit);
+            Debug.Log("highlightedTiles.Count" + highlightedTiles.Count);
+            Debug.Log("clicked tile current unit" + clickedTile.currentUnit);
+            Debug.Log("!selectedUnit.hasMoved" + !selectedUnit.hasMoved);
+            // Move to Empty Highlighted Tile
+            if (highlightedTiles.Contains(clickedTile) && clickedTile.currentUnit == null && !selectedUnit.hasMoved)
+            {
+                Debug.Log("moving to new location");
+                selectedUnit.MoveTo(clickedTile);
+
+                if (clickedTile.city != null && clickedTile.city.owner == null)
+                {
+                    Debug.Log("Claiming Village");
+                    clickedTile.city.ClaimVillage(selectedUnit.owner);
+                }
+
+                DeselectAll();
+                return;
+            }
+
+            // Attack Enemy on Highlighted Tile
+            if (highlightedTiles.Contains(clickedTile) && clickedTile.currentUnit != null)
+            {
+                Unit targetUnit = clickedTile.currentUnit;
+                if (targetUnit.owner != TurnManager.Instance.ActivePlayer && !selectedUnit.hasAttacked)
+                {
+                    selectedUnit.Attack(targetUnit);
+                    DeselectAll();
+                    return;
+                }
+            }
+        }
+
+        // Option B: Select Unit or Tile
+        DeselectAll();
+
+        if (clickedTile.currentUnit != null)
+        {
+            Debug.Log("has clicked unit");
+            Unit unit = clickedTile.currentUnit;
+            if (unit.owner == TurnManager.Instance.ActivePlayer)
+            {
+                Debug.Log("unit belongs to active player");
+                selectedUnit = unit;
+                HighlightActions(selectedUnit);
+            }
+        }
+    }
+
+    private void HighlightActions(Unit unit)
+    {
+        GridManager.Instance.ClearAllHighlights();
+        highlightedTiles.Clear();
+
+        // Highlight Valid Movement Range
+        if (!unit.hasMoved)
+        {
+            List<Tile> moveTiles = GridManager.Instance.GetTilesInRange(unit.currentTile, unit.moveRange);
+            foreach (Tile tile in moveTiles)
+            {
+                if (tile.currentUnit == null)
+                {
+                    tile.SetHighlight(true, Color.blue);
+                    highlightedTiles.Add(tile);
+                }
+            }
+        }
+
+        // Highlight Valid Attack Range
+        if (!unit.hasAttacked)
+        {
+            List<Tile> attackTiles = GridManager.Instance.GetTilesInRange(unit.currentTile, unit.attackRange);
+            foreach (Tile tile in attackTiles)
+            {
+                if (tile.currentUnit != null && tile.currentUnit.owner != unit.owner)
+                {
+                    tile.SetHighlight(true, Color.red);
+                    highlightedTiles.Add(tile);
+                }
+            }
+        }
+    }
+
+    private Tile GetClickedTile()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        // 1. Try 3D Physics Raycast (For 3D Isometric setup)
+        if (Physics.Raycast(ray, out RaycastHit hit3D))
+        {
+            return hit3D.collider.GetComponent<Tile>();
+        }
+
+        return null;
+    }
+
+    private void DeselectAll()
+    {
+        selectedUnit = null;
+        highlightedTiles.Clear();
+        GridManager.Instance.ClearAllHighlights();
+    }
+}
