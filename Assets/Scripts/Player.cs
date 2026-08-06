@@ -32,4 +32,9 @@ public class Player : MonoBehaviour
         }
         return totalIncome;
     }
+
+    public void RemoveCity(City city)
+    {
+        cities.Remove(city);
+    }
 }

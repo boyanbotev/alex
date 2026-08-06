@@ -38,13 +38,13 @@ public class SelectionController : MonoBehaviour
                 Debug.Log("moving to new location");
                 selectedUnit.MoveTo(clickedTile);
 
-                if (clickedTile.city != null && clickedTile.city.owner == null)
+                if (clickedTile.city != null && clickedTile.city.owner != selectedUnit.owner)
                 {
-                    Debug.Log("Claiming Village");
-                    clickedTile.city.ClaimVillage(selectedUnit.owner);
+                    Debug.Log("Claiming City");
+                    clickedTile.city.Claim(selectedUnit.owner);
                 }
 
-                DeselectAll();
+                HighlightActions(selectedUnit);
                 return;
             }
 
@@ -54,6 +54,7 @@ public class SelectionController : MonoBehaviour
                 Unit targetUnit = clickedTile.currentUnit;
                 if (targetUnit.owner != TurnManager.Instance.ActivePlayer && !selectedUnit.hasAttacked)
                 {
+                    Debug.Log("attack");
                     selectedUnit.Attack(targetUnit);
                     DeselectAll();
                     return;

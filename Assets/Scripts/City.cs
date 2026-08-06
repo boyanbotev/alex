@@ -60,9 +60,11 @@ public class City : MonoBehaviour
         return true;
     }
 
-    public void ClaimVillage(Player claimingPlayer)
+    public void Claim(Player claimingPlayer)
     {
-        if (owner != null) return; // Already owned by someone
+        if (owner == claimingPlayer) return;
+
+        if (owner != null) owner.RemoveCity(this);
 
         owner = claimingPlayer;
         claimingPlayer.cities.Add(this);
