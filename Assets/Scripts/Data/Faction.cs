@@ -4,5 +4,6 @@ using UnityEngine;
 public class Faction : ScriptableObject
 {
     public GameObject unitPrefab;
+    public GameObject cityPrefab;
 }
 

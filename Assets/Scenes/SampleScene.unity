@@ -452,7 +452,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 4
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -1226,7 +1226,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1b905ada9079d241a3114f693e065ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  villagePrefab: {fileID: 4072920081775810972, guid: 5fb05adc26f0823449293f965bbbecb6, type: 3}
+  villagePrefab: {fileID: 3495969668921847790, guid: c7c675e220ecf31469f5852d756bb08b, type: 3}
   startingUnitPrefab: {fileID: 2117174584716598732, guid: 4aed14eeda98a674f923cc22240fb587, type: 3}
   minCityDistance: 3
   targetCityCount: 8

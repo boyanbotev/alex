@@ -80,9 +80,7 @@ public class WorldPopulationGenerator : MonoBehaviour
             capital.cityName = $"{player.factionName} Capital";
             player.cities.Add(capital);
 
-            // Change city visuals/color if needed
-            SpriteRenderer sr = capital.GetComponent<SpriteRenderer>();
-            if (sr != null) sr.color = player.factionColor;
+            capital.SetFaction(player.faction);
 
             // 2. Spawn Starting Unit (Warrior) on top of the Capital
             GameObject unitObj = Instantiate(player.faction.unitPrefab, capital.centerTile.transform.position, Quaternion.identity);

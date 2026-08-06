@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &589369153593372233
+--- !u!1 &6839177617966685
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,48 +8,48 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 4707013306226763261}
-  - component: {fileID: 2343301254196544876}
-  - component: {fileID: 2181748165591936861}
+  - component: {fileID: 9024535435474268336}
+  - component: {fileID: 6657963562541185066}
+  - component: {fileID: 2402580100796224181}
   m_Layer: 0
-  m_Name: unclaimed city model
+  m_Name: white unit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4707013306226763261
+--- !u!4 &9024535435474268336
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 589369153593372233}
+  m_GameObject: {fileID: 6839177617966685}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.1, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0.6, z: 0}
+  m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2910814565495397160}
+  m_Father: {fileID: 2726536214355667274}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &2343301254196544876
+--- !u!33 &6657963562541185066
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 589369153593372233}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &2181748165591936861
+  m_GameObject: {fileID: 6839177617966685}
+  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &2402580100796224181
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 589369153593372233}
+  m_GameObject: {fileID: 6839177617966685}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
@@ -64,7 +64,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: d8d5fcae4ca53a048bcb3a83b22041e1, type: 2}
+  - {fileID: 2100000, guid: 526b05fed053f1c40ac403e93638644c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -86,7 +86,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &3495969668921847790
+--- !u!1 &2117174584716598732
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -94,47 +94,60 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 2910814565495397160}
-  - component: {fileID: 5050830058217926431}
+  - component: {fileID: 2726536214355667274}
+  - component: {fileID: 3107932454328343116}
+  - component: {fileID: -3665803142608108423}
   m_Layer: 0
-  m_Name: City
+  m_Name: white unit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &2910814565495397160
+--- !u!4 &2726536214355667274
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3495969668921847790}
+  m_GameObject: {fileID: 2117174584716598732}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: 0, z: 4}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4707013306226763261}
+  - {fileID: 9024535435474268336}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5050830058217926431
+--- !u!33 &3107932454328343116
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2117174584716598732}
+  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &-3665803142608108423
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3495969668921847790}
+  m_GameObject: {fileID: 2117174584716598732}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a0c2cf4c4dbc504d8ee84eb4c6b8900, type: 3}
+  m_Script: {fileID: 11500000, guid: d296e644fbdf0cd4eb18a000f08fa24f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cityName: 
+  unitName: 
   owner: {fileID: 0}
-  centerTile: {fileID: 0}
-  model: {fileID: 4707013306226763261}
-  level: 1
-  currentPopulation: 0
-  populationToLevelUp: 2
+  currentTile: {fileID: 0}
+  maxHealth: 10
+  currentHealth: 0
+  attackPower: 2
+  defensePower: 2
+  moveRange: 1
+  attackRange: 1
+  hasMoved: 0
+  hasAttacked: 0

@@ -6,6 +6,7 @@ public class City : MonoBehaviour
     public string cityName;
     public Player owner;
     public Tile centerTile;
+    public Transform model;
 
     public int level = 1;
     public int currentPopulation = 0;
@@ -70,9 +71,19 @@ public class City : MonoBehaviour
         claimingPlayer.cities.Add(this);
         cityName = $"{claimingPlayer.factionName} Town";
 
+        SetFaction(claimingPlayer.faction);
+
         // Reward player with immediate stars or level up
         claimingPlayer.AddStars(2);
 
         Debug.Log($"{claimingPlayer.factionName} captured a neutral village!");
+    }
+
+    public void SetFaction(Faction faction)
+    {
+        var cityModel = Instantiate(faction.cityPrefab, transform);
+        cityModel.transform.position = model.position;
+        Destroy(model.gameObject);
+        model = cityModel.transform;
     }
 }
