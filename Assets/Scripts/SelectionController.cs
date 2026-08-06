@@ -131,6 +131,8 @@ public class SelectionController : MonoBehaviour
                 }
             }
         }
+
+        if (highlightedTiles.Count == 0) unit.Deactivate();
     }
 
     private Tile GetClickedTile()

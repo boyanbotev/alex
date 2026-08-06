@@ -21,6 +21,10 @@ public class Unit : MonoBehaviour
     public bool hasAttacked;
     public bool isAlive;
 
+    [Header("Animation")]
+
+    [SerializeField] private Renderer render;
+
     private void Start()
     {
         currentHealth = maxHealth;
@@ -55,6 +59,7 @@ public class Unit : MonoBehaviour
 
         hasAttacked = true;
         hasMoved = true;
+        Deactivate();
     }
 
     public void TakeDamage(int damage)
@@ -95,5 +100,22 @@ public class Unit : MonoBehaviour
     {
         hasMoved = false;
         hasAttacked = false;
+        Activate(); // needs to happen at the end of turn, not before the next one
+    }
+
+    public void Activate()
+    {
+        Debug.Log("Deactivate");
+        Color color = render.material.color;
+        color.a = 1f;
+        render.material.color = color;
+    }
+
+    public void Deactivate()
+    {
+        Debug.Log("Deactivate");
+        Color color = render.material.color;
+        color.a = 0.7f;
+        render.material.color = color;
     }
 }

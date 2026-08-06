@@ -57,6 +57,7 @@ MonoBehaviour:
   unitName: 
   owner: {fileID: 0}
   currentTile: {fileID: 0}
+  homeCity: {fileID: 0}
   maxHealth: 10
   currentHealth: 0
   attackPower: 2
@@ -65,6 +66,8 @@ MonoBehaviour:
   attackRange: 1
   hasMoved: 0
   hasAttacked: 0
+  isAlive: 0
+  render: {fileID: 3496528133528533080}
 --- !u!1 &4139975531434690005
 GameObject:
   m_ObjectHideFlags: 0

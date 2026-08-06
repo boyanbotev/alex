@@ -64,6 +64,7 @@ public class City : MonoBehaviour
         // Spawned units cannot move or attack on the same turn
         unit.hasMoved = true;
         unit.hasAttacked = true;
+        unit.Deactivate();
 
         owner.units.Add(unit);
         return true;
