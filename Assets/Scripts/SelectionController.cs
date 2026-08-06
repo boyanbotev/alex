@@ -62,6 +62,7 @@ public class SelectionController : MonoBehaviour
                         {
                             targetTile.city.Claim(selectedUnit.owner);
                         }
+                        // TODO: too much nesting, separate selection logic from attack logic
                     }
                     DeselectAll();
                     return;
