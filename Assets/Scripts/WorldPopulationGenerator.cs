@@ -89,11 +89,13 @@ public class WorldPopulationGenerator : MonoBehaviour
             unit.owner = player;
             unit.currentTile = capital.centerTile;
             capital.centerTile.currentUnit = unit;
+            unit.homeCity = capital;
 
             // Note: Starting units CAN move on Turn 1
             unit.hasMoved = false;
             unit.hasAttacked = false;
 
+            capital.units.Add(unit);
             player.units.Add(unit);
         }
     }

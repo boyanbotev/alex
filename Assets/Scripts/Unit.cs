@@ -6,6 +6,7 @@ public class Unit : MonoBehaviour
     public string unitName;
     public Player owner;
     public Tile currentTile;
+    public City homeCity;
 
     [Header("Base Stats")]
     public int maxHealth = 10;
@@ -83,6 +84,7 @@ public class Unit : MonoBehaviour
     {
         if (currentTile != null) currentTile.currentUnit = null;
         if (owner != null) owner.units.Remove(this);
+        if (homeCity != null) homeCity.units.Remove(this);
         Destroy(gameObject);
     }
 

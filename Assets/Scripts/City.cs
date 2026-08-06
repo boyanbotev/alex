@@ -7,7 +7,7 @@ public class City : MonoBehaviour
     public Player owner;
     public Tile centerTile;
     public Transform model;
-
+    public List<Unit> units = new List<Unit>();
     public int level = 1;
     public int currentPopulation = 0;
     public int populationToLevelUp = 2;
@@ -40,6 +40,12 @@ public class City : MonoBehaviour
             return false;
         }
 
+        if (units.Count >= level + 1)
+        {
+            Debug.Log("City cannto create more units");
+            return false;
+        }
+
         if (!owner.SpendStars(cost))
         {
             Debug.Log("Not enough Stars!");
@@ -52,6 +58,8 @@ public class City : MonoBehaviour
         unit.owner = owner;
         unit.currentTile = centerTile;
         centerTile.currentUnit = unit;
+        unit.homeCity = this;
+        units.Add(unit);
 
         // Spawned units cannot move or attack on the same turn
         unit.hasMoved = true;
