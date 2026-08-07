@@ -82,9 +82,6 @@ public class City : MonoBehaviour
 
         SetFaction(claimingPlayer.faction);
 
-        // Reward player with immediate stars or level up
-        claimingPlayer.AddStars(2);
-
         Debug.Log($"{claimingPlayer.factionName} captured a city!");
     }
 

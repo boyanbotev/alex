@@ -1,8 +1,10 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class Player : MonoBehaviour
 {
+    public static event Action<int> OnUpdateStars;
     public string factionName;
     public Faction faction;
     public Color factionColor;
@@ -11,13 +13,18 @@ public class Player : MonoBehaviour
     public List<City> cities = new List<City>();
     public List<Unit> units = new List<Unit>();
 
-    public void AddStars(int amount) => stars += amount;
+    public void AddStars(int amount)
+    {
+        stars += amount;
+        OnUpdateStars?.Invoke(stars);
+    }
 
     public bool SpendStars(int amount)
     {
         if (stars >= amount)
         {
             stars -= amount;
+            OnUpdateStars?.Invoke(stars);
             return true;
         }
         return false;
