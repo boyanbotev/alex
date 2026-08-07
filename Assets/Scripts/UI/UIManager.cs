@@ -6,13 +6,14 @@ using UnityEngine.UI;
 public class UIManager : MonoBehaviour
 {
     [SerializeField] Button spawnButton;
+    [SerializeField] RectTransform spawnPanel;
     [SerializeField] TextMeshProUGUI starsCounter;
     public static UIManager Instance;
 
     private void Awake()
     {
         Instance = this;
-        spawnButton.gameObject.SetActive(false);
+        spawnPanel.gameObject.SetActive(false);
     }
 
     private void OnEnable()
@@ -28,7 +29,7 @@ public class UIManager : MonoBehaviour
     public void ShowSpawnButton(UnityAction action)
     {
         spawnButton.onClick.RemoveAllListeners();
-        spawnButton.gameObject.SetActive(true);
+        spawnPanel.gameObject.SetActive(true);
         spawnButton.onClick.AddListener(action);
     }
 
