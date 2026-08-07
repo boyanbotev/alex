@@ -59,7 +59,6 @@ public class Unit : MonoBehaviour
 
         hasAttacked = true;
         hasMoved = true;
-        Deactivate();
     }
 
     public void TakeDamage(int damage)
@@ -105,7 +104,6 @@ public class Unit : MonoBehaviour
 
     public void Activate()
     {
-        Debug.Log("Deactivate");
         Color color = render.material.color;
         color.a = 1f;
         render.material.color = color;
@@ -113,7 +111,6 @@ public class Unit : MonoBehaviour
 
     public void Deactivate()
     {
-        Debug.Log("Deactivate");
         Color color = render.material.color;
         color.a = 0.7f;
         render.material.color = color;

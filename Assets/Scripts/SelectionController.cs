@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
 
 public class SelectionController : MonoBehaviour
 {
@@ -90,6 +92,7 @@ public class SelectionController : MonoBehaviour
                 targetTile.city.Claim(selectedUnit.owner);
             }
         }
+        DeactivateUsedUnits(selectedUnit.owner.units);
         DeselectAll();
     }
 
@@ -104,6 +107,7 @@ public class SelectionController : MonoBehaviour
         }
 
         HighlightActions(selectedUnit);
+        DeactivateUsedUnits(selectedUnit.owner.units);
     }
 
     private void HighlightActions(Unit unit)
@@ -138,8 +142,26 @@ public class SelectionController : MonoBehaviour
                 }
             }
         }
+    }
 
-        if (highlightedTiles.Count == 0) unit.Deactivate();
+    // TODO: adjust for ranged units
+    private void DeactivateUsedUnits(List<Unit> units)
+    {
+        foreach (var unit in units)
+        {
+            if (unit.hasMoved && unit.hasAttacked) unit.Deactivate();
+            else if (unit.hasMoved)
+            {
+                List <Player> enemyPlayers = TurnManager.Instance.players.ToList(); // TODO: get the player's enemies, which will be stored
+                enemyPlayers.Remove(unit.owner);
+
+                bool hasInRangeOpponents = enemyPlayers.Any(enemyPlayer => 
+                    enemyPlayer.units.Any(u => IsWithinDistance(u.currentTile.gridPosition, unit.currentTile.gridPosition, u.attackRange))
+                );
+
+                if (!hasInRangeOpponents) unit.Deactivate();
+            }
+        }
     }
 
     private Tile GetClickedTile()
@@ -161,5 +183,15 @@ public class SelectionController : MonoBehaviour
         selectedCity = null;
         highlightedTiles.Clear();
         GridManager.Instance.ClearAllHighlights();
+    }
+
+    private bool IsWithinDistance(Vector2Int a, Vector2Int b, int maxDistance)
+    {
+        int dx = Mathf.Abs(a.x - b.x);
+        int dy = Mathf.Abs(a.y - b.y);
+
+        if (dx == 0 && dy == 0) return false;
+
+        return Mathf.Max(dx, dy) <= maxDistance;
     }
 }
