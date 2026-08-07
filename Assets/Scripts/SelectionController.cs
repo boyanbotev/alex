@@ -24,58 +24,16 @@ public class SelectionController : MonoBehaviour
             return;
         }
 
+        if (selectedUnit != null) HandleSelectedUnitActions(clickedTile);
+        SelectTileItem(clickedTile);
+    }
 
-        // Option A: Active Unit Action Executions
-        if (selectedUnit != null)
-        {
-            // Move to Empty Highlighted Tile
-            if (highlightedTiles.Contains(clickedTile) && clickedTile.currentUnit == null && !selectedUnit.hasMoved)
-            {
-                Debug.Log("moving to new location");
-                selectedUnit.MoveTo(clickedTile);
-
-                if (clickedTile.city != null && clickedTile.city.owner != selectedUnit.owner)
-                {
-                    Debug.Log("Claiming City");
-                    clickedTile.city.Claim(selectedUnit.owner);
-                }
-
-                HighlightActions(selectedUnit);
-                return;
-            }
-
-            // Attack Enemy on Highlighted Tile
-            if (highlightedTiles.Contains(clickedTile) && clickedTile.currentUnit != null)
-            {
-                Unit targetUnit = clickedTile.currentUnit;
-                if (targetUnit.owner != TurnManager.Instance.ActivePlayer && !selectedUnit.hasAttacked)
-                {
-                    Debug.Log("attack");
-                    selectedUnit.Attack(targetUnit);
-
-                    Tile targetTile = targetUnit.currentTile;
-                    if (targetUnit.gameObject == null || !targetUnit.isAlive)
-                    {
-                        selectedUnit.MoveTo(targetTile);
-
-                        if (targetTile.city != null)
-                        {
-                            targetTile.city.Claim(selectedUnit.owner);
-                        }
-                        // TODO: too much nesting, separate selection logic from attack logic
-                    }
-                    DeselectAll();
-                    return;
-                }
-            }
-        }
-
-        // Option B: Select Unit or Tile
+    private void SelectTileItem(Tile clickedTile)
+    {
         DeselectAll();
 
         if (clickedTile.currentUnit != null)
         {
-            Debug.Log("has clicked unit");
             Unit unit = clickedTile.currentUnit;
             if (unit.owner == TurnManager.Instance.ActivePlayer)
             {
@@ -94,9 +52,58 @@ public class SelectionController : MonoBehaviour
                 GridManager.Instance.ClearAllHighlights();
                 highlightedTiles.Clear();
                 UIManager.Instance.ShowSpawnButton(() => city.SpawnUnit(city.owner.faction.unitPrefab, 3));
-                // TODO: separation of concerns
             }
         }
+    }
+
+    private void HandleSelectedUnitActions(Tile clickedTile)
+    {
+        if (highlightedTiles.Contains(clickedTile) && clickedTile.currentUnit == null && !selectedUnit.hasMoved)
+        {
+            MoveTo(clickedTile);
+            return;
+        }
+
+        if (highlightedTiles.Contains(clickedTile) && clickedTile.currentUnit != null)
+        {
+            Unit targetUnit = clickedTile.currentUnit;
+            if (targetUnit.owner != TurnManager.Instance.ActivePlayer && !selectedUnit.hasAttacked)
+            {
+                Attack(targetUnit);
+                return;
+            }
+        }
+    }
+
+    private void Attack(Unit targetUnit)
+    {
+        Debug.Log("attack");
+        selectedUnit.Attack(targetUnit);
+
+        Tile targetTile = targetUnit.currentTile;
+        if (targetUnit.gameObject == null || !targetUnit.isAlive)
+        {
+            selectedUnit.MoveTo(targetTile);
+
+            if (targetTile.city != null)
+            {
+                targetTile.city.Claim(selectedUnit.owner);
+            }
+        }
+        DeselectAll();
+    }
+
+    private void MoveTo(Tile tile)
+    {
+        Debug.Log("moving to new location");
+        selectedUnit.MoveTo(tile);
+
+        if (tile.city != null)
+        {
+            tile.city.Claim(selectedUnit.owner);
+        }
+
+        HighlightActions(selectedUnit);
     }
 
     private void HighlightActions(Unit unit)
