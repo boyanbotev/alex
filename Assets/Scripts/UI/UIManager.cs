@@ -7,7 +7,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] Button spawnButton;
     public static UIManager Instance;
 
-
     private void Awake()
     {
         Instance = this;

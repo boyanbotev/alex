@@ -20,7 +20,6 @@ public class Tile : MonoBehaviour
         if (highlight != null)
         {
             highlight.gameObject.SetActive(active);
-            // TODO: get to work with materials
             highlight.gameObject.GetComponent<MeshRenderer>().material.color = color;
         }
     }

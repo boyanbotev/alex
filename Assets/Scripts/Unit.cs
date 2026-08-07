@@ -100,7 +100,7 @@ public class Unit : MonoBehaviour
     {
         hasMoved = false;
         hasAttacked = false;
-        Activate(); // needs to happen at the end of turn, not before the next one
+        Activate();
     }
 
     public void Activate()
