@@ -9,12 +9,8 @@ public class Unit : MonoBehaviour
     public City homeCity;
 
     [Header("Base Stats")]
-    public int maxHealth = 10;
     public int currentHealth;
-    public int attackPower = 2;
-    public int defensePower = 2;
-    public int moveRange = 1;
-    public int attackRange = 1;
+    public UnitData data;
 
     [Header("State")]
     public bool hasMoved;
@@ -27,7 +23,7 @@ public class Unit : MonoBehaviour
 
     private void Start()
     {
-        currentHealth = maxHealth;
+        currentHealth = data.maxHealth;
         isAlive = true;
     }
 
@@ -51,7 +47,7 @@ public class Unit : MonoBehaviour
         defender.TakeDamage(attackerDamage);
 
         // Counterattack / Retaliation if defender survives and is within attack range
-        if (defender.currentHealth > 0 && defender.attackRange >= attackRange)
+        if (defender.currentHealth > 0 && defender.data.attackRange >= data.attackRange)
         {
             int retaliationDamage = CalculateDamage(defender, this);
             TakeDamage(retaliationDamage);
@@ -76,13 +72,13 @@ public class Unit : MonoBehaviour
         // Attack Force = Attacker Attack * (Attacker Current HP / Max HP)
         // Defense Force = Defender Defense * (Defender Current HP / Max HP)
         // Damage = (Attack Force / (Attack Force + Defense Force)) * Attacker Attack * 4.5
-        float attackForce = attacker.attackPower * ((float)attacker.currentHealth / attacker.maxHealth);
-        float defenseForce = defender.defensePower * ((float)defender.currentHealth / defender.maxHealth);
+        float attackForce = attacker.data.attackPower * ((float)attacker.currentHealth / attacker.data.maxHealth);
+        float defenseForce = defender.data.defensePower * ((float)defender.currentHealth / defender.data.maxHealth);
         float totalForce = attackForce + defenseForce;
 
         if (totalForce == 0) return 0;
 
-        float rawDamage = (attackForce / totalForce) * attacker.attackPower * 4.5f;
+        float rawDamage = (attackForce / totalForce) * attacker.data.attackPower * 4.5f;
         return Mathf.Max(1, Mathf.RoundToInt(rawDamage));
     }
 

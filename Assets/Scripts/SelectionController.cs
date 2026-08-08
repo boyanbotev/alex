@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 
 public class SelectionController : MonoBehaviour
 {
@@ -83,7 +82,7 @@ public class SelectionController : MonoBehaviour
         selectedUnit.Attack(targetUnit);
 
         Tile targetTile = targetUnit.currentTile;
-        if (targetUnit.gameObject == null || !targetUnit.isAlive)
+        if (selectedUnit.data.attackRange == 1 && (targetUnit.gameObject == null || !targetUnit.isAlive))
         {
             selectedUnit.MoveTo(targetTile);
 
@@ -118,7 +117,7 @@ public class SelectionController : MonoBehaviour
         // Highlight Valid Movement Range
         if (!unit.hasMoved)
         {
-            List<Tile> moveTiles = GridManager.Instance.GetTilesInRange(unit.currentTile, unit.moveRange);
+            List<Tile> moveTiles = GridManager.Instance.GetTilesInRange(unit.currentTile, unit.data.moveRange);
             foreach (Tile tile in moveTiles)
             {
                 if (tile.currentUnit == null)
@@ -132,7 +131,7 @@ public class SelectionController : MonoBehaviour
         // Highlight Valid Attack Range
         if (!unit.hasAttacked)
         {
-            List<Tile> attackTiles = GridManager.Instance.GetTilesInRange(unit.currentTile, unit.attackRange);
+            List<Tile> attackTiles = GridManager.Instance.GetTilesInRange(unit.currentTile, unit.data.attackRange);
             foreach (Tile tile in attackTiles)
             {
                 if (tile.currentUnit != null && tile.currentUnit.owner != unit.owner)
@@ -156,7 +155,7 @@ public class SelectionController : MonoBehaviour
                 enemyPlayers.Remove(unit.owner);
 
                 bool hasInRangeOpponents = enemyPlayers.Any(enemyPlayer => 
-                    enemyPlayer.units.Any(u => IsWithinDistance(u.currentTile.gridPosition, unit.currentTile.gridPosition, u.attackRange))
+                    enemyPlayer.units.Any(u => IsWithinDistance(u.currentTile.gridPosition, unit.currentTile.gridPosition, u.data.attackRange))
                 );
 
                 if (!hasInRangeOpponents) unit.Deactivate();

@@ -58,12 +58,8 @@ MonoBehaviour:
   owner: {fileID: 0}
   currentTile: {fileID: 0}
   homeCity: {fileID: 0}
-  maxHealth: 10
   currentHealth: 0
-  attackPower: 2
-  defensePower: 2
-  moveRange: 1
-  attackRange: 1
+  data: {fileID: 11400000, guid: b67253c5db2d09d4688753569fe1d629, type: 2}
   hasMoved: 0
   hasAttacked: 0
   isAlive: 0
