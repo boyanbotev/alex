@@ -43,14 +43,18 @@ public class Unit : MonoBehaviour
         if (hasAttacked) return;
 
         // Calculate and inflict damage to defender
-        int attackerDamage = CalculateDamage(this, defender);
-        defender.TakeDamage(attackerDamage);
+        (int, int) damages = CalculateDamage(this, defender);
+        int attackDamage = damages.Item1;
+        int retaliationDamage = damages.Item2;
 
-        // Counterattack / Retaliation if defender survives and is within attack range
+        defender.TakeDamage(damages.Item1);
+
+        Debug.Log("attacker damage" + damages.Item1);
+
         if (defender.currentHealth > 0 && defender.data.attackRange >= data.attackRange)
         {
-            int retaliationDamage = CalculateDamage(defender, this);
             TakeDamage(retaliationDamage);
+            Debug.Log("retaliation damage " + retaliationDamage);
         }
 
         hasAttacked = true;
@@ -66,20 +70,21 @@ public class Unit : MonoBehaviour
         }
     }
 
-    private int CalculateDamage(Unit attacker, Unit defender)
+    private (int, int) CalculateDamage(Unit attacker, Unit defender)
     {
-        // Polytopia Combat Formula:
-        // Attack Force = Attacker Attack * (Attacker Current HP / Max HP)
-        // Defense Force = Defender Defense * (Defender Current HP / Max HP)
-        // Damage = (Attack Force / (Attack Force + Defense Force)) * Attacker Attack * 4.5
+        int attackDamage;
+        int defenseDamage;
         float attackForce = attacker.data.attackPower * ((float)attacker.currentHealth / attacker.data.maxHealth);
         float defenseForce = defender.data.defensePower * ((float)defender.currentHealth / defender.data.maxHealth);
         float totalForce = attackForce + defenseForce;
 
-        if (totalForce == 0) return 0;
-
         float rawDamage = (attackForce / totalForce) * attacker.data.attackPower * 4.5f;
-        return Mathf.Max(1, Mathf.RoundToInt(rawDamage));
+        attackDamage = Mathf.Max(1, Mathf.RoundToInt(rawDamage));
+
+        float rawDefence = (defenseForce / totalForce) * defender.data.defensePower * 4.5f;
+        defenseDamage = Mathf.Max(1, Mathf.RoundToInt(rawDefence));
+
+        return (attackDamage, defenseDamage);
     }
 
     private void Die()

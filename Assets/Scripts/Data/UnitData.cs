@@ -9,4 +9,5 @@ public class UnitData : ScriptableObject
     public  int defensePower = 2;
     public int moveRange = 1;
     public int attackRange = 1;
+    public string[] skills;
 }

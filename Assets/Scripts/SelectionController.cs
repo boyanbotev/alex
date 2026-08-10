@@ -38,7 +38,6 @@ public class SelectionController : MonoBehaviour
             Unit unit = clickedTile.currentUnit;
             if (unit.owner == TurnManager.Instance.ActivePlayer)
             {
-                Debug.Log("unit belongs to active player");
                 selectedUnit = unit;
                 HighlightActions(selectedUnit);
             }
@@ -79,7 +78,6 @@ public class SelectionController : MonoBehaviour
 
     private void Attack(Unit targetUnit)
     {
-        Debug.Log("attack");
         selectedUnit.Attack(targetUnit);
 
         Tile targetTile = targetUnit.currentTile;
@@ -101,7 +99,6 @@ public class SelectionController : MonoBehaviour
 
     private void MoveTo(Tile tile)
     {
-        Debug.Log("moving to new location");
         selectedUnit.MoveTo(tile);
 
         if (tile.city != null)
@@ -147,7 +144,6 @@ public class SelectionController : MonoBehaviour
         }
     }
 
-    // TODO: adjust for ranged units
     private void DeactivateUsedUnits(List<Unit> units)
     {
         foreach (var unit in units)
