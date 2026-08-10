@@ -18,3 +18,4 @@ MonoBehaviour:
   defensePower: 3
   moveRange: 1
   attackRange: 1
+  skills: 00000000

@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 public class Unit : MonoBehaviour
@@ -16,6 +17,7 @@ public class Unit : MonoBehaviour
     public bool hasMoved;
     public bool hasAttacked;
     public bool isAlive;
+    public bool isActive;
 
     [Header("Animation")]
 
@@ -29,6 +31,7 @@ public class Unit : MonoBehaviour
 
     public void MoveTo(Tile targetTile)
     {
+        if (!isActive) return;
         if (currentTile != null) currentTile.currentUnit = null;
 
         currentTile = targetTile;
@@ -36,11 +39,15 @@ public class Unit : MonoBehaviour
         transform.position = targetTile.transform.position; // Add smoothing/animation here if desired
 
         hasMoved = true;
+        if (data.skills.Any(s => s == Skill.Static))
+        {
+            isActive = false;
+        }
     }
 
     public void Attack(Unit defender)
     {
-        if (hasAttacked) return;
+        if (hasAttacked || !isActive) return;
 
         (int, int) damages = CalculateDamage(this, defender);
         int attackDamage = damages.Item1;
@@ -110,6 +117,7 @@ public class Unit : MonoBehaviour
         Color color = render.material.color;
         color.a = 1f;
         render.material.color = color;
+        isActive = true;
     }
 
     public void Deactivate()
@@ -117,6 +125,7 @@ public class Unit : MonoBehaviour
         Color color = render.material.color;
         color.a = 0.7f;
         render.material.color = color;
+        isActive = false;
     }
 
     private bool IsWithinDistance(Vector2Int a, Vector2Int b, int maxDistance)

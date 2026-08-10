@@ -115,6 +115,8 @@ public class SelectionController : MonoBehaviour
         GridManager.Instance.ClearAllHighlights();
         highlightedTiles.Clear();
 
+        if (!unit.isActive) return;
+
         // Highlight Valid Movement Range
         if (!unit.hasMoved)
         {
@@ -148,7 +150,7 @@ public class SelectionController : MonoBehaviour
     {
         foreach (var unit in units)
         {
-            if (unit.hasMoved && unit.hasAttacked) unit.Deactivate();
+            if ((unit.hasMoved && unit.hasAttacked) || !unit.isActive) unit.Deactivate();
             else if (unit.hasMoved)
             {
                 List <Player> enemyPlayers = TurnManager.Instance.players.ToList(); // TODO: get the player's enemies, which will be stored
