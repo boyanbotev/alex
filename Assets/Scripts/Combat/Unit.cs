@@ -58,6 +58,9 @@ public class Unit : MonoBehaviour
 
         hasAttacked = true;
         hasMoved = true;
+
+        Debug.Log("attacker health" + currentHealth);
+        Debug.Log("defender health" + defender.currentHealth);
     }
 
     public void TakeDamage(int damage)
@@ -78,10 +81,10 @@ public class Unit : MonoBehaviour
         float totalForce = attackForce + defenseForce;
 
         float rawDamage = (attackForce / totalForce) * attacker.data.attackPower * 4.5f;
-        attackDamage = Mathf.Max(1, Mathf.RoundToInt(rawDamage + 0.5f));
+        attackDamage = Mathf.Max(1, Mathf.FloorToInt(rawDamage + 0.5f));
 
         float rawDefence = (defenseForce / totalForce) * defender.data.defensePower * 4.5f;
-        defenseDamage = Mathf.Max(1, Mathf.RoundToInt(rawDefence + 0.5f));
+        defenseDamage = Mathf.Max(1, Mathf.FloorToInt(rawDefence + 0.5f));
 
         return (attackDamage, defenseDamage);
     }
