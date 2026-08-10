@@ -98,7 +98,7 @@ GameObject:
   - component: {fileID: 3107932454328343116}
   - component: {fileID: -3665803142608108423}
   m_Layer: 0
-  m_Name: white unit
+  m_Name: white warrior
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -145,7 +145,7 @@ MonoBehaviour:
   currentTile: {fileID: 0}
   homeCity: {fileID: 0}
   currentHealth: 0
-  data: {fileID: 11400000, guid: 69b1f1849c019a346969058b5c2df1fe, type: 2}
+  data: {fileID: 11400000, guid: b67253c5db2d09d4688753569fe1d629, type: 2}
   hasMoved: 0
   hasAttacked: 0
   isAlive: 0

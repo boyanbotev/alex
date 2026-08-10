@@ -52,7 +52,8 @@ public class SelectionController : MonoBehaviour
                 selectedCity = city;
                 GridManager.Instance.ClearAllHighlights();
                 highlightedTiles.Clear();
-                UIManager.Instance.ShowSpawnButton(() => city.SpawnUnit(city.owner.faction.unitPrefab, 3));
+
+                UIManager.Instance.ShowSpawnButtons(TurnManager.Instance.ActivePlayer.faction.availableUnits, city);
             }
         }
     }
@@ -82,7 +83,9 @@ public class SelectionController : MonoBehaviour
         selectedUnit.Attack(targetUnit);
 
         Tile targetTile = targetUnit.currentTile;
-        if (selectedUnit.data.attackRange == 1 && (targetUnit.gameObject == null || !targetUnit.isAlive))
+        bool isMeleeAttack = selectedUnit.data.attackRange == 1;
+
+        if (isMeleeAttack && (targetUnit.gameObject == null || !targetUnit.isAlive))
         {
             selectedUnit.MoveTo(targetTile);
 
@@ -91,6 +94,7 @@ public class SelectionController : MonoBehaviour
                 targetTile.city.Claim(selectedUnit.owner);
             }
         }
+
         DeactivateUsedUnits(selectedUnit.owner.units);
         DeselectAll();
     }

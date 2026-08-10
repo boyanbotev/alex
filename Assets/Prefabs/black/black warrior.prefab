@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3107932454328343116}
   - component: {fileID: -3665803142608108423}
   m_Layer: 0
-  m_Name: black unit
+  m_Name: black warrior
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
