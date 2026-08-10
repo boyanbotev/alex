@@ -159,7 +159,7 @@ public class SelectionController : MonoBehaviour
                 enemyPlayers.Remove(unit.owner);
 
                 bool hasInRangeOpponents = enemyPlayers.Any(enemyPlayer => 
-                    enemyPlayer.units.Any(u => IsWithinDistance(u.currentTile.gridPosition, unit.currentTile.gridPosition, u.data.attackRange))
+                    enemyPlayer.units.Any(u => IsWithinDistance(u.currentTile.gridPosition, unit.currentTile.gridPosition, unit.data.attackRange))
                 );
 
                 if (!hasInRangeOpponents) unit.Deactivate();
