@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a5cc17c9ad383174aa741bc5951e2bfa, type: 3}
-  m_Name: Cavalry
+  m_Name: Catapult
   m_EditorClassIdentifier: 
-  cost: 3
+  cost: 8
   maxHealth: 10
-  attackPower: 2
-  defensePower: 1
-  moveRange: 2
-  attackRange: 1
+  attackPower: 4
+  defensePower: 0
+  moveRange: 1
+  attackRange: 3
