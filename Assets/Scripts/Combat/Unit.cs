@@ -42,16 +42,15 @@ public class Unit : MonoBehaviour
     {
         if (hasAttacked) return;
 
-        // Calculate and inflict damage to defender
         (int, int) damages = CalculateDamage(this, defender);
         int attackDamage = damages.Item1;
         int retaliationDamage = damages.Item2;
 
-        defender.TakeDamage(damages.Item1);
+        defender.TakeDamage(attackDamage);
 
-        Debug.Log("attacker damage" + damages.Item1);
+        Debug.Log("attacker damage" + attackDamage);
 
-        if (defender.currentHealth > 0 && defender.data.attackRange >= data.attackRange)
+        if (defender.currentHealth > 0 && IsWithinDistance(defender.currentTile.gridPosition, currentTile.gridPosition, defender.data.attackRange))
         {
             TakeDamage(retaliationDamage);
             Debug.Log("retaliation damage " + retaliationDamage);
@@ -79,10 +78,10 @@ public class Unit : MonoBehaviour
         float totalForce = attackForce + defenseForce;
 
         float rawDamage = (attackForce / totalForce) * attacker.data.attackPower * 4.5f;
-        attackDamage = Mathf.Max(1, Mathf.RoundToInt(rawDamage));
+        attackDamage = Mathf.Max(1, Mathf.RoundToInt(rawDamage + 0.5f));
 
         float rawDefence = (defenseForce / totalForce) * defender.data.defensePower * 4.5f;
-        defenseDamage = Mathf.Max(1, Mathf.RoundToInt(rawDefence));
+        defenseDamage = Mathf.Max(1, Mathf.RoundToInt(rawDefence + 0.5f));
 
         return (attackDamage, defenseDamage);
     }
@@ -115,5 +114,15 @@ public class Unit : MonoBehaviour
         Color color = render.material.color;
         color.a = 0.7f;
         render.material.color = color;
+    }
+
+    private bool IsWithinDistance(Vector2Int a, Vector2Int b, int maxDistance)
+    {
+        int dx = Mathf.Abs(a.x - b.x);
+        int dy = Mathf.Abs(a.y - b.y);
+
+        if (dx == 0 && dy == 0) return false;
+
+        return Mathf.Max(dx, dy) <= maxDistance;
     }
 }
