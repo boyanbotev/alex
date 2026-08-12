@@ -34,9 +34,9 @@ public class GridGenerator : MonoBehaviour
         GenerateGrid();
 
         // Trigger World Population after grid is ready
-        if (WorldPopulationGenerator.Instance != null)
+        if (WorldPopulationManager.Instance != null)
         {
-            WorldPopulationGenerator.Instance.PopulateWorld();
+            WorldPopulationManager.Instance.PopulateWorld();
         }
     }
 

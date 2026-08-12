@@ -1,5 +1,6 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class TurnManager : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class TurnManager : MonoBehaviour
     public int turnNumber = 1;
 
     public Player ActivePlayer => players[activePlayerIndex];
+    public TurnAI ai;
 
     private void Awake()
     {
@@ -35,16 +37,21 @@ public class TurnManager : MonoBehaviour
 
     private void StartTurn(Player player)
     {
-        // Add star income
         int income = player.CalculateTurnIncome();
         player.AddStars(income);
 
-        // Reset units for the new active player
         foreach (var unit in player.units)
-        {
             unit.ResetTurn();
-        }
+
+        if (player.isAI)
+            StartCoroutine(RunAITurn());
 
         Debug.Log($"Turn {turnNumber}: Start of {player.factionName}'s turn. Current Stars: {player.stars}");
+    }
+
+    private IEnumerator RunAITurn()
+    {
+        yield return ai.PlayTurn();
+        EndTurn();
     }
 }

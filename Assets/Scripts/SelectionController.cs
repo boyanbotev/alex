@@ -10,6 +10,11 @@ public class SelectionController : MonoBehaviour
 
     private void Update()
     {
+        if (TurnManager.Instance.ActivePlayer.isAI)
+        {
+            return;
+        }
+
         if (Input.GetMouseButtonDown(0))
         {
             HandleClick();
@@ -157,7 +162,7 @@ public class SelectionController : MonoBehaviour
                 enemyPlayers.Remove(unit.owner);
 
                 bool hasInRangeOpponents = enemyPlayers.Any(enemyPlayer => 
-                    enemyPlayer.units.Any(u => IsWithinDistance(u.currentTile.gridPosition, unit.currentTile.gridPosition, unit.data.attackRange))
+                    enemyPlayer.units.Any(u => Utils.IsWithinDistance(u.currentTile.gridPosition, unit.currentTile.gridPosition, unit.data.attackRange))
                 );
 
                 if (!hasInRangeOpponents) unit.Deactivate();
@@ -184,15 +189,5 @@ public class SelectionController : MonoBehaviour
         selectedCity = null;
         highlightedTiles.Clear();
         GridManager.Instance.ClearAllHighlights();
-    }
-
-    private bool IsWithinDistance(Vector2Int a, Vector2Int b, int maxDistance)
-    {
-        int dx = Mathf.Abs(a.x - b.x);
-        int dy = Mathf.Abs(a.y - b.y);
-
-        if (dx == 0 && dy == 0) return false;
-
-        return Mathf.Max(dx, dy) <= maxDistance;
     }
 }

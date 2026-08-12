@@ -1,13 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class WorldPopulationGenerator : MonoBehaviour
+public class WorldPopulationManager : MonoBehaviour
 {
-    public static WorldPopulationGenerator Instance;
+    public static WorldPopulationManager Instance;
 
     [Header("Prefabs")]
     public GameObject villagePrefab;
-    public GameObject startingUnitPrefab;
 
     [Header("Population Settings")]
     [Tooltip("Minimum grid distance between any two cities")]

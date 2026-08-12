@@ -510,6 +510,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &750415852
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 750415853}
+  - component: {fileID: 750415854}
+  m_Layer: 0
+  m_Name: Enemy AI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &750415853
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 750415852}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 683.3334, y: 75, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &750415854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 750415852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d026062898eff1d468aaa3e9bc76c0c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  controlledPlayer: {fileID: 1987367075}
+  cityPullWeight: 2
 --- !u!1 &778516886
 GameObject:
   m_ObjectHideFlags: 0
@@ -558,6 +604,7 @@ MonoBehaviour:
   faction: {fileID: 11400000, guid: 8faff328133394f4db3022a2fdee83c7, type: 2}
   factionColor: {r: 1, g: 0, b: 0, a: 1}
   stars: 5
+  isAI: 0
   cities: []
   units: []
 --- !u!1 &832575517
@@ -1161,11 +1208,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1456280619}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1b905ada9079d241a3114f693e065ab, type: 3}
+  m_Script: {fileID: 11500000, guid: a396b260ece78664ebcc7d02de3f9902, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   villagePrefab: {fileID: 3495969668921847790, guid: c7c675e220ecf31469f5852d756bb08b, type: 3}
-  startingUnitPrefab: {fileID: 2117174584716598732, guid: 4aed14eeda98a674f923cc22240fb587, type: 3}
   minCityDistance: 3
   targetCityCount: 8
   allCities: []
@@ -1218,6 +1264,7 @@ MonoBehaviour:
   - {fileID: 1987367075}
   activePlayerIndex: 0
   turnNumber: 1
+  ai: {fileID: 750415854}
 --- !u!4 &1461332122
 Transform:
   m_ObjectHideFlags: 0
@@ -1710,6 +1757,7 @@ MonoBehaviour:
   faction: {fileID: 11400000, guid: 3c65617266f15f74198d98636dfaa38f, type: 2}
   factionColor: {r: 0.014575456, g: 0.59119487, b: 0.0130136255, a: 1}
   stars: 5
+  isAI: 1
   cities: []
   units: []
 --- !u!1660057539 &9223372036854775807
@@ -1728,3 +1776,4 @@ SceneRoots:
   - {fileID: 1852039466}
   - {fileID: 678879941}
   - {fileID: 1907666302}
+  - {fileID: 750415853}

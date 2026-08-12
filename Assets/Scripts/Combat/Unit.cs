@@ -38,7 +38,7 @@ public class Unit : MonoBehaviour
 
         currentTile = targetTile;
         targetTile.currentUnit = this;
-        transform.position = targetTile.transform.position; // Add smoothing/animation here if desired
+        transform.position = targetTile.transform.position;
 
         hasMoved = true;
         if (data.skills.Any(s => s == Skill.Static))
@@ -59,7 +59,7 @@ public class Unit : MonoBehaviour
 
         Debug.Log("attacker damage" + attackDamage);
 
-        if (defender.currentHealth > 0 && IsWithinDistance(defender.currentTile.gridPosition, currentTile.gridPosition, defender.data.attackRange))
+        if (defender.currentHealth > 0 && Utils.IsWithinDistance(defender.currentTile.gridPosition, currentTile.gridPosition, defender.data.attackRange))
         {
             TakeDamage(retaliationDamage);
             Debug.Log("retaliation damage " + retaliationDamage);
@@ -67,9 +67,6 @@ public class Unit : MonoBehaviour
 
         hasAttacked = true;
         hasMoved = true;
-
-        Debug.Log("attacker health" + currentHealth);
-        Debug.Log("defender health" + defender.currentHealth);
     }
 
     public void TakeDamage(int damage)
@@ -83,7 +80,7 @@ public class Unit : MonoBehaviour
         }
     }
 
-    private (int, int) CalculateDamage(Unit attacker, Unit defender)
+    public (int, int) CalculateDamage(Unit attacker, Unit defender)
     {
         int attackDamage;
         int defenseDamage;
@@ -130,15 +127,5 @@ public class Unit : MonoBehaviour
         color.a = 0.7f;
         render.material.color = color;
         isActive = false;
-    }
-
-    private bool IsWithinDistance(Vector2Int a, Vector2Int b, int maxDistance)
-    {
-        int dx = Mathf.Abs(a.x - b.x);
-        int dy = Mathf.Abs(a.y - b.y);
-
-        if (dx == 0 && dy == 0) return false;
-
-        return Mathf.Max(dx, dy) <= maxDistance;
     }
 }
