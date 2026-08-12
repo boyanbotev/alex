@@ -22,10 +22,12 @@ public class Unit : MonoBehaviour
     [Header("Animation")]
 
     [SerializeField] private Renderer render;
+    [SerializeField] HealthUI healthUI;
 
     private void Start()
     {
         currentHealth = data.maxHealth;
+        healthUI.Set(currentHealth);
         isAlive = true;
     }
 
@@ -73,6 +75,8 @@ public class Unit : MonoBehaviour
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
+        healthUI?.Set(currentHealth);
+
         if (currentHealth <= 0)
         {
             Die();
