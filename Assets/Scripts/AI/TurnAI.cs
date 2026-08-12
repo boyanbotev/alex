@@ -28,6 +28,9 @@ public class TurnAI : MonoBehaviour
             yield return Execute(best.Value);
             active.RemoveAll(u => !u.isAlive || !u.isActive || (u.hasMoved && u.hasAttacked));
         }
+
+        HandleCitySpawns();
+
         Debug.Log("finished");
     }
 
@@ -128,6 +131,45 @@ public class TurnAI : MonoBehaviour
             if (d < bestDist) { bestDist = d; nearest = city; }
         }
         return (nearest, bestDist);
+    }
+
+    private void HandleCitySpawns()
+    {
+        List<City> spawnCities = controlledPlayer.cities.FindAll(c => c.centerTile.currentUnit == null && c.units.Count < c.level + 1);
+        foreach (City city in spawnCities)
+        {
+            FactionUnit unit = BestAffordableUnit(city, spawnCities.Count);
+            GameObject unitPrefab = unit.prefab;
+            if (unitPrefab != null)
+            {
+                int cost = unit.unitData.cost;
+
+                if (controlledPlayer.stars >= cost)
+                {
+                    city.SpawnUnit(unitPrefab, cost);
+                }
+            }
+        }
+    }
+
+    private FactionUnit BestAffordableUnit(City city, int spawnCitiesCount)
+    {
+        FactionUnit best = null;
+        float bestScore = float.MinValue;
+
+        int budget = Mathf.RoundToInt(controlledPlayer.stars / spawnCitiesCount);
+
+        // actually it should spawn units to counter your most nearby units
+        // nope. it should score units based on how useful they would be as counters
+
+        foreach (FactionUnit candidate in controlledPlayer.faction.availableUnits)
+        {
+            if (candidate.unitData.cost > controlledPlayer.stars) continue;
+
+            if (candidate.unitData.cost > bestScore) { bestScore = candidate.unitData.cost; best = candidate; }
+        }
+
+        return best;
     }
 
     private IEnumerator Execute(CandidateAction a)
