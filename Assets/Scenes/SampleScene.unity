@@ -406,8 +406,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6aa5f779daaed74c87d05e547ce3960, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 5
-  height: 5
+  width: 10
+  height: 7
   tileSize: 1
   is3DIsometric: 1
   fieldTilePrefab: {fileID: 4525404964014115685, guid: 23ffd742d51009245ae233184336cca1, type: 3}
@@ -555,7 +555,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controlledPlayer: {fileID: 1987367075}
-  cityPullWeight: 2
+  cityPullWeight: 4
 --- !u!1 &778516886
 GameObject:
   m_ObjectHideFlags: 0
@@ -1032,8 +1032,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 111e61dc168ed3148bd096a2fea6419c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 5
-  height: 5
+  width: 10
+  height: 7
 --- !u!4 &1308592311
 Transform:
   m_ObjectHideFlags: 0

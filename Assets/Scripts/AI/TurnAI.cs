@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class TurnAI : MonoBehaviour
@@ -139,9 +140,10 @@ public class TurnAI : MonoBehaviour
         foreach (City city in spawnCities)
         {
             FactionUnit unit = BestAffordableUnit(city, spawnCities.Count);
-            GameObject unitPrefab = unit.prefab;
-            if (unitPrefab != null)
+
+            if (unit != null)
             {
+                GameObject unitPrefab = unit.prefab;
                 int cost = unit.unitData.cost;
 
                 if (controlledPlayer.stars >= cost)
@@ -159,8 +161,14 @@ public class TurnAI : MonoBehaviour
 
         int budget = Mathf.RoundToInt(controlledPlayer.stars / spawnCitiesCount);
 
-        // actually it should spawn units to counter your most nearby units
-        // nope. it should score units based on how useful they would be as counters
+        // nope. it should score units based on how useful they would be as counters to existing units,
+        // multiplied by how close they are to the city
+
+        // and by whether there are untaken cities, in which case, cavalry is more appropriate
+
+        // and by what the action's play style is
+
+        // perhaps it could randomly pick between a few different unit types at the low level, eg. cavalry and warrior
 
         foreach (FactionUnit candidate in controlledPlayer.faction.availableUnits)
         {
@@ -176,7 +184,14 @@ public class TurnAI : MonoBehaviour
     {
         bool visible = IsVisibleToLocalPlayer(a);
 
-        if (a.moveTile != a.unit.currentTile) a.unit.MoveTo(a.moveTile);
+        if (a.moveTile != a.unit.currentTile)
+        {
+            a.unit.MoveTo(a.moveTile);
+            if (a.moveTile.city != null)
+            {
+                a.moveTile.city.Claim(a.unit.owner);
+            }
+        }
         if (a.kind == ActionKind.Attack) a.unit.Attack(a.target);
 
         if (visible)

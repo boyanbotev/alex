@@ -17,7 +17,7 @@ MonoBehaviour:
   startingUnit: {fileID: 11400000, guid: 1a3ce859ab36bf94788af3783c902bd1, type: 2}
   availableUnits:
   - {fileID: 11400000, guid: 1a3ce859ab36bf94788af3783c902bd1, type: 2}
-  - {fileID: 11400000, guid: 4efcc43561d7c81429b9c168f281bda6, type: 2}
   - {fileID: 11400000, guid: ee548fa2e3f59134ba5c3fe293a1d965, type: 2}
+  - {fileID: 11400000, guid: 4efcc43561d7c81429b9c168f281bda6, type: 2}
   - {fileID: 11400000, guid: 5b27243ea91a6264db84115c3874736a, type: 2}
   - {fileID: 11400000, guid: f0478dc086a5a9f4f8f536e9140d64b4, type: 2}
