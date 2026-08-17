@@ -1,4 +1,4 @@
-public enum ActionKind { MoveOnly, Attack }
+public enum ActionKind { MoveOnly, Attack, DoNothing }
 
 public struct CandidateAction
 {

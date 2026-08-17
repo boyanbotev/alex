@@ -44,9 +44,6 @@ public class TurnAI : MonoBehaviour
                 .OrderByDescending(a => a.score)
                 .FirstOrDefault();
 
-            if (best.score <= 0f)
-                break;
-
             yield return Execute(best);
         }
 
@@ -96,6 +93,17 @@ public class TurnAI : MonoBehaviour
                     target = null,
                     kind = ActionKind.MoveOnly,
                     score = score
+                };
+            }
+            else
+            {
+                yield return new CandidateAction
+                {
+                    unit = unit,
+                    moveTile = unit.currentTile,
+                    target = null,
+                    kind = ActionKind.DoNothing,
+                    score = ScoreMove(unit, unit.currentTile, unit.currentTile)
                 };
             }
 
@@ -335,6 +343,12 @@ public class TurnAI : MonoBehaviour
         bool meleeAttack =
             action.kind == ActionKind.Attack &&
             action.unit.data.attackRange == 1;
+
+        if (action.kind == ActionKind.DoNothing)
+        {
+            action.unit.Deactivate();
+            yield return new WaitForSeconds(0.35f);
+        }
 
         // move first
         if (action.moveTile != action.unit.currentTile)
