@@ -83,10 +83,21 @@ public class TurnAI : MonoBehaviour
         var (dmg, retaliation) = PredictDamage(unit, target);
         bool kills = target.currentHealth - dmg <= 0;
 
-        float score = kills ? target.data.cost : dmg;
-        if (!kills) score -= retaliation * 0.5f;
-        if (kills && target.homeCity != null) score += 5f;
-        if (ExposesToLethalCounter(unit, from, kills ? target : null)) score -= unit.data.cost;
+        float score = kills ? target.data.cost + dmg : dmg;
+
+        bool canRetaliate =
+            !kills &&
+            Utils.GridDistance(
+                from.gridPosition,
+                target.currentTile.gridPosition
+            ) <= target.data.attackRange;
+
+        if (canRetaliate) 
+            score -= retaliation * 0.5f;
+
+        if (ExposesToLethalCounter(unit, from, kills ? target : null)) 
+            score -= unit.data.cost;
+
         return score;
     }
 
@@ -168,8 +179,6 @@ public class TurnAI : MonoBehaviour
 
         // and by what the action's play style is
 
-        // perhaps it could randomly pick between a few different unit types at the low level, eg. cavalry and warrior
-
         foreach (FactionUnit candidate in controlledPlayer.faction.availableUnits)
         {
             if (candidate.unitData.cost > controlledPlayer.stars) continue;
@@ -184,6 +193,8 @@ public class TurnAI : MonoBehaviour
     {
         bool visible = IsVisibleToLocalPlayer(a);
 
+        Tile targetTile = a.target?.currentTile;
+
         if (a.moveTile != a.unit.currentTile)
         {
             a.unit.MoveTo(a.moveTile);
@@ -192,7 +203,20 @@ public class TurnAI : MonoBehaviour
                 a.moveTile.city.Claim(a.unit.owner);
             }
         }
-        if (a.kind == ActionKind.Attack) a.unit.Attack(a.target);
+        if (a.kind == ActionKind.Attack)
+        {
+            bool melee = a.unit.data.attackRange == 1;
+
+            a.unit.Attack(a.target);
+
+            if (melee && !a.target.isAlive && targetTile != null)
+            {
+                a.unit.MoveTo(targetTile);
+
+                if (targetTile.city != null)
+                    targetTile.city.Claim(a.unit.owner);
+            }
+        }
 
         if (visible)
             yield return new WaitForSeconds(0.35f);
