@@ -555,7 +555,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controlledPlayer: {fileID: 1987367075}
-  cityPullWeight: 4
+  cityCaptureWeight: 40
+  cityProgressWeight: 3
+  damageWeight: 1
+  killWeight: 5
+  retaliationWeight: 1
+  survivalWeight: 4
+  positionWeight: 1
+  counterWeight: 8
+  nearbyEnemyWeight: 3
+  nearbyCityWeight: 2
+  cityDefenseWeight: 5
+  expansionWeight: 6
+  aggression: 1
+  expansionism: 1
+  defence: 1
 --- !u!1 &778516886
 GameObject:
   m_ObjectHideFlags: 0

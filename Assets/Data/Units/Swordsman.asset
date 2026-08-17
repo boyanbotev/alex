@@ -18,3 +18,15 @@ MonoBehaviour:
   defensePower: 3
   moveRange: 1
   attackRange: 1
+  skills: 
+  counters:
+  - unit: {fileID: 11400000, guid: 69b1f1849c019a346969058b5c2df1fe, type: 2}
+    strength: -1
+  - unit: {fileID: 11400000, guid: b3fdb3d1aafce3c46b0d909f04baa13a, type: 2}
+    strength: -1
+  - unit: {fileID: 11400000, guid: 8f429f719567c9647b426f8f9872f96e, type: 2}
+    strength: 2
+  - unit: {fileID: 11400000, guid: 1b4d97fd2d7b5314fadb11f1a30f2101, type: 2}
+    strength: -1
+  - unit: {fileID: 11400000, guid: b67253c5db2d09d4688753569fe1d629, type: 2}
+    strength: 1.5

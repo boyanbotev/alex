@@ -1,167 +1,398 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class TurnAI : MonoBehaviour
 {
     public Player controlledPlayer;
-    [SerializeField] private float cityPullWeight = 2f;
+
+    [Header("Strategic Weights")]
+    [SerializeField] private float cityCaptureWeight = 40f;
+    [SerializeField] private float cityProgressWeight = 3f;
+    [SerializeField] private float damageWeight = 1f;
+    [SerializeField] private float killWeight = 5f;
+    [SerializeField] private float retaliationWeight = 1f;
+    [SerializeField] private float survivalWeight = 4f;
+    [SerializeField] private float positionWeight = 1f;
+    [SerializeField] private float counterWeight = 8f;
+
+    [Header("Spawn Weights")]
+    [SerializeField] private float nearbyEnemyWeight = 3f;
+    [SerializeField] private float nearbyCityWeight = 2f;
+    [SerializeField] private float cityDefenseWeight = 5f;
+    [SerializeField] private float expansionWeight = 4f;
+
+    [Header("AI Personality")]
+    [SerializeField] private float aggression = 1f;
+    [SerializeField] private float expansionism = 1f;
+    [SerializeField] private float defence = 1f;
 
     public IEnumerator PlayTurn()
     {
-        List<Unit> active = controlledPlayer.units
-            .Where(u => u.isAlive && u.isActive && !(u.hasMoved && u.hasAttacked))
-            .ToList();
-
-        while (active.Count > 0)
+        while (true)
         {
-            CandidateAction? best = null;
+            List<CandidateAction> candidates = controlledPlayer.units
+                .Where(IsUnitAvailable)
+                .SelectMany(GenerateCandidates)
+                .ToList();
 
-            foreach (Unit unit in active)
-                foreach (CandidateAction c in GenerateCandidates(unit))
-                    if (best == null || c.score > best.Value.score)
-                        best = c;
+            if (candidates.Count == 0)
+                break;
 
-            if (best == null || best.Value.score <= 0f) break;
+            CandidateAction best = candidates
+                .OrderByDescending(a => a.score)
+                .FirstOrDefault();
 
-            yield return Execute(best.Value);
-            active.RemoveAll(u => !u.isAlive || !u.isActive || (u.hasMoved && u.hasAttacked));
+            if (best.score <= 0f)
+                break;
+
+            yield return Execute(best);
         }
 
         HandleCitySpawns();
 
-        Debug.Log("finished");
+        Debug.Log($"{controlledPlayer.factionName} AI finished turn.");
     }
 
-    private List<CandidateAction> GenerateCandidates(Unit unit)
+    private bool IsUnitAvailable(Unit unit)
     {
-        var results = new List<CandidateAction>();
-        bool deactivatesOnMove = unit.data.skills.Any(s => s == Skill.Static);
+        return unit != null
+               && unit.isAlive
+               && unit.isActive
+               && !(unit.hasMoved && unit.hasAttacked);
+    }
 
-        var moveTiles = new List<Tile> { unit.currentTile };
-        if (!unit.hasMoved)
-            moveTiles.AddRange(GridManager.Instance
-                .GetTilesInRange(unit.currentTile, unit.data.moveRange)
-                .Where(t => t.currentUnit == null));
+    private IEnumerable<CandidateAction> GenerateCandidates(Unit unit)
+    {
+        bool staticUnit = unit.data.skills.Any(s => s == Skill.Static);
 
-        foreach (Tile moveTile in moveTiles)
+        List<Tile> possiblePositions = new List<Tile>
         {
-            bool moved = moveTile != unit.currentTile;
+            unit.currentTile
+        };
+
+        if (!unit.hasMoved)
+        {
+            possiblePositions.AddRange(
+                GridManager.Instance
+                    .GetTilesInRange(unit.currentTile, unit.data.moveRange)
+                    .Where(t => t.currentUnit == null)
+            );
+        }
+
+        foreach (Tile position in possiblePositions)
+        {
+            bool moved = position != unit.currentTile;
 
             if (moved)
-                results.Add(new CandidateAction
+            {
+                float score = ScoreMove(unit, unit.currentTile, position);
+
+                yield return new CandidateAction
                 {
                     unit = unit,
-                    moveTile = moveTile,
+                    moveTile = position,
                     target = null,
                     kind = ActionKind.MoveOnly,
-                    score = ScoreMove(unit, moveTile)
-                });
+                    score = score
+                };
+            }
 
-            if (unit.hasAttacked || (moved && deactivatesOnMove)) continue;
+            if (unit.hasAttacked)
+                continue;
 
-            foreach (Tile t in GridManager.Instance.GetTilesInRange(moveTile, unit.data.attackRange))
+            if (moved && staticUnit)
+                continue;
+
+            foreach (Tile attackTile in GridManager.Instance.GetTilesInRange(
+                         position,
+                         unit.data.attackRange))
             {
-                if (t.currentUnit == null || t.currentUnit.owner == unit.owner) continue;
-                results.Add(new CandidateAction
+                if (attackTile.currentUnit == null)
+                    continue;
+
+                Unit target = attackTile.currentUnit;
+
+                if (target.owner == unit.owner)
+                    continue;
+
+                float score = ScoreAttack(
+                    unit,
+                    position,
+                    target
+                );
+
+                yield return new CandidateAction
                 {
                     unit = unit,
-                    moveTile = moveTile,
-                    target = t.currentUnit,
+                    moveTile = position,
+                    target = target,
                     kind = ActionKind.Attack,
-                    score = ScoreAttack(unit, moveTile, t.currentUnit)
-                });
+                    score = score
+                };
             }
         }
-        return results;
     }
 
     private float ScoreAttack(Unit unit, Tile from, Unit target)
     {
-        var (dmg, retaliation) = PredictDamage(unit, target);
-        bool kills = target.currentHealth - dmg <= 0;
+        (int damage, int retaliation) = PredictDamage(unit, target);
 
-        float score = kills ? target.data.cost + dmg : dmg;
+        bool kills = target.currentHealth - damage <= 0;
 
-        bool canRetaliate =
-            !kills &&
-            Utils.GridDistance(
-                from.gridPosition,
-                target.currentTile.gridPosition
-            ) <= target.data.attackRange;
+        float score = 0f;
 
-        if (canRetaliate) 
-            score -= retaliation * 0.5f;
+        score += damage * damageWeight * aggression;
 
-        if (ExposesToLethalCounter(unit, from, kills ? target : null)) 
-            score -= unit.data.cost;
+        if (kills)
+        {
+            score += target.data.cost * killWeight * aggression;
+        }
+
+        bool canRetaliate = !kills &&
+                            CanRetaliate(target, from);
+
+        if (canRetaliate)
+        {
+            score -= retaliation * retaliationWeight;
+        }
+
+        score += ScorePosition(unit, from);
+
+        if (kills &&
+            unit.data.attackRange == 1 &&
+            target.currentTile != null &&
+            target.currentTile.city != null &&
+            target.currentTile.city.owner != unit.owner)
+        {
+            score += cityCaptureWeight * expansionism;
+        }
+
+        if (ExposesToLethalCounter(unit, from, kills ? target : null))
+        {
+            score -= unit.data.cost * survivalWeight;
+        }
+
+        score += ScoreCityProgress(unit.currentTile, from, unit.owner);
 
         return score;
     }
 
-    private float ScoreMove(Unit unit, Tile to)
+    private float ScoreMove(Unit unit, Tile from, Tile to)
     {
         float score = 0f;
-        // if is closer to uncaptured city than before, increase the value, the higher the better.
-        if (to.city != null && to.city.owner != unit.owner) score += 4f;
 
-        var (nearestCity, distance) = NearestUncapturedCity(to, unit.owner);
-        if (nearestCity != null)
-            score += cityPullWeight / (1f + distance);
+        score += ScoreCityProgress(from, to, unit.owner);
 
-        if (ExposesToLethalCounter(unit, to, null)) score -= unit.data.cost;
+        if (to.city != null && to.city.owner != unit.owner)
+        {
+            score += cityCaptureWeight * expansionism;
+        }
+
+        score += ScorePosition(unit, to);
+
+        if (ExposesToLethalCounter(unit, to, null))
+        {
+            score -= unit.data.cost * survivalWeight;
+        }
+
         return score;
     }
 
-    private bool ExposesToLethalCounter(Unit unit, Tile to, Unit justKilled)
+    private float ScoreCityProgress(Tile from, Tile to, Player owner)
+    {
+        int oldDistance = DistanceToNearestUncapturedCity(from, owner);
+        int newDistance = DistanceToNearestUncapturedCity(to, owner);
+
+        if (oldDistance == int.MaxValue || newDistance == int.MaxValue)
+            return 0f;
+
+        int improvement = oldDistance - newDistance;
+
+        if (improvement <= 0)
+            return 0f;
+
+        return improvement * cityProgressWeight * expansionism;
+    }
+
+    private float ScorePosition(Unit unit, Tile tile)
+    {
+        float score = 0f;
+
+        foreach (Player enemy in TurnManager.Instance.players)
+        {
+            if (enemy == unit.owner)
+                continue;
+
+            foreach (Unit enemyUnit in enemy.units)
+            {
+                if (enemyUnit == null || !enemyUnit.isAlive)
+                    continue;
+
+                int distance = Utils.GridDistance(
+                    tile.gridPosition,
+                    enemyUnit.currentTile.gridPosition
+                );
+
+                // being within attack range next turn is good
+                if (distance <= unit.data.attackRange)
+                {
+                    score += positionWeight;
+                }
+
+                // melee units benefit from moving toward enemies
+                if (unit.data.attackRange == 1 &&
+                    distance <= unit.data.moveRange + 1)
+                {
+                    score += positionWeight * 0.5f;
+                }
+            }
+        }
+
+        return score;
+    }
+
+    private bool ExposesToLethalCounter(Unit unit, Tile destination, Unit justKilled)
     {
         foreach (Player enemy in TurnManager.Instance.players)
         {
-            if (enemy == unit.owner) continue;
-            foreach (Unit e in enemy.units)
+            if (enemy == unit.owner)
+                continue;
+
+            foreach (Unit enemyUnit in enemy.units)
             {
-                if (e == justKilled || !e.isAlive) continue;
-                if (Utils.GridDistance(e.currentTile.gridPosition, to.gridPosition) > e.data.moveRange + e.data.attackRange) continue;
-                var (dmg, _) = PredictDamage(e, unit);
-                if (dmg >= unit.currentHealth) return true;
+                if (enemyUnit == null ||
+                    !enemyUnit.isAlive ||
+                    enemyUnit == justKilled)
+                {
+                    continue;
+                }
+
+                if (!CanReachAndAttack(enemyUnit, destination))
+                    continue;
+
+                (int damage, int _) = PredictDamage(enemyUnit, unit);
+
+                if (damage >= unit.currentHealth)
+                    return true;
             }
         }
+
         return false;
     }
 
-    private (City city, int distance) NearestUncapturedCity(Tile from, Player owner)
+    private bool CanReachAndAttack(Unit enemy, Tile targetTile)
     {
-        City nearest = null;
-        int bestDist = int.MaxValue;
+        int distance = Utils.GridDistance(
+            enemy.currentTile.gridPosition,
+            targetTile.gridPosition
+        );
+
+        return distance <= enemy.data.moveRange + enemy.data.attackRange;
+    }
+
+    private bool CanRetaliate(Unit defender, Tile attackerPosition)
+    {
+        int distance = Utils.GridDistance(
+            defender.currentTile.gridPosition,
+            attackerPosition.gridPosition
+        );
+
+        return distance <= defender.data.attackRange;
+    }
+
+    private int DistanceToNearestUncapturedCity(Tile from, Player owner)
+    {
+        int bestDistance = int.MaxValue;
 
         foreach (City city in WorldPopulationManager.Instance.allCities)
         {
-            if (city.owner == owner) continue;
-            int d = Utils.GridDistance(from.gridPosition, city.centerTile.gridPosition);
-            if (d < bestDist) { bestDist = d; nearest = city; }
+            if (city == null || city.owner == owner)
+                continue;
+
+            int distance = Utils.GridDistance(
+                from.gridPosition,
+                city.centerTile.gridPosition
+            );
+
+            if (distance < bestDistance)
+                bestDistance = distance;
         }
-        return (nearest, bestDist);
+
+        return bestDistance;
+    }
+
+
+    private IEnumerator Execute(CandidateAction action)
+    {
+        bool visible = IsVisibleToLocalPlayer(action);
+
+        Tile targetTile = action.target != null
+            ? action.target.currentTile
+            : null;
+
+        bool meleeAttack =
+            action.kind == ActionKind.Attack &&
+            action.unit.data.attackRange == 1;
+
+        // move first
+        if (action.moveTile != action.unit.currentTile)
+        {
+            action.unit.MoveTo(action.moveTile);
+
+            if (action.moveTile.city != null)
+            {
+                action.moveTile.city.Claim(action.unit.owner);
+            }
+        }
+
+        // then attack
+        if (action.kind == ActionKind.Attack &&
+            action.target != null &&
+            action.target.isAlive)
+        {
+            action.unit.Attack(action.target);
+
+            if (meleeAttack &&
+                !action.target.isAlive &&
+                targetTile != null)
+            {
+                action.unit.MoveTo(targetTile);
+
+                if (targetTile.city != null)
+                {
+                    targetTile.city.Claim(action.unit.owner);
+                }
+            }
+        }
+
+        if (visible)
+            yield return new WaitForSeconds(0.35f);
     }
 
     private void HandleCitySpawns()
     {
-        List<City> spawnCities = controlledPlayer.cities.FindAll(c => c.centerTile.currentUnit == null && c.units.Count < c.level + 1);
+        List<City> spawnCities = controlledPlayer.cities
+            .Where(c =>
+                c.centerTile.currentUnit == null &&
+                c.units.Count < c.level + 1)
+            .ToList();
+
         foreach (City city in spawnCities)
         {
-            FactionUnit unit = BestAffordableUnit(city, spawnCities.Count);
+            FactionUnit bestUnit = BestAffordableUnit(city, spawnCities.Count);
 
-            if (unit != null)
-            {
-                GameObject unitPrefab = unit.prefab;
-                int cost = unit.unitData.cost;
+            if (bestUnit == null)
+                continue;
 
-                if (controlledPlayer.stars >= cost)
-                {
-                    city.SpawnUnit(unitPrefab, cost);
-                }
-            }
+            if (controlledPlayer.stars < bestUnit.unitData.cost)
+                continue;
+
+            city.SpawnUnit(
+                bestUnit.prefab,
+                bestUnit.unitData.cost
+            );
         }
     }
 
@@ -170,61 +401,133 @@ public class TurnAI : MonoBehaviour
         FactionUnit best = null;
         float bestScore = float.MinValue;
 
-        int budget = Mathf.RoundToInt(controlledPlayer.stars / spawnCitiesCount);
-
-        // nope. it should score units based on how useful they would be as counters to existing units,
-        // multiplied by how close they are to the city
-
-        // and by whether there are untaken cities, in which case, cavalry is more appropriate
-
-        // and by what the action's play style is
-
         foreach (FactionUnit candidate in controlledPlayer.faction.availableUnits)
         {
-            if (candidate.unitData.cost > controlledPlayer.stars) continue;
+            if (candidate.unitData.cost > controlledPlayer.stars)
+                continue;
 
-            if (candidate.unitData.cost > bestScore) { bestScore = candidate.unitData.cost; best = candidate; }
+            float score = ScoreUnitForCity(
+                candidate,
+                city
+            );
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = candidate;
+            }
         }
 
         return best;
     }
 
-    private IEnumerator Execute(CandidateAction a)
+    private float ScoreUnitForCity(FactionUnit candidate, City city)
     {
-        bool visible = IsVisibleToLocalPlayer(a);
+        float score = 0f;
 
-        Tile targetTile = a.target?.currentTile;
+        UnitData data = candidate.unitData;
 
-        if (a.moveTile != a.unit.currentTile)
+        List<Unit> nearbyEnemies = GetNearbyEnemies(city);
+
+        foreach (Unit enemy in nearbyEnemies)
         {
-            a.unit.MoveTo(a.moveTile);
-            if (a.moveTile.city != null)
-            {
-                a.moveTile.city.Claim(a.unit.owner);
-            }
-        }
-        if (a.kind == ActionKind.Attack)
-        {
-            bool melee = a.unit.data.attackRange == 1;
+            int distance = Utils.GridDistance(
+                city.centerTile.gridPosition,
+                enemy.currentTile.gridPosition
+            );
 
-            a.unit.Attack(a.target);
+            float proximity =
+                Mathf.Max(0f, data.moveRange + data.attackRange - distance);
 
-            if (melee && !a.target.isAlive && targetTile != null)
-            {
-                a.unit.MoveTo(targetTile);
+            score += proximity * nearbyEnemyWeight;
 
-                if (targetTile.city != null)
-                    targetTile.city.Claim(a.unit.owner);
-            }
+            score += CalculateCounterStrength(candidate, enemy);
         }
 
-        if (visible)
-            yield return new WaitForSeconds(0.35f);
+        if (nearbyEnemies.Count > 0)
+        {
+            score += cityDefenseWeight * defence;
+        }
+
+        if (HasUncapturedCityNearby(city))
+        {
+            score += expansionWeight *
+                     expansionism *
+                     data.moveRange;
+        }
+
+        score += data.moveRange * 0.5f;
+
+        score += data.maxHealth * 0.1f;
+
+        score += data.cost * 0.1f;
+
+        return score;
     }
 
-    private (int, int) PredictDamage(Unit attacker, Unit defender) {
+    private List<Unit> GetNearbyEnemies(City city)
+    {
+        List<Unit> enemies = new List<Unit>();
+
+        foreach (Player player in TurnManager.Instance.players)
+        {
+            if (player == controlledPlayer)
+                continue;
+
+            foreach (Unit unit in player.units)
+            {
+                if (unit == null || !unit.isAlive)
+                    continue;
+
+                int distance = Utils.GridDistance(
+                    city.centerTile.gridPosition,
+                    unit.currentTile.gridPosition
+                );
+
+                if (distance <= 3)
+                {
+                    enemies.Add(unit);
+                }
+            }
+        }
+
+        return enemies;
+    }
+
+    private bool HasUncapturedCityNearby(City city)
+    {
+        foreach (City otherCity in WorldPopulationManager.Instance.allCities)
+        {
+            if (otherCity == city ||
+                otherCity.owner == controlledPlayer)
+                continue;
+
+            int distance = Utils.GridDistance(
+                city.centerTile.gridPosition,
+                otherCity.centerTile.gridPosition
+            );
+
+            if (distance <= 6)
+                return true;
+        }
+
+        return false;
+    }
+
+    float CalculateCounterStrength(FactionUnit unit, Unit enemy)
+    {
+        if (unit.unitData == enemy.data) return 0;
+
+        else return unit.unitData.counters.FirstOrDefault(c => c.unit == enemy.data).strength * counterWeight;
+    }
+
+    private (int, int) PredictDamage(Unit attacker, Unit defender)
+    {
         return attacker.CalculateDamage(attacker, defender);
     }
 
-    private bool IsVisibleToLocalPlayer(CandidateAction a) => true;
+    private bool IsVisibleToLocalPlayer(CandidateAction action)
+    {
+        return true;
+    }
 }

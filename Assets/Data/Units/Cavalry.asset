@@ -12,9 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5cc17c9ad383174aa741bc5951e2bfa, type: 3}
   m_Name: Cavalry
   m_EditorClassIdentifier: 
-  cost: 3
+  cost: 6
   maxHealth: 10
   attackPower: 2
   defensePower: 1
   moveRange: 2
   attackRange: 1
+  skills: 
+  counters:
+  - unit: {fileID: 11400000, guid: 69b1f1849c019a346969058b5c2df1fe, type: 2}
+    strength: 2
+  - unit: {fileID: 11400000, guid: b3fdb3d1aafce3c46b0d909f04baa13a, type: 2}
+    strength: 2
+  - unit: {fileID: 11400000, guid: 1b4d97fd2d7b5314fadb11f1a30f2101, type: 2}
+    strength: -1
+  - unit: {fileID: 11400000, guid: a231c58b61d63ef4db4f7e305aa1a290, type: 2}
+    strength: -1
+  - unit: {fileID: 11400000, guid: b67253c5db2d09d4688753569fe1d629, type: 2}
+    strength: -1
