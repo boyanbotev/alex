@@ -406,7 +406,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6aa5f779daaed74c87d05e547ce3960, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 10
+  width: 7
   height: 7
   tileSize: 1
   is3DIsometric: 1
@@ -567,9 +567,15 @@ MonoBehaviour:
   nearbyCityWeight: 2
   cityDefenseWeight: 5
   expansionWeight: 6
+  meleeThreatWeight: 1
+  defensiveUnitWeight: 1
   aggression: 1
   expansionism: 1
   defence: 1
+  perUnitLookaheadCandidates: 2
+  ownRolloutSteps: 2
+  enemyRolloutSteps: 2
+  enemyThreatWeight: 1
 --- !u!1 &778516886
 GameObject:
   m_ObjectHideFlags: 0
@@ -1046,7 +1052,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 111e61dc168ed3148bd096a2fea6419c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 10
+  width: 7
   height: 7
 --- !u!4 &1308592311
 Transform:

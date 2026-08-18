@@ -76,6 +76,12 @@ public class City : MonoBehaviour
 
         if (owner != null) owner.RemoveCity(this);
 
+        foreach (Unit unit in units)
+        {
+            unit.homeCity = null;
+        }
+        units.Clear();
+
         owner = claimingPlayer;
         claimingPlayer.cities.Add(this);
         cityName = $"{claimingPlayer.factionName} Town";

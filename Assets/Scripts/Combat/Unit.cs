@@ -82,19 +82,10 @@ public class Unit : MonoBehaviour
 
     public (int, int) CalculateDamage(Unit attacker, Unit defender)
     {
-        int attackDamage;
-        int defenseDamage;
-        float attackForce = attacker.data.attackPower * ((float)attacker.currentHealth / attacker.data.maxHealth);
-        float defenseForce = defender.data.defensePower * ((float)defender.currentHealth / defender.data.maxHealth);
-        float totalForce = attackForce + defenseForce;
-
-        float rawDamage = (attackForce / totalForce) * attacker.data.attackPower * 4.5f;
-        attackDamage = Mathf.Max(1, Mathf.FloorToInt(rawDamage + 0.5f));
-
-        float rawDefence = (defenseForce / totalForce) * defender.data.defensePower * 4.5f;
-        defenseDamage = Mathf.Max(1, Mathf.FloorToInt(rawDefence + 0.5f));
-
-        return (attackDamage, defenseDamage);
+        return CombatMath.CalculateDamage(
+            attacker.data.attackPower, attacker.currentHealth, attacker.data.maxHealth,
+            defender.data.defensePower, defender.currentHealth, defender.data.maxHealth
+        );
     }
 
     private void Die()
