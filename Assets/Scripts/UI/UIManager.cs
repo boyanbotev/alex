@@ -36,6 +36,9 @@ public class UIManager : MonoBehaviour
     /// <param name="action"></param>
     public void ShowSpawnButtons(FactionUnit[] availableUnits, City city)
     {
+
+        if (spawnPanel.gameObject.activeSelf) return;
+
         spawnPanel.gameObject.SetActive(true);
 
         foreach (FactionUnit unit in availableUnits) {
