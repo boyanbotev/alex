@@ -583,14 +583,6 @@ public class TurnAI : MonoBehaviour
 
         foreach (Unit enemy in nearbyEnemies)
         {
-            int distance = Utils.GridDistance(
-                city.centerTile.gridPosition,
-                enemy.currentTile.gridPosition
-            );
-
-            float proximity =
-                Mathf.Max(0f, data.moveRange + data.attackRange - distance);
-
             score += CalculateCounterStrength(candidate, enemy);
 
             Debug.Log("counter bonus: " + CalculateCounterStrength(candidate, enemy));
