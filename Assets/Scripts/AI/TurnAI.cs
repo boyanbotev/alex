@@ -20,10 +20,9 @@ public class TurnAI : MonoBehaviour
     [Header("Spawn Weights")]
     [SerializeField] private float nearbyEnemyWeight = 3f;
     [SerializeField] private float nearbyCityWeight = 2f;
-    [SerializeField] private float cityDefenseWeight = 5f;
+    //[SerializeField] private float cityDefenseWeight = 5f;
     [SerializeField] private float expansionWeight = 4f;
-    [SerializeField] private float meleeThreatWeight = 5f;
-    [SerializeField] private float defensiveUnitWeight = 8f;
+    [SerializeField] private float meleeVulnerabilityWeight = 8f;
 
     [Header("AI Personality")]
     [SerializeField] private float aggression = 1f;
@@ -580,6 +579,8 @@ public class TurnAI : MonoBehaviour
 
         int nearbyMeleeCount = 0;
 
+        Debug.Log("unit" + data.name + "-------------------------------");
+
         foreach (Unit enemy in nearbyEnemies)
         {
             int distance = Utils.GridDistance(
@@ -590,9 +591,9 @@ public class TurnAI : MonoBehaviour
             float proximity =
                 Mathf.Max(0f, data.moveRange + data.attackRange - distance);
 
-            score += proximity * nearbyEnemyWeight;
-
             score += CalculateCounterStrength(candidate, enemy);
+
+            Debug.Log("counter bonus: " + CalculateCounterStrength(candidate, enemy));
 
             if (enemy.data.attackRange == 1)
             {
@@ -600,20 +601,12 @@ public class TurnAI : MonoBehaviour
             }
         }
 
-        if (nearbyEnemies.Count > 0)
-        {
-            score += cityDefenseWeight * defence;
-        }
-
         if (nearbyMeleeCount > 0)
         {
-            float meleeThreat =
-                nearbyMeleeCount * nearbyMeleeCount;
+            float meleeThreat = nearbyMeleeCount * nearbyMeleeCount;
 
-            float defenceRatio =
-                (float)data.defensePower / Mathf.Max(1f, data.attackPower);
-
-            score += meleeThreat * meleeThreatWeight * defenceRatio * defensiveUnitWeight * defence;
+            score += meleeThreat * data.defensePower * data.maxHealth * meleeVulnerabilityWeight;
+            Debug.Log("melee defence bonus: " + meleeThreat * data.defensePower * data.maxHealth * meleeVulnerabilityWeight);
         }
 
         if (HasUncapturedCityNearby(city))
@@ -621,11 +614,10 @@ public class TurnAI : MonoBehaviour
             score += expansionWeight *
                      expansionism *
                      data.moveRange;
+            Debug.Log("expansionism bonus: " + expansionWeight * expansionism * data.moveRange);
         }
 
-        score += data.moveRange * 0.5f;
-        score += data.maxHealth * 0.1f;
-        score += data.cost * 0.1f;
+        Debug.Log(data.name + " final score , score: " + score);
 
         return score;
     }

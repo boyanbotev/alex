@@ -567,8 +567,7 @@ MonoBehaviour:
   nearbyCityWeight: 2
   cityDefenseWeight: 5
   expansionWeight: 6
-  meleeThreatWeight: 1
-  defensiveUnitWeight: 1
+  meleeVulnerabilityWeight: 0.1
   aggression: 1
   expansionism: 1
   defence: 1
