@@ -13,6 +13,8 @@ public class WorldPopulationManager : MonoBehaviour
     public int minCityDistance = 3;
     [Tooltip("How many neutral villages to spawn on the map")]
     public int targetCityCount = 8;
+    [Tooltip("How much margin around villages to the edge of the map")]
+    public int minMargin = 1;
 
     [Header("State")]
     public List<City> allCities = new List<City>();
@@ -38,7 +40,7 @@ public class WorldPopulationManager : MonoBehaviour
         {
             if (allCities.Count >= targetCityCount) break;
 
-            if (IsFarEnoughFromOtherCities(tile))
+            if (IsFarEnoughFromOtherCities(tile) && IsFarEnoughFromEdge(tile))
             {
                 // Instantiate Village/City model
                 GameObject cityObj = Instantiate(villagePrefab, tile.transform.position, Quaternion.identity, tile.transform);
@@ -161,6 +163,14 @@ public class WorldPopulationManager : MonoBehaviour
             if (dist < minCityDistance) return false;
         }
         return true;
+    }
+
+    private bool IsFarEnoughFromEdge(Tile candidateTile)
+    {
+        return Mathf.Abs(candidateTile.gridPosition.x - GridManager.Instance.width) > minMargin
+            && candidateTile.gridPosition.x >= minMargin
+            && Mathf.Abs(candidateTile.gridPosition.y - GridManager.Instance.width) > minMargin
+            && candidateTile.gridPosition.y >= minMargin;
     }
 
     private List<Tile> GetValidLandTiles()

@@ -20,7 +20,6 @@ public class TurnAI : MonoBehaviour
     [Header("Spawn Weights")]
     [SerializeField] private float nearbyEnemyWeight = 3f;
     [SerializeField] private float nearbyCityWeight = 2f;
-    //[SerializeField] private float cityDefenseWeight = 5f;
     [SerializeField] private float expansionWeight = 4f;
     [SerializeField] private float meleeVulnerabilityWeight = 8f;
 
