@@ -52,7 +52,7 @@ public class UIManager : MonoBehaviour
             buttonText.text = "Spawn " + unit.unitData.name;
 
             buttonComponent.onClick.AddListener(() => {
-                city.SpawnUnit(unit.prefab, unit.unitData.cost);
+                city.SpawnUnit(unit, unit.unitData.cost);
                 CloseSpawnPanel();
             });
         }

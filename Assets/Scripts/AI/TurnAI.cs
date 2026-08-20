@@ -537,7 +537,7 @@ public class TurnAI : MonoBehaviour
                 continue;
 
             city.SpawnUnit(
-                bestUnit.prefab,
+                bestUnit,
                 bestUnit.unitData.cost
             );
         }

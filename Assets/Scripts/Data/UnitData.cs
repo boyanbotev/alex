@@ -16,4 +16,5 @@ public class UnitData : ScriptableObject
     public int attackRange = 1;
     public Skill[] skills;
     public Counter[] counters;
+    public TechData requiredTech;
 }

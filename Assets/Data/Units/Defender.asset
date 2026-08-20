@@ -30,3 +30,4 @@ MonoBehaviour:
     strength: 0
   - unit: {fileID: 11400000, guid: b67253c5db2d09d4688753569fe1d629, type: 2}
     strength: 0
+  requiredTech: {fileID: 11400000, guid: 99df853a656905b4e8ce81046a7a7ef2, type: 2}

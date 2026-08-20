@@ -10,10 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cb254feeaf04af444a4422bfcd5d265b, type: 3}
-  m_Name: Sustenance
+  m_Name: Riding
   m_EditorClassIdentifier: 
-  techName: Sustenance
+  techName: Riding
   description: 
-  cost: 5
-  prerequisites:
-  - {fileID: 11400000, guid: 19d9dfc725a3ff945aad5084a33f41a3, type: 2}
+  cost: 4
+  prerequisites: []

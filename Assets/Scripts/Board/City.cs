@@ -50,7 +50,7 @@ public class City : MonoBehaviour
         }
     }
 
-    public bool SpawnUnit(GameObject unitPrefab, int cost)
+    public bool SpawnUnit(FactionUnit factionUnit, int cost)
     {
         if (centerTile.currentUnit != null)
         {
@@ -64,13 +64,20 @@ public class City : MonoBehaviour
             return false;
         }
 
+        if (!owner.techState.CanSpawn(factionUnit.unitData))
+        {
+            Debug.Log($"{factionUnit.unitData.requiredTech.name} has not been researched yet!");
+            return false;
+        }
+
         if (!owner.SpendStars(cost))
         {
             Debug.Log("Not enough Stars!");
             return false;
         }
 
-        GameObject unitObj = Instantiate(unitPrefab, centerTile.transform.position, Quaternion.identity);
+
+        GameObject unitObj = Instantiate(factionUnit.prefab, centerTile.transform.position, Quaternion.identity);
         Unit unit = unitObj.GetComponent<Unit>();
 
         unit.owner = owner;
@@ -106,7 +113,7 @@ public class City : MonoBehaviour
 
         if (!owner.techState.CanBuild(buildingData))
         {
-            Debug.Log($"{buildingData.buildingName} has not been researched yet!");
+            Debug.Log($"{buildingData.requiredTech.name} has not been researched yet!");
             return false;
         }
 
