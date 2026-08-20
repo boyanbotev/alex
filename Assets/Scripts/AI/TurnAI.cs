@@ -553,6 +553,9 @@ public class TurnAI : MonoBehaviour
             if (candidate.unitData.cost > controlledPlayer.stars)
                 continue;
 
+            if (!controlledPlayer.techState.CanSpawn(candidate.unitData))
+                continue;
+
             float score = ScoreUnitForCity(
                 candidate,
                 city
