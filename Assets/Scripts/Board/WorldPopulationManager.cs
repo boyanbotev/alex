@@ -51,6 +51,8 @@ public class WorldPopulationManager : MonoBehaviour
                 city.owner = null; // Unclaimed neutral village
                 tile.city = city;
 
+                city.ClaimTerritory();
+
                 allCities.Add(city);
             }
         }

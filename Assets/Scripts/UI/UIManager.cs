@@ -8,6 +8,8 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] RectTransform spawnButtonHolder;
     [SerializeField] RectTransform spawnPanel;
+    [SerializeField] RectTransform buildPanel;
+    [SerializeField] RectTransform buildButtonHolder;
     [SerializeField] TextMeshProUGUI starsCounter;
 
     [SerializeField] GameObject spawnButtonPrefab;
@@ -53,6 +55,36 @@ public class UIManager : MonoBehaviour
                 CloseSpawnPanel();
             });
         }
+    }
+
+    public void ShowBuildButtons(BuildingData[] availableBuildings, Tile tile, City city)
+    {
+        if (buildPanel.gameObject.activeSelf) return;
+
+        buildPanel.gameObject.SetActive(true);
+
+        foreach (BuildingData building in availableBuildings)
+        {
+            var button = Instantiate(spawnButtonPrefab, buildButtonHolder);
+            Button buttonComponent = button.GetComponent<Button>();
+            TextMeshProUGUI buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+
+            buttonText.text = "Build " + building.name;
+
+            buttonComponent.onClick.AddListener(() => {
+                city.PlaceBuilding(building, tile);
+                CloseBuildPanel();
+            });
+        }
+    }
+
+    public void CloseBuildPanel()
+    {
+        for (int i = 0; i < buildButtonHolder.childCount; i++)
+        {
+            Destroy(buildButtonHolder.GetChild(i).gameObject);
+        }
+        buildPanel.gameObject.SetActive(false);
     }
 
     public void CloseSpawnPanel()

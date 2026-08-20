@@ -6,6 +6,7 @@ public class SelectionController : MonoBehaviour
 {
     private Unit selectedUnit;
     private City selectedCity;
+    private Tile selectedBuildTile;
     private List<Tile> highlightedTiles = new List<Tile>();
 
     private void Update()
@@ -60,7 +61,21 @@ public class SelectionController : MonoBehaviour
                 UIManager.Instance.ShowSpawnButtons(TurnManager.Instance.ActivePlayer.faction.availableUnits, city);
             }
         }
+        else if (clickedTile.territoryCity != null && clickedTile.currentBuilding == null)
+        {
+            City city = clickedTile.territoryCity;
+            if (city.owner == TurnManager.Instance.ActivePlayer)
+            {
+                selectedCity = city;
+                selectedBuildTile = clickedTile;
+                GridManager.Instance.ClearAllHighlights();
+                highlightedTiles.Clear();
+
+                UIManager.Instance.ShowBuildButtons(TurnManager.Instance.ActivePlayer.faction.availableBuildings, clickedTile, city);
+            }
+        }
     }
+
 
     private void HandleSelectedUnitActions(Tile clickedTile)
     {

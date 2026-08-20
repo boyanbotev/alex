@@ -8,9 +8,14 @@ public class City : MonoBehaviour
     public Tile centerTile;
     public Transform model;
     public List<Unit> units = new List<Unit>();
+    public List<Building> buildings = new List<Building>();
     public int level = 1;
     public int currentPopulation = 0;
     public int populationToLevelUp = 2;
+
+    [Header("Territory")]
+    [Tooltip("How many tiles out from centerTile belong to this city's territory. Grows with level in LevelUp().")]
+    public int territoryRadius = 1;
 
     public int BaseIncome => level + 1; // Polytopia star generation formula
 
@@ -28,8 +33,21 @@ public class City : MonoBehaviour
         currentPopulation -= populationToLevelUp;
         level++;
         populationToLevelUp = level + 1;
-        owner.AddStars(3); // Level-up reward
         Debug.Log($"{cityName} leveled up to Level {level}!");
+    }
+
+    public void ClaimTerritory()
+    {
+        if (centerTile == null) return;
+
+        List<Tile> tilesInRange = GridManager.Instance.GetTilesInRange(centerTile, territoryRadius);
+        foreach (Tile tile in tilesInRange)
+        {
+            if (tile.territoryCity == null)
+            {
+                tile.territoryCity = this;
+            }
+        }
     }
 
     public bool SpawnUnit(GameObject unitPrefab, int cost)
@@ -67,6 +85,50 @@ public class City : MonoBehaviour
         unit.Deactivate();
 
         owner.units.Add(unit);
+        return true;
+    }
+
+    public bool PlaceBuilding(BuildingData buildingData, Tile targetTile)
+    {
+        if (buildingData == null || targetTile == null) return false;
+
+        if (targetTile == centerTile)
+        {
+            Debug.Log("Cannot place a building on the city center tile.");
+            return false;
+        }
+
+        if (targetTile.currentBuilding != null)
+        {
+            Debug.Log("Tile already has a building!");
+            return false;
+        }
+
+        if (!owner.techState.CanBuild(buildingData))
+        {
+            Debug.Log($"{buildingData.buildingName} has not been researched yet!");
+            return false;
+        }
+
+        if (!buildingData.CanPlaceAt(targetTile, this))
+        {
+            Debug.Log($"Cannot place {buildingData.buildingName} here - placement conditions not met.");
+            return false;
+        }
+
+        if (!owner.SpendStars(buildingData.cost))
+        {
+            Debug.Log("Not enough Stars!");
+            return false;
+        }
+
+        GameObject buildingObj = Instantiate(buildingData.buildingPrefab, targetTile.transform.position, Quaternion.identity);
+        Building building = buildingObj.GetComponent<Building>();
+        building.Initialize(buildingData, targetTile, this);
+
+        targetTile.currentBuilding = building;
+        buildings.Add(building);
+
         return true;
     }
 

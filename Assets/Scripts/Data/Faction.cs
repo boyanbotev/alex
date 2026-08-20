@@ -8,5 +8,6 @@ public class Faction : ScriptableObject
     public FactionUnit[] units;
     public FactionUnit startingUnit;
     public FactionUnit[] availableUnits;
+    public BuildingData[] availableBuildings;
 }
 

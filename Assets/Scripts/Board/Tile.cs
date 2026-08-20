@@ -11,6 +11,12 @@ public class Tile : MonoBehaviour
     [Header("Occupants")]
     public Unit currentUnit;
     public City city;
+    public Building currentBuilding;
+
+    [Header("Territory")]
+    [Tooltip("The city whose territory this tile belongs to (used for building placement). " +
+         "Distinct from 'city' above, which is only set on the tile a city is physically built on.")]
+    public City territoryCity;
 
     [Header("Visual Feedback")]
     [SerializeField] private GameObject highlight;

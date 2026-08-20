@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a15b0acb4c2d6b4db43ac10745b0bd9, type: 3}
+  m_Name: Astrocyte
+  m_EditorClassIdentifier: 
+  buildingName: Astrocyte
+  buildingPrefab: {fileID: 3495969668921847790, guid: 2065588448972ab44a11d569edad02e2, type: 3}
+  cost: 5
+  populationGiven: 2
+  requiredTech: {fileID: 0}
+  placementConditions:
+  - {fileID: 11400000, guid: bda62d753b96e1c46b8c85935c924cd0, type: 2}
