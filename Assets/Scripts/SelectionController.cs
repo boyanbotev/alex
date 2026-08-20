@@ -1,6 +1,7 @@
-using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class SelectionController : MonoBehaviour
 {
@@ -18,6 +19,11 @@ public class SelectionController : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
+            if (EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
+
             HandleClick();
         }
     }
