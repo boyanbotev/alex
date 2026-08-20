@@ -16,5 +16,5 @@ MonoBehaviour:
   buildingPrefab: {fileID: 3495969668921847790, guid: 75a6b484470708c42a8b7720f7bd31ea, type: 3}
   cost: 3
   populationGiven: 1
-  requiredTech: {fileID: 0}
+  requiredTech: {fileID: 11400000, guid: 19d9dfc725a3ff945aad5084a33f41a3, type: 2}
   placementConditions: []

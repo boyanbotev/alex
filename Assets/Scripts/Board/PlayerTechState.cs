@@ -1,10 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Plain serializable class rather than a MonoBehaviour, so it can just be a
-// field on your Player class regardless of whether Player itself is a
-// MonoBehaviour or a plain object. See the note at the bottom of this file
-// for the one line you need to add to Player.
 [System.Serializable]
 public class PlayerTechState
 {

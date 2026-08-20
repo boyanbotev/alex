@@ -1,7 +1,5 @@
 using UnityEngine;
 
-// Sits on the instantiated building prefab, analogous to how Unit sits on
-// spawned unit prefabs. Created and initialized by City.PlaceBuilding.
 public class Building : MonoBehaviour
 {
     public BuildingData data;

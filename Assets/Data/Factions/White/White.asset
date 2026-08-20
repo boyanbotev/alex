@@ -24,3 +24,6 @@ MonoBehaviour:
   availableBuildings:
   - {fileID: 11400000, guid: cd366363dfc6e6947b45c254d7f03472, type: 2}
   - {fileID: 11400000, guid: 41342e08a6456534fa22e5e8895988ee, type: 2}
+  availableTech:
+  - {fileID: 11400000, guid: 19d9dfc725a3ff945aad5084a33f41a3, type: 2}
+  - {fileID: 11400000, guid: c1328990d578ffd44ad2e0effe8bf672, type: 2}

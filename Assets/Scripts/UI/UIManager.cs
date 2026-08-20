@@ -10,6 +10,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] RectTransform spawnPanel;
     [SerializeField] RectTransform buildPanel;
     [SerializeField] RectTransform buildButtonHolder;
+    [SerializeField] RectTransform techPanel;
+    [SerializeField] RectTransform techButtonHolder;
     [SerializeField] TextMeshProUGUI starsCounter;
 
     [SerializeField] GameObject spawnButtonPrefab;
@@ -38,7 +40,6 @@ public class UIManager : MonoBehaviour
     /// <param name="action"></param>
     public void ShowSpawnButtons(FactionUnit[] availableUnits, City city)
     {
-
         if (spawnPanel.gameObject.activeSelf) return;
 
         spawnPanel.gameObject.SetActive(true);
@@ -78,6 +79,34 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void ShowTechButtons()
+    {
+        if (techPanel.gameObject.activeSelf) return;
+
+        var player = TurnManager.Instance.ActivePlayer;
+        var availableTech = player.faction.availableTech;
+
+        if (player.isAI) return;
+
+        techPanel.gameObject.SetActive(true);
+
+        foreach (TechData tech in availableTech)
+        {
+            if (!player.techState.CanResearch(tech)) continue;
+
+            var button = Instantiate(spawnButtonPrefab, techButtonHolder);
+            Button buttonComponent = button.GetComponent<Button>();
+            TextMeshProUGUI buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+
+            buttonText.text = "Research " + tech.techName;
+
+            buttonComponent.onClick.AddListener(() => {
+                player.techState.TryResearch(tech, player);
+                CloseTechPanel();
+            });
+        }
+    }
+
     public void CloseBuildPanel()
     {
         for (int i = 0; i < buildButtonHolder.childCount; i++)
@@ -94,6 +123,15 @@ public class UIManager : MonoBehaviour
             Destroy(spawnButtonHolder.GetChild(i).gameObject);
         }
         spawnPanel.gameObject.SetActive(false);
+    }
+
+    public void CloseTechPanel()
+    {
+        for (int i = 0; i < techButtonHolder.childCount; i++)
+        {
+            Destroy(techButtonHolder.GetChild(i).gameObject);
+        }
+        techPanel.gameObject.SetActive(false);
     }
 
     public void SetStars(int value)
