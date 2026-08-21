@@ -29,5 +29,5 @@ MonoBehaviour:
   - unit: {fileID: 11400000, guid: a231c58b61d63ef4db4f7e305aa1a290, type: 2}
     strength: 1
   - unit: {fileID: 11400000, guid: b67253c5db2d09d4688753569fe1d629, type: 2}
-    strength: 1
+    strength: 0.5
   requiredTech: {fileID: 11400000, guid: 39596448097723c449b9118be84a5424, type: 2}

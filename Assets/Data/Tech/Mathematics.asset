@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   techName: Mathematics
   description: 
-  cost: 5
-  prerequisites: []
+  cost: 8
+  prerequisites:
+  - {fileID: 11400000, guid: 39596448097723c449b9118be84a5424, type: 2}
