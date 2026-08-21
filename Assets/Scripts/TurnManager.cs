@@ -44,14 +44,14 @@ public class TurnManager : MonoBehaviour
             unit.ResetTurn();
 
         if (player.isAI)
-            StartCoroutine(RunAITurn());
+            StartCoroutine(RunAITurn(player));
 
         Debug.Log($"Turn {turnNumber}: Start of {player.factionName}'s turn. Current Stars: {player.stars}");
     }
 
-    private IEnumerator RunAITurn()
+    private IEnumerator RunAITurn(Player player)
     {
-        yield return ai.PlayTurn();
+        yield return ai.PlayTurn(player);
         EndTurn();
     }
 }

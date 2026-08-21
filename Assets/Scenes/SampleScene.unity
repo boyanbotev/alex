@@ -542,8 +542,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6aa5f779daaed74c87d05e547ce3960, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 7
-  height: 7
+  width: 10
+  height: 10
   tileSize: 1
   is3DIsometric: 1
   fieldTilePrefab: {fileID: 4525404964014115685, guid: 23ffd742d51009245ae233184336cca1, type: 3}
@@ -851,6 +851,8 @@ GameObject:
   m_Component:
   - component: {fileID: 750415853}
   - component: {fileID: 750415854}
+  - component: {fileID: 750415856}
+  - component: {fileID: 750415855}
   m_Layer: 0
   m_Name: Enemy AI
   m_TagString: Untagged
@@ -886,25 +888,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controlledPlayer: {fileID: 1987367075}
-  cityCaptureWeight: 40
-  cityProgressWeight: 3
-  damageWeight: 1
-  killWeight: 5
-  retaliationWeight: 1
-  survivalWeight: 4
-  positionWeight: 1
-  counterWeight: 8
-  nearbyEnemyWeight: 3
-  nearbyCityWeight: 2
-  expansionWeight: 6
-  meleeVulnerabilityWeight: 0.1
-  aggression: 1
-  expansionism: 1
-  defence: 1
-  perUnitLookaheadCandidates: 2
-  ownRolloutSteps: 2
-  enemyRolloutSteps: 2
-  enemyThreatWeight: 1
+  tacticsAI: {fileID: 750415855}
+  economyAI: {fileID: 750415856}
+  profile: {fileID: 11400000, guid: b7b1b3878ad1aed43b37ed5ffd5e7603, type: 2}
+--- !u!114 &750415855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 750415852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b057468b2a3ccc4bb211f899d025ed1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &750415856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 750415852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e667b6963c677e142b3d7efddbe97bd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &778516886
 GameObject:
   m_ObjectHideFlags: 0
@@ -1799,8 +1809,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 111e61dc168ed3148bd096a2fea6419c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 7
-  height: 7
+  width: 10
+  height: 10
 --- !u!4 &1308592311
 Transform:
   m_ObjectHideFlags: 0
