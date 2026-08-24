@@ -59,7 +59,6 @@ public class SelectionController : MonoBehaviour
             City city = clickedTile.city;
             if (city.owner == TurnManager.Instance.ActivePlayer)
             {
-                Debug.Log("city belongs to active player");
                 selectedCity = city;
                 GridManager.Instance.ClearAllHighlights();
                 highlightedTiles.Clear();

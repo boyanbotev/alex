@@ -34,6 +34,7 @@ public class TacticsAI : MonoBehaviour
                 .OrderByDescending(c => EvaluateWithLookahead(c, BoardState.Live))
                 .First();
 
+            Debug.Log("Best action: " + best.unit.name + ", " + best.kind.ToString());
             yield return Execute(best);
         }
     }

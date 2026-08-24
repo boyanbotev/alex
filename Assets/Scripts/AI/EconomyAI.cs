@@ -34,7 +34,6 @@ public class EconomyAI : MonoBehaviour
         immediateCandidates.AddRange(GenerateSpawnCandidates());
 
         List<EconomyCandidateAction> researchCandidates = GenerateResearchCandidates().ToList();
-        ApplyResearchLullBoost(researchCandidates, immediateCandidates);
 
         List<EconomyCandidateAction> all = new List<EconomyCandidateAction>(immediateCandidates);
         all.AddRange(researchCandidates);
@@ -62,20 +61,6 @@ public class EconomyAI : MonoBehaviour
                     score = ScoreBuilding(building, city)
                 };
             }
-        }
-    }
-
-    private void ApplyResearchLullBoost(List<EconomyCandidateAction> researchCandidates, List<EconomyCandidateAction> immediateCandidates)
-    {
-        float bestImmediateScore = immediateCandidates.Count > 0
-            ? immediateCandidates.Max(c => c.score)
-            : 0f;
-
-        if (bestImmediateScore >= profile.researchLullThreshold) return;
-
-        foreach (EconomyCandidateAction candidate in researchCandidates)
-        {
-            candidate.score *= profile.researchLullBoost;
         }
     }
 
@@ -236,14 +221,14 @@ public class EconomyAI : MonoBehaviour
     private float ScoreResearch(TechData tech)
     {
         float score = profile.researchBaseWeight;
-        Debug.Log("score research " + tech.techName + "------------------------------------------");
+        //Debug.Log("score research " + tech.techName + "------------------------------------------");
 
         foreach (BuildingData building in controlledPlayer.faction.availableBuildings)
         {
             if (building.requiredTech == tech)
             {
                 score += profile.researchBuildingUnlockWeight;
-                Debug.Log("+ building unlock bonus:" + profile.researchBuildingUnlockWeight);
+                //Debug.Log("+ building unlock bonus:" + profile.researchBuildingUnlockWeight);
             }
         }
 
@@ -252,7 +237,7 @@ public class EconomyAI : MonoBehaviour
             if (unit.unitData.requiredTech == tech)
             {
                 score += ScoreUnitUnlock(unit);
-                Debug.Log("counter score: " + ScoreUnitUnlock(unit));
+                //Debug.Log("counter score: " + ScoreUnitUnlock(unit));
             }
         }
 
@@ -261,10 +246,10 @@ public class EconomyAI : MonoBehaviour
             if (other.prerequisites != null && other.prerequisites.Contains(tech))
             {
                 score += profile.researchBridgeWeight;
-                Debug.Log("+ researchBridgeWeight: " + profile.researchBridgeWeight);
+                //Debug.Log("+ researchBridgeWeight: " + profile.researchBridgeWeight);
             }
         }
-        Debug.Log(tech.techName + " final score = " + score);
+        //Debug.Log(tech.techName + " final score = " + score);
 
         return score;
     }

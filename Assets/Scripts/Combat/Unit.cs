@@ -57,12 +57,9 @@ public class Unit : MonoBehaviour
 
         defender.TakeDamage(attackDamage);
 
-        Debug.Log("attacker damage" + attackDamage);
-
         if (defender.currentHealth > 0 && Utils.IsWithinDistance(defender.currentTile.gridPosition, currentTile.gridPosition, defender.data.attackRange))
         {
             TakeDamage(retaliationDamage);
-            Debug.Log("retaliation damage " + retaliationDamage);
         }
 
         hasAttacked = true;
