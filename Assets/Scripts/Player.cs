@@ -38,6 +38,8 @@ public class Player : MonoBehaviour
         int totalIncome = 0;
         foreach (var city in cities)
         {
+            if (city.HasPendingCapture) continue;
+
             totalIncome += city.BaseIncome;
         }
         return totalIncome;
