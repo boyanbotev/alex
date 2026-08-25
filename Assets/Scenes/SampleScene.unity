@@ -190,8 +190,8 @@ Camera:
   m_GameObject: {fileID: 330585543}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -427,6 +427,58 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 362058530}
   m_CullTransparentMesh: 1
+--- !u!1 &383041692
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 383041693}
+  - component: {fileID: 383041694}
+  m_Layer: 0
+  m_Name: Player 3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &383041693
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 383041692}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1676256224}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &383041694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 383041692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfaa217b5bdd92f4fb10ad691d60d5be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  factionName: Red
+  faction: {fileID: 11400000, guid: f865075d944943a45a3acc769ddf00e7, type: 2}
+  factionColor: {r: 1, g: 0, b: 0, a: 1}
+  stars: 5
+  isAI: 1
+  unitsCreated: 0
+  cities: []
+  units: []
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -577,8 +629,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6aa5f779daaed74c87d05e547ce3960, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 8
-  height: 8
+  width: 10
+  height: 10
   tileSize: 1
   is3DIsometric: 1
   fieldTilePrefab: {fileID: 4525404964014115685, guid: 23ffd742d51009245ae233184336cca1, type: 3}
@@ -1844,8 +1896,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 111e61dc168ed3148bd096a2fea6419c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 8
-  height: 8
+  width: 10
+  height: 10
 --- !u!4 &1308592311
 Transform:
   m_ObjectHideFlags: 0
@@ -2075,6 +2127,7 @@ MonoBehaviour:
   players:
   - {fileID: 778516888}
   - {fileID: 1987367075}
+  - {fileID: 383041694}
   activePlayerIndex: 0
   turnNumber: 1
   ai: {fileID: 750415854}
@@ -2262,6 +2315,7 @@ Transform:
   m_Children:
   - {fileID: 778516887}
   - {fileID: 1987367074}
+  - {fileID: 383041693}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1763104397

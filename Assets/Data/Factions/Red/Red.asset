@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5d7e3f97ca0f994d9a5eebdf84985e2, type: 3}
+  m_Name: Red
+  m_EditorClassIdentifier: 
+  cityPrefab: {fileID: 4072920081775810972, guid: 29bfe438761d31f44858b3d1818e664c, type: 3}
+  units: []
+  startingUnit: {fileID: 11400000, guid: ef4ba16ffe57b3344b02414d05b69843, type: 2}
+  availableUnits:
+  - {fileID: 11400000, guid: ef4ba16ffe57b3344b02414d05b69843, type: 2}
+  - {fileID: 11400000, guid: 8fd7088d03deeab44be0f9f113317312, type: 2}
+  - {fileID: 11400000, guid: a192616d9158d3b4dbb17878f491aa61, type: 2}
+  - {fileID: 11400000, guid: cb683d5c4c5fd0449b6ca494acf52b0a, type: 2}
+  - {fileID: 11400000, guid: 64d080705ad1c734bb4314e9386234c8, type: 2}
+  availableBuildings:
+  - {fileID: 11400000, guid: cd366363dfc6e6947b45c254d7f03472, type: 2}
+  - {fileID: 11400000, guid: 41342e08a6456534fa22e5e8895988ee, type: 2}
+  availableTech:
+  - {fileID: 11400000, guid: c1328990d578ffd44ad2e0effe8bf672, type: 2}
+  - {fileID: 11400000, guid: 19d9dfc725a3ff945aad5084a33f41a3, type: 2}
+  - {fileID: 11400000, guid: e41b17a24b55aa049b927448172b00e6, type: 2}
+  - {fileID: 11400000, guid: 39596448097723c449b9118be84a5424, type: 2}
+  - {fileID: 11400000, guid: 0f80d8f5e80b385438c0c41566678087, type: 2}
+  - {fileID: 11400000, guid: 99df853a656905b4e8ce81046a7a7ef2, type: 2}
