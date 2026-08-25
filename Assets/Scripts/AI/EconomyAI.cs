@@ -105,8 +105,6 @@ public class EconomyAI : MonoBehaviour
 
         foreach (Unit enemy in nearbyEnemies)
         {
-            score += CalculateCounterStrength(candidate, enemy);
-
             if (enemy.data.attackRange == 1)
             {
                 nearbyMeleeCount++;
@@ -119,6 +117,13 @@ public class EconomyAI : MonoBehaviour
             score += meleeThreat * data.defensePower * data.maxHealth * profile.meleeVulnerabilityWeight;
         }
 
+        List<Unit> enemies = GetNearbyEnemies(city, 6); // relatively nearby
+
+        foreach (Unit enemy in enemies)
+        {
+            score += CalculateCounterStrength(candidate, enemy);
+        }
+
         if (HasUncapturedCityNearby(city))
         {
             score += profile.expansionWeight * data.moveRange;
@@ -127,7 +132,7 @@ public class EconomyAI : MonoBehaviour
         return score;
     }
 
-    private List<Unit> GetNearbyEnemies(City city)
+    private List<Unit> GetNearbyEnemies(City city, int range = 3)
     {
         List<Unit> enemies = new List<Unit>();
 
@@ -178,9 +183,7 @@ public class EconomyAI : MonoBehaviour
 
     float CalculateCounterStrength(FactionUnit unit, Unit enemy)
     {
-        if (unit.unitData == enemy.data) return 0;
-
-        else return unit.unitData.counters.FirstOrDefault(c => c.unit == enemy.data).strength * profile.counterWeight;
+        return unit.unitData.counters.FirstOrDefault(c => c.unit == enemy.data).strength * profile.counterWeight;
     }
 
     private float ScoreBuilding(BuildingData building, City city)

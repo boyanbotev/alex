@@ -887,7 +887,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d026062898eff1d468aaa3e9bc76c0c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controlledPlayer: {fileID: 1987367075}
   tacticsAI: {fileID: 750415855}
   economyAI: {fileID: 750415856}
   profile: {fileID: 11400000, guid: b7b1b3878ad1aed43b37ed5ffd5e7603, type: 2}
@@ -959,11 +958,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfaa217b5bdd92f4fb10ad691d60d5be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  factionName: poo
+  factionName: White
   faction: {fileID: 11400000, guid: 8faff328133394f4db3022a2fdee83c7, type: 2}
-  factionColor: {r: 1, g: 0, b: 0, a: 1}
+  factionColor: {r: 1, g: 1, b: 1, a: 1}
   stars: 5
   isAI: 0
+  unitsCreated: 0
   cities: []
   units: []
 --- !u!1 &832575517
@@ -2538,11 +2538,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfaa217b5bdd92f4fb10ad691d60d5be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  factionName: green
+  factionName: Black
   faction: {fileID: 11400000, guid: 3c65617266f15f74198d98636dfaa38f, type: 2}
-  factionColor: {r: 0.014575456, g: 0.59119487, b: 0.0130136255, a: 1}
+  factionColor: {r: 0, g: 0, b: 0, a: 1}
   stars: 5
   isAI: 1
+  unitsCreated: 0
   cities: []
   units: []
 --- !u!1 &2121092701

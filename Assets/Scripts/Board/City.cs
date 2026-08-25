@@ -17,7 +17,7 @@ public class City : MonoBehaviour
     [Tooltip("How many tiles out from centerTile belong to this city's territory. Grows with level in LevelUp().")]
     public int territoryRadius = 1;
 
-    public int BaseIncome => level + 1; // Polytopia star generation formula
+    public int BaseIncome => level + 1;
 
     public void AddPopulation(int amount)
     {
@@ -86,10 +86,12 @@ public class City : MonoBehaviour
         unit.homeCity = this;
         units.Add(unit);
 
-        // Spawned units cannot move or attack on the same turn
         unit.hasMoved = true;
         unit.hasAttacked = true;
         unit.Deactivate();
+
+        owner.unitsCreated++;
+        unit.name = unit.owner.faction.name + " " + unit.data.name + " " + owner.unitsCreated; 
 
         owner.units.Add(unit);
         return true;

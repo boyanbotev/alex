@@ -10,6 +10,7 @@ public class Player : MonoBehaviour
     public Color factionColor;
     public int stars = 5;
     public bool isAI;
+    public int unitsCreated = 0;
 
     public List<City> cities = new List<City>();
     public List<Unit> units = new List<Unit>();

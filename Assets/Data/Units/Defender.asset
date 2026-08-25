@@ -26,7 +26,7 @@ MonoBehaviour:
     strength: -1
   - unit: {fileID: 11400000, guid: 8f429f719567c9647b426f8f9872f96e, type: 2}
     strength: 0
-  - unit: {fileID: 11400000, guid: a231c58b61d63ef4db4f7e305aa1a290, type: 2}
+  - unit: {fileID: 11400000}
     strength: 0
   - unit: {fileID: 11400000, guid: b67253c5db2d09d4688753569fe1d629, type: 2}
     strength: 0

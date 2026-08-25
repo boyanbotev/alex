@@ -188,7 +188,6 @@ public class TacticsAI : MonoBehaviour
 
             if (moved)
             {
-                float score = ScoreMove(unit, currentTile, position, board);
 
                 yield return new CandidateAction
                 {
@@ -196,7 +195,7 @@ public class TacticsAI : MonoBehaviour
                     moveTile = position,
                     target = null,
                     kind = ActionKind.MoveOnly,
-                    score = score
+                    score = ScoreMove(unit, currentTile, position, board)
                 };
             }
             else

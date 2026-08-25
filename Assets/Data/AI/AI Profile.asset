@@ -22,9 +22,9 @@ MonoBehaviour:
   perUnitLookaheadCandidates: 2
   ownRolloutSteps: 2
   enemyRolloutSteps: 2
-  enemyThreatWeight: 1
+  enemyThreatWeight: 2
   expansionWeight: 6
-  meleeVulnerabilityWeight: 0.1
+  meleeVulnerabilityWeight: 0.3
   counterWeight: 8
   buildingBaseWeight: 3
   cityGrowthWeight: 5
