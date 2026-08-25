@@ -9,6 +9,8 @@ public class SelectionController : MonoBehaviour
     private City selectedCity;
     private Tile selectedBuildTile;
     private List<Tile> highlightedTiles = new List<Tile>();
+    private Vector3 mouseDownPosition;
+    private const float DragThreshold = 10f;
 
     private void Update()
     {
@@ -24,7 +26,22 @@ public class SelectionController : MonoBehaviour
                 return;
             }
 
-            HandleClick();
+            mouseDownPosition = Input.mousePosition;
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
+
+            float distance = Vector3.Distance(mouseDownPosition, Input.mousePosition);
+
+            if (distance < DragThreshold)
+            {
+                HandleClick();
+            }
         }
     }
 
