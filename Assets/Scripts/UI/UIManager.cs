@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
@@ -15,12 +14,18 @@ public class UIManager : MonoBehaviour
     [SerializeField] TextMeshProUGUI starsCounter;
 
     [SerializeField] GameObject spawnButtonPrefab;
+
+    [Header("Capture UI")]
+    [SerializeField] RectTransform captureButtonHolder;
+    [SerializeField] GameObject captureButtonPrefab;
+
     public static UIManager Instance;
+
+    private readonly Dictionary<City, GameObject> captureButtons = new Dictionary<City, GameObject>();
 
     private void Awake()
     {
         Instance = this;
-        spawnPanel.gameObject.SetActive(false);
     }
 
     private void OnEnable()
@@ -33,11 +38,6 @@ public class UIManager : MonoBehaviour
         Player.OnUpdateStars -= SetStars;
     }
 
-    /// <summary>
-    /// Programmatically create spawn buttons
-    /// based on the available units
-    /// </summary>
-    /// <param name="action"></param>
     public void ShowSpawnButtons(FactionUnit[] availableUnits, City city)
     {
         if (spawnPanel.gameObject.activeSelf) return;
@@ -105,6 +105,85 @@ public class UIManager : MonoBehaviour
                 CloseTechPanel();
             });
         }
+    }
+
+    public void ShowCaptureButton(City city, Unit capturer)
+    {
+        if (city == null || capturer == null) return;
+
+        if (!capturer.isAlive || capturer.currentTile != city.centerTile) return;
+
+        if (captureButtons.ContainsKey(city)) return;
+
+        GameObject button = Instantiate(captureButtonPrefab, captureButtonHolder);
+
+        captureButtons[city] = button;
+
+        Button buttonComponent = button.GetComponent<Button>();
+        TextMeshProUGUI buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+
+        if (buttonText != null) buttonText.text = "Capture";
+
+        buttonComponent.onClick.AddListener(() =>
+        {
+            if (!capturer.isAlive ||
+                capturer.currentTile != city.centerTile)
+            {
+                HideCaptureButton(city);
+                return;
+            }
+
+            city.Capture(capturer);
+            HideCaptureButton(city);
+        });
+
+        PositionCaptureButton(button.GetComponent<RectTransform>(), city);
+    }
+
+    private void PositionCaptureButton(RectTransform button, City city)
+    {
+        if (button == null || city == null || captureButtonHolder == null)
+            return;
+
+        Vector3 screenPosition = Camera.main.WorldToScreenPoint(city.centerTile.transform.position);
+
+        RectTransform canvasRect = captureButtonHolder.root as RectTransform;
+
+        if (canvasRect == null)
+            return;
+
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvasRect,
+                screenPosition,
+                null,
+                out Vector2 localPosition))
+        {
+            button.position = canvasRect.TransformPoint(localPosition);
+        }
+    }
+
+    public void HideCaptureButton(City city)
+    {
+        if (city == null) return;
+
+        if (captureButtons.TryGetValue(city, out GameObject button))
+        {
+            if (button != null)
+                Destroy(button);
+
+            captureButtons.Remove(city);
+        }
+    }
+
+    public void HideAllCaptureButtons()
+    {
+        foreach (GameObject button in captureButtons.Values)
+        {
+            if (button != null)
+                Destroy(button);
+        }
+
+        captureButtons.Clear();
     }
 
     public void CloseBuildPanel()

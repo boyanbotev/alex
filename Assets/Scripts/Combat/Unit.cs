@@ -18,6 +18,7 @@ public class Unit : MonoBehaviour
     public bool hasAttacked;
     public bool isAlive;
     public bool isActive;
+    public bool hasCaptured;
 
     [Header("Animation")]
 
@@ -41,6 +42,12 @@ public class Unit : MonoBehaviour
         transform.position = targetTile.transform.position;
 
         hasMoved = true;
+
+        if (targetTile.city != null && targetTile.city.owner != owner)
+        {
+            targetTile.city.SetPendingCapture(this);
+        }
+
         if (data.skills.Any(s => s == Skill.Static))
         {
             isActive = false;
@@ -79,7 +86,7 @@ public class Unit : MonoBehaviour
 
     public void Heal()
     {
-        if (hasAttacked || hasMoved) return;
+        if (hasAttacked || hasMoved || hasCaptured) return;
 
         City city = currentTile.territoryCity ?? currentTile.city;
         bool inHomeTerritory = city?.owner == owner;

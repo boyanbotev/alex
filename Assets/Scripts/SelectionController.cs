@@ -111,11 +111,6 @@ public class SelectionController : MonoBehaviour
         if (isMeleeAttack && (targetUnit.gameObject == null || !targetUnit.isAlive))
         {
             selectedUnit.MoveTo(targetTile);
-
-            if (targetTile.city != null)
-            {
-                targetTile.city.Claim(selectedUnit.owner);
-            }
         }
 
         DeactivateUsedUnits(selectedUnit.owner.units);
@@ -125,11 +120,6 @@ public class SelectionController : MonoBehaviour
     private void MoveTo(Tile tile)
     {
         selectedUnit.MoveTo(tile);
-
-        if (tile.city != null)
-        {
-            tile.city.Claim(selectedUnit.owner);
-        }
 
         HighlightActions(selectedUnit);
         DeactivateUsedUnits(selectedUnit.owner.units);

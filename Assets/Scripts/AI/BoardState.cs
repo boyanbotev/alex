@@ -19,8 +19,11 @@ public class BoardState
     private readonly HashSet<Unit> unitDead;
     private readonly Dictionary<Tile, Unit> tileOccupant;
     private readonly Dictionary<City, Player> cityOwner;
+    private readonly Dictionary<City, Unit> pendingCityCaptures;
 
-    /// <summary>The "no overrides yet" state - reads always fall through to the real scene.</summary>
+    /// <summary>
+    /// The "no overrides yet" state - reads always fall through to the real scene.
+    /// </summary>
     public static readonly BoardState Live = new BoardState();
 
     public BoardState()
@@ -33,6 +36,7 @@ public class BoardState
         unitDead = new HashSet<Unit>();
         tileOccupant = new Dictionary<Tile, Unit>();
         cityOwner = new Dictionary<City, Player>();
+        pendingCityCaptures = new Dictionary<City, Unit>();
     }
 
     private BoardState(BoardState src)
@@ -45,6 +49,7 @@ public class BoardState
         unitDead = new HashSet<Unit>(src.unitDead);
         tileOccupant = new Dictionary<Tile, Unit>(src.tileOccupant);
         cityOwner = new Dictionary<City, Player>(src.cityOwner);
+        pendingCityCaptures = new Dictionary<City, Unit>(src.pendingCityCaptures);
     }
 
     // ---------------- Readers ----------------
@@ -55,8 +60,18 @@ public class BoardState
     public bool HasAttacked(Unit u) => unitAttacked.TryGetValue(u, out var a) ? a : u.hasAttacked;
     public bool IsActive(Unit u) => unitActive.TryGetValue(u, out var a) ? a : u.isActive;
     public bool IsAlive(Unit u) => !unitDead.Contains(u) && u.isAlive;
-
     public Player GetOwner(City c) => cityOwner.TryGetValue(c, out var p) ? p : c.owner;
+    public bool HasPendingCityCapture(City city)
+    {
+        return pendingCityCaptures.ContainsKey(city);
+    }
+
+    public Unit GetPendingCityCapturer(City city)
+    {
+        return pendingCityCaptures.TryGetValue(city, out var unit)
+            ? unit
+            : null;
+    }
 
     public Unit GetOccupant(Tile t)
     {
@@ -78,7 +93,7 @@ public class BoardState
         return live;
     }
 
-    // ---------------- Mutators (each returns a new state) ----------------
+    // ---------------- Mutators ----------------
 
     public BoardState WithMove(Unit unit, Tile from, Tile to)
     {
@@ -88,16 +103,38 @@ public class BoardState
         s.unitTile[unit] = to;
         s.unitMoved[unit] = true;
 
+        s.RemovePendingCapturesForUnit(unit);
+
         if (unit.data.skills.Any(sk => sk == Skill.Static))
             s.unitActive[unit] = false;
 
         return s;
     }
 
+    public BoardState WithPendingCityCapture(City city, Unit unit)
+    {
+        BoardState s = new BoardState(this);
+
+        s.pendingCityCaptures[city] = unit;
+
+        return s;
+    }
+
+    public BoardState WithoutPendingCityCapture(City city)
+    {
+        BoardState s = new BoardState(this);
+        s.pendingCityCaptures.Remove(city);
+        return s;
+    }
+
     public BoardState WithCityClaim(City city, Player newOwner)
     {
         BoardState s = new BoardState(this);
+
         s.cityOwner[city] = newOwner;
+
+        s.pendingCityCaptures.Remove(city);
+
         return s;
     }
 
@@ -111,6 +148,8 @@ public class BoardState
             s.unitDead.Add(unit);
             Tile tile = s.GetTile(unit);
             s.tileOccupant[tile] = null;
+
+            s.RemovePendingCapturesForUnit(unit);
         }
 
         return s;
@@ -129,5 +168,16 @@ public class BoardState
         BoardState s = new BoardState(this);
         s.unitActive[unit] = false;
         return s;
+    }
+
+    private void RemovePendingCapturesForUnit(Unit unit)
+    {
+        List<City> citiesToRemove = pendingCityCaptures
+            .Where(pair => pair.Value == unit)
+            .Select(pair => pair.Key)
+            .ToList();
+
+        foreach (City city in citiesToRemove)
+            pendingCityCaptures.Remove(city);
     }
 }

@@ -17,6 +17,15 @@ public class City : MonoBehaviour
     [Tooltip("How many tiles out from centerTile belong to this city's territory. Grows with level in LevelUp().")]
     public int territoryRadius = 1;
 
+    [Header("Capture")]
+    public Unit pendingCapturer;
+
+    public bool HasPendingCapture =>
+        pendingCapturer != null &&
+        pendingCapturer.isAlive &&
+        pendingCapturer.currentTile == centerTile &&
+        pendingCapturer.owner != owner;
+
     public int BaseIncome => level + 1;
 
     public void AddPopulation(int amount)
@@ -141,9 +150,60 @@ public class City : MonoBehaviour
         return true;
     }
 
+    public void SetPendingCapture(Unit unit)
+    {
+        if (unit == null) return;
+        if (owner == unit.owner) return;
+
+        pendingCapturer = unit;
+
+        Debug.Log(
+            $"{unit.owner.factionName} is occupying {cityName}. " +
+            $"Capture will resolve at the start of their next turn."
+        );
+    }
+
+    public bool ResolvePendingCapture(bool showUI)
+    {
+        if (!HasPendingCapture)
+        {
+            pendingCapturer = null;
+            return false;
+        }
+
+        Unit capturer = pendingCapturer;
+        pendingCapturer = null;
+
+        if (showUI)
+        {
+            UIManager.Instance.ShowCaptureButton(this, capturer);
+        }
+        else
+        {
+            Capture(capturer);
+        }
+
+        return true;
+    }
+
+    public void Capture(Unit capturer)
+    {
+        if (capturer == null || !capturer.isAlive)
+            return;
+
+        if (capturer.currentTile != centerTile)
+            return;
+
+        Claim(capturer.owner);
+        capturer.Deactivate();
+        capturer.hasCaptured = true;
+    }
+
     public void Claim(Player claimingPlayer)
     {
         if (owner == claimingPlayer) return;
+
+        pendingCapturer = null;
 
         if (owner != null) owner.RemoveCity(this);
 

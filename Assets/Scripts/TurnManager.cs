@@ -45,6 +45,8 @@ public class TurnManager : MonoBehaviour
         foreach (var unit in player.units)
             unit.ResetTurn();
 
+        ResolvePendingCaptures(player);
+
         if (player.isAI)
             StartCoroutine(RunAITurn(player));
 
@@ -58,6 +60,27 @@ public class TurnManager : MonoBehaviour
             if (!unit.hasMoved && !unit.hasAttacked)
             {
                 unit.Heal();
+            }
+        }
+    }
+
+    private void ResolvePendingCaptures(Player player)
+    {
+        foreach (City city in WorldPopulationManager.Instance.allCities)
+        {
+            if (!city.HasPendingCapture)
+                continue;
+
+            if (city.pendingCapturer.owner != player)
+                continue;
+
+            if (player.isAI)
+            {
+                city.ResolvePendingCapture(false);
+            }
+            else
+            {
+                city.ResolvePendingCapture(true);
             }
         }
     }

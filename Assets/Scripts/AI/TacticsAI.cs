@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Android;
 
 public class TacticsAI : MonoBehaviour
 {
@@ -112,7 +113,7 @@ public class TacticsAI : MonoBehaviour
             next = next.WithMove(unit, from, to);
 
             if (to.city != null && next.GetOwner(to.city) != unit.owner)
-                next = next.WithCityClaim(to.city, unit.owner);
+                next = next.WithPendingCityCapture(to.city, unit);
         }
 
         if (action.kind == ActionKind.Attack && action.target != null && next.IsAlive(action.target))
@@ -137,7 +138,7 @@ public class TacticsAI : MonoBehaviour
                     next = next.WithMove(unit, to, targetTile);
 
                     if (targetTile.city != null && next.GetOwner(targetTile.city) != unit.owner)
-                        next = next.WithCityClaim(targetTile.city, unit.owner);
+                        next = next.WithPendingCityCapture(targetTile.city, unit);
                 }
             }
             else if (Utils.IsWithinDistance(targetTile.gridPosition, to.gridPosition, target.data.attackRange))
@@ -456,11 +457,6 @@ public class TacticsAI : MonoBehaviour
         if (action.moveTile != action.unit.currentTile)
         {
             action.unit.MoveTo(action.moveTile);
-
-            if (action.moveTile.city != null)
-            {
-                action.moveTile.city.Claim(action.unit.owner);
-            }
         }
 
         // then attack
@@ -475,11 +471,6 @@ public class TacticsAI : MonoBehaviour
                 targetTile != null)
             {
                 action.unit.MoveTo(targetTile);
-
-                if (targetTile.city != null)
-                {
-                    targetTile.city.Claim(action.unit.owner);
-                }
             }
         }
 
