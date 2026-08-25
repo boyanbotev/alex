@@ -5,8 +5,7 @@ public class GridGenerator : MonoBehaviour
     public static GridGenerator Instance;
 
     [Header("Grid Size")]
-    public int width = 11;
-    public int height = 11;
+    public BoardSettings boardSettings;
     public float tileSize = 1.0f;
 
     [Header("Grid Type")]
@@ -42,9 +41,9 @@ public class GridGenerator : MonoBehaviour
 
     public void GenerateGrid()
     {
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < boardSettings.width; x++)
         {
-            for (int y = 0; y < height; y++)
+            for (int y = 0; y < boardSettings.height; y++)
             {
                 Vector2Int gridPos = new Vector2Int(x, y);
                 Vector3 worldPos = GridToWorldPosition(x, y);

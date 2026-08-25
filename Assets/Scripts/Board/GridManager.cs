@@ -4,9 +4,6 @@ using System.Collections.Generic;
 public class GridManager : MonoBehaviour
 {
     public static GridManager Instance;
-
-    public int width = 11;
-    public int height = 11;
     public Dictionary<Vector2Int, Tile> grid = new Dictionary<Vector2Int, Tile>();
 
     private void Awake()
@@ -20,7 +17,6 @@ public class GridManager : MonoBehaviour
         return tile;
     }
 
-    // Get tiles in movement or attack range (8-way movement like Polytopia)
     public List<Tile> GetTilesInRange(Tile startTile, int range)
     {
         List<Tile> inRange = new List<Tile>();

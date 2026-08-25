@@ -169,9 +169,9 @@ public class WorldPopulationManager : MonoBehaviour
 
     private bool IsFarEnoughFromEdge(Tile candidateTile)
     {
-        return Mathf.Abs(candidateTile.gridPosition.x - GridManager.Instance.width) > minMargin
+        return Mathf.Abs(candidateTile.gridPosition.x - GridGenerator.Instance.boardSettings.width) > minMargin
             && candidateTile.gridPosition.x >= minMargin
-            && Mathf.Abs(candidateTile.gridPosition.y - GridManager.Instance.width) > minMargin
+            && Mathf.Abs(candidateTile.gridPosition.y - GridGenerator.Instance.boardSettings.width) > minMargin
             && candidateTile.gridPosition.y >= minMargin;
     }
 
