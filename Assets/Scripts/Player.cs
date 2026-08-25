@@ -49,4 +49,9 @@ public class Player : MonoBehaviour
     {
         cities.Remove(city);
     }
+
+    public bool IsAlive()
+    {
+        return cities.Count > 0 || units.Count > 0;
+    }
 }

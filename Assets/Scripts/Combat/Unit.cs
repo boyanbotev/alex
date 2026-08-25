@@ -117,6 +117,7 @@ public class Unit : MonoBehaviour
     {
         hasMoved = false;
         hasAttacked = false;
+        hasCaptured = false;
         Activate();
     }
 

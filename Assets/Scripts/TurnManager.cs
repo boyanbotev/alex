@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class TurnManager : MonoBehaviour
@@ -25,6 +26,13 @@ public class TurnManager : MonoBehaviour
 
     public void EndTurn()
     {
+        List<Player> alivePlayers = players.FindAll(p => p.IsAlive());
+        if (alivePlayers.Count == 1)
+        {
+            Debug.Log("GAME OVER . " + alivePlayers[0].name + " is the victor");
+            return;
+        }
+
         HealUnusedUnits(ActivePlayer);
 
         activePlayerIndex = (activePlayerIndex + 1) % players.Count;
