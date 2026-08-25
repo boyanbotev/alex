@@ -77,6 +77,18 @@ public class Unit : MonoBehaviour
         }
     }
 
+    public void Heal()
+    {
+        if (hasAttacked || hasMoved) return;
+
+        City city = currentTile.territoryCity ?? currentTile.city;
+        bool inHomeTerritory = city?.owner == owner;
+        int healthRecoup = inHomeTerritory ? 4 : 2;
+
+        currentHealth = Mathf.Min(data.maxHealth, currentHealth + healthRecoup);
+        healthUI.Set(currentHealth);
+    }
+
     public (int, int) CalculateDamage(Unit attacker, Unit defender)
     {
         return CombatMath.CalculateDamage(

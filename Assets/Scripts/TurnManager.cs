@@ -25,6 +25,8 @@ public class TurnManager : MonoBehaviour
 
     public void EndTurn()
     {
+        HealUnusedUnits(ActivePlayer);
+
         activePlayerIndex = (activePlayerIndex + 1) % players.Count;
 
         if (activePlayerIndex == 0)
@@ -47,6 +49,17 @@ public class TurnManager : MonoBehaviour
             StartCoroutine(RunAITurn(player));
 
         Debug.Log($"Turn {turnNumber}: Start of {player.factionName}'s turn. Current Stars: {player.stars}");
+    }
+
+    void HealUnusedUnits(Player player)
+    {
+        foreach (var unit in player.units)
+        {
+            if (!unit.hasMoved && !unit.hasAttacked)
+            {
+                unit.Heal();
+            }
+        }
     }
 
     private IEnumerator RunAITurn(Player player)
