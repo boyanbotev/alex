@@ -18,7 +18,7 @@ MonoBehaviour:
   killWeight: 5
   retaliationWeight: 1
   survivalWeight: 3
-  positionWeight: 2
+  positionWeight: 4
   perUnitLookaheadCandidates: 2
   ownRolloutSteps: 2
   enemyRolloutSteps: 2
