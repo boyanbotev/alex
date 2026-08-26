@@ -6,8 +6,6 @@ using UnityEngine.EventSystems;
 public class SelectionController : MonoBehaviour
 {
     private Unit selectedUnit;
-    private City selectedCity;
-    private Tile selectedBuildTile;
     private List<Tile> highlightedTiles = new List<Tile>();
     private Vector3 mouseDownPosition;
     private const float DragThreshold = 10f;
@@ -76,7 +74,6 @@ public class SelectionController : MonoBehaviour
             City city = clickedTile.city;
             if (city.owner == TurnManager.Instance.ActivePlayer)
             {
-                selectedCity = city;
                 GridManager.Instance.ClearAllHighlights();
                 highlightedTiles.Clear();
 
@@ -88,8 +85,6 @@ public class SelectionController : MonoBehaviour
             City city = clickedTile.territoryCity;
             if (city.owner == TurnManager.Instance.ActivePlayer)
             {
-                selectedCity = city;
-                selectedBuildTile = clickedTile;
                 GridManager.Instance.ClearAllHighlights();
                 highlightedTiles.Clear();
 
@@ -154,13 +149,12 @@ public class SelectionController : MonoBehaviour
         {
             List<Tile> moveTiles = GridManager.Instance.GetTilesInRange(unit.currentTile, unit.data.moveRange);
             foreach (Tile tile in moveTiles)
-            {
-                if (tile.currentUnit == null)
+
+                if (tile.currentUnit == null && unit.owner.visibleTiles.IsVisible(tile))
                 {
                     tile.SetHighlight(true, Color.blue);
                     highlightedTiles.Add(tile);
                 }
-            }
         }
 
         // Highlight Valid Attack Range
@@ -169,7 +163,8 @@ public class SelectionController : MonoBehaviour
             List<Tile> attackTiles = GridManager.Instance.GetTilesInRange(unit.currentTile, unit.data.attackRange);
             foreach (Tile tile in attackTiles)
             {
-                if (tile.currentUnit != null && tile.currentUnit.owner != unit.owner)
+                bool visible = unit.owner.visibleTiles.IsVisible(tile);
+                if (visible && tile.currentUnit != null && tile.currentUnit.owner != unit.owner)
                 {
                     tile.SetHighlight(true, Color.red);
                     highlightedTiles.Add(tile);
@@ -185,11 +180,12 @@ public class SelectionController : MonoBehaviour
             if ((unit.hasMoved && unit.hasAttacked) || !unit.isActive) unit.Deactivate();
             else if (unit.hasMoved)
             {
-                List <Player> enemyPlayers = TurnManager.Instance.players.ToList(); // TODO: get the player's enemies, which will be stored
+                List<Player> enemyPlayers = TurnManager.Instance.players.ToList(); // TODO: get the player's enemies, which will be stored
                 enemyPlayers.Remove(unit.owner);
 
-                bool hasInRangeOpponents = enemyPlayers.Any(enemyPlayer => 
-                    enemyPlayer.units.Any(u => Utils.IsWithinDistance(u.currentTile.gridPosition, unit.currentTile.gridPosition, unit.data.attackRange))
+                bool hasInRangeOpponents = enemyPlayers.Any(enemyPlayer =>
+                    enemyPlayer.units.Visible(unit.owner.visibleTiles)
+                        .Any(u => Utils.IsWithinDistance(u.currentTile.gridPosition, unit.currentTile.gridPosition, unit.data.attackRange))
                 );
 
                 if (!hasInRangeOpponents) unit.Deactivate();
@@ -213,7 +209,6 @@ public class SelectionController : MonoBehaviour
     private void DeselectAll()
     {
         selectedUnit = null;
-        selectedCity = null;
         highlightedTiles.Clear();
         GridManager.Instance.ClearAllHighlights();
     }

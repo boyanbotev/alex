@@ -15,6 +15,7 @@ public class Player : MonoBehaviour
     public List<City> cities = new List<City>();
     public List<Unit> units = new List<Unit>();
     public PlayerTechState techState = new PlayerTechState();
+    public VisibilityState visibleTiles;
 
     public void AddStars(int amount)
     {

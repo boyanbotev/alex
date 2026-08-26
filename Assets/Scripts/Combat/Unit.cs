@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -42,6 +43,8 @@ public class Unit : MonoBehaviour
         transform.position = targetTile.transform.position;
 
         hasMoved = true;
+
+        FogOfWarManager.Instance.Reveal(owner, targetTile, 2); // unit sight range
 
         if (targetTile.city != null && targetTile.city.owner != owner)
         {

@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public static class Utils
 {
@@ -19,4 +21,7 @@ public static class Utils
 
         return Mathf.Max(dx, dy) <= maxDistance;
     }
+
+    public static IEnumerable<Unit> Visible(this IEnumerable<Unit> units, VisibilityState vis)
+        => units.Where(u => u.isAlive && vis.IsVisible(u.currentTile));
 }

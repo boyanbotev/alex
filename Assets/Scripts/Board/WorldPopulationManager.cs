@@ -29,6 +29,7 @@ public class WorldPopulationManager : MonoBehaviour
     {
         SpawnNeutralVillages();
         AssignPlayerCapitalsAndUnits();
+        FogOfWarManager.Instance.CreateFogTiles();
     }
 
     private void SpawnNeutralVillages()
