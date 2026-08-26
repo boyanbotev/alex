@@ -305,8 +305,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridGenerator: {fileID: 451323999}
-  horizontalPadding: -2
-  verticalPadding: -2
+  horizontalPadding: 5
+  verticalPadding: 5
   panSmoothing: 0.1
 --- !u!1 &362058530
 GameObject:

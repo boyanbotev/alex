@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 757080d81166d2b4e940f78d23b2f558, type: 3}
   m_Name: Board Settings
   m_EditorClassIdentifier: 
-  width: 15
-  height: 15
+  width: 7
+  height: 7

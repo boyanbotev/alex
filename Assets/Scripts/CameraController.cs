@@ -96,44 +96,81 @@ public class CameraController : MonoBehaviour
         float gridMinZ = -verticalPadding;
         float gridMaxZ = gridHeight + verticalPadding;
 
-        // Get the camera's visible footprint on the ground.
-        Vector3[] corners =
+        // Get the ground position of each screen edge.
+        //
+        // We only care about the edges, not whether the entire
+        // camera footprint fits inside the grid.
+
+        Vector3 left = GetGroundPoint(new Vector3(0f, 0.5f));
+        Vector3 right = GetGroundPoint(new Vector3(1f, 0.5f));
+        Vector3 bottom = GetGroundPoint(new Vector3(0.5f, 0f));
+        Vector3 top = GetGroundPoint(new Vector3(0.5f, 1f));
+
+        // Calculate how much each screen edge is offset from
+        // the camera position.
+
+        float leftOffsetX = left.x - transform.position.x;
+        float rightOffsetX = right.x - transform.position.x;
+
+        float bottomOffsetZ = bottom.z - transform.position.z;
+        float topOffsetZ = top.z - transform.position.z;
+
+        /*
+         * Horizontal bounds
+         *
+         * When panning left:
+         *     the LEFT edge of the screen must not go past
+         *     the left edge of the grid.
+         *
+         * When panning right:
+         *     the RIGHT edge of the screen must not go past
+         *     the right edge of the grid.
+         */
+
+        float minX = gridMinX - leftOffsetX;
+        float maxX = gridMaxX - rightOffsetX;
+
+        /*
+         * Vertical bounds
+         *
+         * When panning down:
+         *     the BOTTOM edge must not go past the bottom
+         *     of the grid.
+         *
+         * When panning up:
+         *     the TOP edge must not go past the top
+         *     of the grid.
+         */
+
+        float minZ = gridMinZ - bottomOffsetZ;
+        float maxZ = gridMaxZ - topOffsetZ;
+
+        /*
+         * If the camera footprint is larger than the grid,
+         * the bounds can become inverted.
+         *
+         * In that case there is no position satisfying both
+         * edges simultaneously. Instead, keep the camera
+         * centred over the grid on that axis.
+         */
+
+        if (minX <= maxX)
         {
-            GetGroundPoint(new Vector3(0f, 0f)),
-            GetGroundPoint(new Vector3(1f, 0f)),
-            GetGroundPoint(new Vector3(0f, 1f)),
-            GetGroundPoint(new Vector3(1f, 1f))
-        };
-
-        float minOffsetX = float.MaxValue;
-        float maxOffsetX = float.MinValue;
-        float minOffsetZ = float.MaxValue;
-        float maxOffsetZ = float.MinValue;
-
-        foreach (Vector3 corner in corners)
+            position.x = Mathf.Clamp(position.x, minX, maxX);
+        }
+        else
         {
-            // The corner is expressed relative to the current camera.
-            float offsetX = corner.x - transform.position.x;
-            float offsetZ = corner.z - transform.position.z;
-
-            minOffsetX = Mathf.Min(minOffsetX, offsetX);
-            maxOffsetX = Mathf.Max(maxOffsetX, offsetX);
-
-            minOffsetZ = Mathf.Min(minOffsetZ, offsetZ);
-            maxOffsetZ = Mathf.Max(maxOffsetZ, offsetZ);
+            position.x = (minX + maxX) * 0.5f;
         }
 
-        // Camera position must be far enough into the grid that
-        // the visible footprint doesn't go beyond its edges.
-
-        float maxX = gridMinX - minOffsetX;
-        float minX = gridMaxX - maxOffsetX;
-
-        float maxZ = gridMinZ - minOffsetZ;
-        float minZ = gridMaxZ - maxOffsetZ;
-
-        position.x = Mathf.Clamp(position.x, minX, maxX);
-        position.z = Mathf.Clamp(position.z, minZ, maxZ);
+        if (minZ <= maxZ)
+        {
+            position.z = Mathf.Clamp(position.z, minZ, maxZ);
+        }
+        else
+        {
+            position.z = (minZ + maxZ) * 0.5f;
+        }
 
         return position;
     }
