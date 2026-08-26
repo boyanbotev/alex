@@ -8,6 +8,12 @@ public class TacticsAI : MonoBehaviour
 {
     private AIProfile profile;
     private Player controlledPlayer;
+    private Player humanPlayer;
+
+    private void Start()
+    {
+        humanPlayer = TurnManager.Instance.players.Find(p => !p.isAI);
+    }
 
     public IEnumerator PlayTurn(Player player, AIProfile profile)
     {
@@ -450,7 +456,9 @@ public class TacticsAI : MonoBehaviour
         if (action.kind == ActionKind.DoNothing)
         {
             action.unit.Deactivate();
-            yield return new WaitForSeconds(0.1f);
+
+            if (visible) yield return new WaitForSeconds(0.1f);
+            else yield return null;
         }
 
         // move first
@@ -474,12 +482,18 @@ public class TacticsAI : MonoBehaviour
             }
         }
 
-        if (visible)
-            yield return new WaitForSeconds(0.35f);
+        if (visible) yield return new WaitForSeconds(0.35f);
+        else yield return null;
     }
 
     private bool IsVisibleToLocalPlayer(CandidateAction action)
     {
-        return true;
+        if (humanPlayer.visibleTiles.IsVisible(action.unit.currentTile))
+            return true;
+
+        if (humanPlayer.visibleTiles.IsVisible(action.moveTile))
+            return true;
+
+        return false;
     }
 }
