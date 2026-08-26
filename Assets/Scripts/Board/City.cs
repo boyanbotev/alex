@@ -219,6 +219,8 @@ public class City : MonoBehaviour
 
         SetFaction(claimingPlayer.faction);
 
+        FogOfWarManager.Instance.Reveal(claimingPlayer, centerTile, 2);
+
         Debug.Log($"{claimingPlayer.factionName} captured a city!");
     }
 

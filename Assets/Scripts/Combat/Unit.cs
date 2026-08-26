@@ -44,7 +44,7 @@ public class Unit : MonoBehaviour
 
         hasMoved = true;
 
-        FogOfWarManager.Instance.Reveal(owner, targetTile, 2); // unit sight range
+        FogOfWarManager.Instance.Reveal(owner, targetTile, 1); // unit sight range
 
         if (targetTile.city != null && targetTile.city.owner != owner)
         {
