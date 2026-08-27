@@ -7,6 +7,7 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] RectTransform spawnButtonHolder;
     [SerializeField] RectTransform spawnPanel;
+    [SerializeField] RectTransform cantSpawnText;
     [SerializeField] RectTransform buildPanel;
     [SerializeField] RectTransform buildButtonHolder;
     [SerializeField] RectTransform techPanel;
@@ -56,6 +57,7 @@ public class UIManager : MonoBehaviour
                 CloseSpawnPanel();
             });
         }
+        cantSpawnText.gameObject.SetActive(city.units.Count > city.level);
     }
 
     public void ShowBuildButtons(BuildingData[] availableBuildings, Tile tile, City city)
