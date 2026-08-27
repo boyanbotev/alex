@@ -2702,7 +2702,7 @@ MonoBehaviour:
   techPanel: {fileID: 1021723916}
   techButtonHolder: {fileID: 707992627}
   starsCounter: {fileID: 1558460881}
-  spawnButtonPrefab: {fileID: 2845915569721567404, guid: c2d6da5d4d1f5304084eed1507cb0502, type: 3}
+  itemPurchaseButtonPrefab: {fileID: 2845915569721567404, guid: c2d6da5d4d1f5304084eed1507cb0502, type: 3}
   captureButtonHolder: {fileID: 545468725}
   captureButtonPrefab: {fileID: 2845915569721567404, guid: b5038850404820e408b476539811a934, type: 3}
 --- !u!4 &1907666302

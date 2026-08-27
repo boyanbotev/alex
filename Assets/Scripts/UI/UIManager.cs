@@ -1,7 +1,7 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
 
 public class UIManager : MonoBehaviour
 {
@@ -14,7 +14,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] RectTransform techButtonHolder;
     [SerializeField] TextMeshProUGUI starsCounter;
 
-    [SerializeField] GameObject spawnButtonPrefab;
+    [SerializeField] GameObject itemPurchaseButtonPrefab;
 
     [Header("Capture UI")]
     [SerializeField] RectTransform captureButtonHolder;
@@ -46,13 +46,13 @@ public class UIManager : MonoBehaviour
         spawnPanel.gameObject.SetActive(true);
 
         foreach (FactionUnit unit in availableUnits) {
-            var button = Instantiate(spawnButtonPrefab, spawnButtonHolder);
-            Button buttonComponent = button.GetComponent<Button>();
-            TextMeshProUGUI buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+            var button = Instantiate(itemPurchaseButtonPrefab, spawnButtonHolder);
 
-            buttonText.text = "Spawn " + unit.unitData.name;
+            ItemPurchaseButton itemPurchaseButton = button.GetComponent<ItemPurchaseButton>();
 
-            buttonComponent.onClick.AddListener(() => {
+            itemPurchaseButton.AddText("Spawn " + unit.unitData.name);
+            itemPurchaseButton.AddCost(unit.unitData.cost);
+            itemPurchaseButton.AddListener(() => {
                 city.SpawnUnit(unit, unit.unitData.cost);
                 CloseSpawnPanel();
             });
@@ -68,13 +68,12 @@ public class UIManager : MonoBehaviour
 
         foreach (BuildingData building in availableBuildings)
         {
-            var button = Instantiate(spawnButtonPrefab, buildButtonHolder);
-            Button buttonComponent = button.GetComponent<Button>();
-            TextMeshProUGUI buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+            var button = Instantiate(itemPurchaseButtonPrefab, buildButtonHolder);
+            ItemPurchaseButton itemPurchaseButton = button.GetComponent<ItemPurchaseButton>();
 
-            buttonText.text = "Build " + building.name;
-
-            buttonComponent.onClick.AddListener(() => {
+            itemPurchaseButton.AddText("Build " + building.name);
+            itemPurchaseButton.AddCost(building.cost);
+            itemPurchaseButton.AddListener(() => {
                 city.PlaceBuilding(building, tile);
                 CloseBuildPanel();
             });
@@ -96,13 +95,13 @@ public class UIManager : MonoBehaviour
         {
             if (!player.techState.CanResearch(tech)) continue;
 
-            var button = Instantiate(spawnButtonPrefab, techButtonHolder);
-            Button buttonComponent = button.GetComponent<Button>();
-            TextMeshProUGUI buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+            var button = Instantiate(itemPurchaseButtonPrefab, techButtonHolder);
 
-            buttonText.text = "Research " + tech.techName;
+            ItemPurchaseButton itemPurchaseButton = button.GetComponent<ItemPurchaseButton>();
 
-            buttonComponent.onClick.AddListener(() => {
+            itemPurchaseButton.AddText("Research " + tech.techName);
+            itemPurchaseButton.AddCost(tech.cost);
+            itemPurchaseButton.AddListener(() => {
                 player.techState.TryResearch(tech, player);
                 CloseTechPanel();
             });
