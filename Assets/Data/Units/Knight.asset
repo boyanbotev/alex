@@ -10,26 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a5cc17c9ad383174aa741bc5951e2bfa, type: 3}
-  m_Name: Catapult
+  m_Name: Knight
   m_EditorClassIdentifier: 
-  cost: 8
+  cost: 6
   maxHealth: 10
-  attackPower: 4
-  defensePower: 0
-  moveRange: 1
-  attackRange: 3
-  skills: 00000000
+  attackPower: 3
+  defensePower: 1
+  moveRange: 3
+  attackRange: 1
+  skills: 
   counters:
   - unit: {fileID: 11400000, guid: 69b1f1849c019a346969058b5c2df1fe, type: 2}
-    strength: 0
+    strength: 3
   - unit: {fileID: 11400000, guid: 8f429f719567c9647b426f8f9872f96e, type: 2}
-    strength: -1
-  - unit: {fileID: 11400000, guid: 1b4d97fd2d7b5314fadb11f1a30f2101, type: 2}
-    strength: 4
-  - unit: {fileID: 11400000}
     strength: 1
+  - unit: {fileID: 11400000, guid: b3fdb3d1aafce3c46b0d909f04baa13a, type: 2}
+    strength: 3
+  - unit: {fileID: 11400000, guid: 1b4d97fd2d7b5314fadb11f1a30f2101, type: 2}
+    strength: -2
   - unit: {fileID: 11400000, guid: b67253c5db2d09d4688753569fe1d629, type: 2}
     strength: 2
-  - unit: {fileID: 11400000, guid: 8ac88eee0c6b49f45bee511e4e0431d7, type: 2}
-    strength: -1
-  requiredTech: {fileID: 11400000, guid: e41b17a24b55aa049b927448172b00e6, type: 2}
+  - unit: {fileID: 11400000}
+    strength: 0
+  requiredTech: {fileID: 11400000, guid: 4f6243906ed07f241a08269cdab5f87f, type: 2}

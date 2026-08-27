@@ -174,7 +174,7 @@ public class EconomyAI : MonoBehaviour
                 otherCity.centerTile.gridPosition
             );
 
-            if (distance <= 6)
+            if (distance <= 8)
                 return true;
         }
 

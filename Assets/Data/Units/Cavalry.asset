@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5cc17c9ad383174aa741bc5951e2bfa, type: 3}
   m_Name: Cavalry
   m_EditorClassIdentifier: 
-  cost: 6
+  cost: 3
   maxHealth: 10
   attackPower: 2
   defensePower: 1
@@ -29,5 +29,7 @@ MonoBehaviour:
   - unit: {fileID: 11400000}
     strength: 0
   - unit: {fileID: 11400000, guid: b67253c5db2d09d4688753569fe1d629, type: 2}
+    strength: -1
+  - unit: {fileID: 11400000, guid: 8ac88eee0c6b49f45bee511e4e0431d7, type: 2}
     strength: -1
   requiredTech: {fileID: 11400000, guid: 0f80d8f5e80b385438c0c41566678087, type: 2}
