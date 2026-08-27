@@ -137,29 +137,7 @@ public class UIManager : MonoBehaviour
             HideCaptureButton(city);
         });
 
-        PositionCaptureButton(button.GetComponent<RectTransform>(), city);
-    }
-
-    private void PositionCaptureButton(RectTransform button, City city)
-    {
-        if (button == null || city == null || captureButtonHolder == null)
-            return;
-
-        Vector3 screenPosition = Camera.main.WorldToScreenPoint(city.centerTile.transform.position);
-
-        RectTransform canvasRect = captureButtonHolder.root as RectTransform;
-
-        if (canvasRect == null)
-            return;
-
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                canvasRect,
-                screenPosition,
-                null,
-                out Vector2 localPosition))
-        {
-            button.position = canvasRect.TransformPoint(localPosition);
-        }
+        button.transform.position = city.centerTile.transform.position + new Vector3(0f, 1f, 0f);
     }
 
     public void HideCaptureButton(City city)
