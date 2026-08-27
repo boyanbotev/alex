@@ -58,12 +58,14 @@ public class SelectionController : MonoBehaviour
 
     private void SelectTileItem(Tile clickedTile)
     {
+        var player = TurnManager.Instance.ActivePlayer;
+
         DeselectAll();
 
         if (clickedTile.currentUnit != null)
         {
             Unit unit = clickedTile.currentUnit;
-            if (unit.owner == TurnManager.Instance.ActivePlayer)
+            if (unit.owner == player)
             {
                 selectedUnit = unit;
                 HighlightActions(selectedUnit);
@@ -72,23 +74,26 @@ public class SelectionController : MonoBehaviour
         else if (clickedTile.city != null)
         {
             City city = clickedTile.city;
-            if (city.owner == TurnManager.Instance.ActivePlayer)
+            if (city.owner == player)
             {
                 GridManager.Instance.ClearAllHighlights();
                 highlightedTiles.Clear();
 
-                UIManager.Instance.ShowSpawnButtons(TurnManager.Instance.ActivePlayer.faction.availableUnits, city);
+                var availableUnits = player.faction.availableUnits
+                    .Where(u => !u.unitData.requiredTech || player.techState.IsUnlocked(u.unitData.requiredTech)).ToArray();
+                
+                UIManager.Instance.ShowSpawnButtons(availableUnits, city);
             }
         }
         else if (clickedTile.territoryCity != null && clickedTile.currentBuilding == null)
         {
             City city = clickedTile.territoryCity;
-            if (city.owner == TurnManager.Instance.ActivePlayer)
+            if (city.owner == player)
             {
                 GridManager.Instance.ClearAllHighlights();
                 highlightedTiles.Clear();
 
-                UIManager.Instance.ShowBuildButtons(TurnManager.Instance.ActivePlayer.faction.availableBuildings, clickedTile, city);
+                UIManager.Instance.ShowBuildButtons(player.faction.availableBuildings, clickedTile, city);
             }
         }
     }
