@@ -93,7 +93,17 @@ public class SelectionController : MonoBehaviour
                 GridManager.Instance.ClearAllHighlights();
                 highlightedTiles.Clear();
 
-                UIManager.Instance.ShowBuildButtons(player.faction.availableBuildings, clickedTile, city);
+                var availableBuildings = player.faction.availableBuildings.Where(b => 
+                {
+                    return (!b.requiredTech || player.techState.IsUnlocked(b.requiredTech))
+                        && b.CanPlaceAt(clickedTile, city);
+                })
+                .ToArray();
+
+                if (availableBuildings.Length > 0) 
+                {
+                    UIManager.Instance.ShowBuildButtons(availableBuildings, clickedTile, city);
+                }
             }
         }
     }
