@@ -7,6 +7,7 @@ public class City : MonoBehaviour
     public Player owner;
     public Tile centerTile;
     public Transform model;
+    public PopulationUI populationUI;
     public List<Unit> units = new List<Unit>();
     public List<Building> buildings = new List<Building>();
     public int level = 1;
@@ -28,6 +29,21 @@ public class City : MonoBehaviour
 
     public int BaseIncome => level + 1;
 
+    private void Start()
+    {
+        populationUI.Set(currentPopulation, populationToLevelUp);
+    }
+
+    public void Reveal()
+    {
+        populationUI.gameObject.SetActive(true);
+    }
+
+    public void Hide()
+    {
+        populationUI.gameObject.SetActive(false);
+    }
+
     public void AddPopulation(int amount)
     {
         currentPopulation += amount;
@@ -35,6 +51,8 @@ public class City : MonoBehaviour
         {
             LevelUp();
         }
+
+        populationUI.Set(currentPopulation, populationToLevelUp);
     }
 
     private void LevelUp()

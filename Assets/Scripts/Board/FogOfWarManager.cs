@@ -17,6 +17,7 @@ public class FogOfWarManager : MonoBehaviour
             Tile tile = kvp.Value;
             GameObject fogObj = Instantiate(fogTilePrefab, tile.transform.position, Quaternion.identity, tile.transform);
             fogTiles[tile.gridPosition] = fogObj;
+            tile.city?.Hide();
         }
 
         foreach (Player player in TurnManager.Instance.players)
@@ -43,6 +44,9 @@ public class FogOfWarManager : MonoBehaviour
         player.visibleTiles.SetVisible(tile.gridPosition);
 
         if (!player.isAI && fogTiles.TryGetValue(tile.gridPosition, out GameObject fogObj))
+        {
             fogObj.SetActive(false);
+            tile.city?.Reveal();
+        }
     }
 }
