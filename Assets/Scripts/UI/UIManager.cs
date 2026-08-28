@@ -14,6 +14,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] RectTransform techPanel;
     [SerializeField] RectTransform techButtonHolder;
     [SerializeField] TextMeshProUGUI starsCounter;
+    [SerializeField] TextMeshProUGUI starsPerTurnCounter;
 
     [SerializeField] GameObject itemPurchaseButtonPrefab;
 
@@ -30,14 +31,27 @@ public class UIManager : MonoBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+        SetStarsPerTurn(TurnManager.Instance.players.Find(p => !p.isAI).CalculateTurnIncome());
+    }
+
     private void OnEnable()
     {
         Player.OnUpdateStars += SetStars;
+        City.OnPlayerChange += OnClaim;
+        City.OnSiege += OnSiege;
+        City.OnUnsiege += OnUnsiege;
+        City.OnLevelUp += OnLevelUp;
     }
 
     private void OnDisable()
     {
         Player.OnUpdateStars -= SetStars;
+        City.OnPlayerChange -= OnClaim;
+        City.OnSiege -= OnSiege;
+        City.OnUnsiege -= OnUnsiege;
+        City.OnLevelUp -= OnLevelUp;
     }
 
     public void ShowSpawnButtons(FactionUnit[] availableUnits, City city)
@@ -207,5 +221,42 @@ public class UIManager : MonoBehaviour
     public void SetStars(int value)
     {
         starsCounter.text = value + " stars";
+    }
+
+    public void SetStarsPerTurn(int value)
+    {
+        starsPerTurnCounter.text = $"(+{value})";
+    }
+
+    public void OnSiege(Player siegedPlayer)
+    {
+        if (siegedPlayer && !siegedPlayer.isAI)
+        {
+            SetStarsPerTurn(siegedPlayer.CalculateTurnIncome());
+        }
+    }
+
+    public void OnUnsiege(Player unsiegedPlayer)
+    {
+        if (unsiegedPlayer && !unsiegedPlayer.isAI)
+        {
+            SetStarsPerTurn(unsiegedPlayer.CalculateTurnIncome());
+        }
+    }
+
+    public void OnClaim(Player claimingPlayer)
+    {
+        if (!claimingPlayer.isAI)
+        {
+            SetStarsPerTurn(claimingPlayer.CalculateTurnIncome());
+        }
+    }
+
+    public void OnLevelUp(Player player)
+    {
+        if (!player.isAI)
+        {
+            SetStarsPerTurn(player.CalculateTurnIncome());
+        }
     }
 }

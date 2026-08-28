@@ -1,8 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class City : MonoBehaviour
 {
+    public static event Action<Player> OnPlayerChange;
+    public static event Action<Player> OnUnsiege;
+    public static event Action<Player> OnSiege;
+    public static event Action<Player> OnLevelUp;
     public string cityName;
     public Player owner;
     public Tile centerTile;
@@ -67,6 +72,7 @@ public class City : MonoBehaviour
         Debug.Log($"{cityName} leveled up to Level {level}!");
 
         starsUI.Set(BaseIncome);
+        OnLevelUp?.Invoke(owner);
     }
 
     public void ClaimTerritory()
@@ -185,13 +191,16 @@ public class City : MonoBehaviour
             $"{unit.owner.factionName} is occupying {cityName}. " +
             $"Capture will resolve at the start of their next turn."
         );
-    }
+
+        OnSiege?.Invoke(owner);
+}
 
     public bool ResolvePendingCapture(bool showUI)
     {
         if (!HasPendingCapture)
         {
             pendingCapturer = null;
+            OnUnsiege?.Invoke(owner);
             return false;
         }
 
@@ -246,6 +255,8 @@ public class City : MonoBehaviour
         FogOfWarManager.Instance.Reveal(claimingPlayer, centerTile, 2);
 
         Debug.Log($"{claimingPlayer.factionName} captured a city!");
+
+        OnPlayerChange?.Invoke(claimingPlayer);
     }
 
     public void SetFaction(Faction faction)
