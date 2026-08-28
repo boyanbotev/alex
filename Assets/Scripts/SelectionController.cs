@@ -53,7 +53,7 @@ public class SelectionController : MonoBehaviour
         }
 
         if (selectedUnit != null) HandleSelectedUnitActions(clickedTile);
-        SelectTileItem(clickedTile);
+        else SelectTileItem(clickedTile);
     }
 
     private void SelectTileItem(Tile clickedTile)
@@ -71,43 +71,45 @@ public class SelectionController : MonoBehaviour
                 HighlightActions(selectedUnit);
             }
         }
-        else if (clickedTile.city != null)
+        else if (clickedTile.city != null && clickedTile.city.owner == player)
         {
-            City city = clickedTile.city;
-            if (city.owner == player)
-            {
-                GridManager.Instance.ClearAllHighlights();
-                highlightedTiles.Clear();
-
-                var availableUnits = player.faction.availableUnits
-                    .Where(u => !u.unitData.requiredTech || player.techState.IsUnlocked(u.unitData.requiredTech)).ToArray();
-                
-                UIManager.Instance.ShowSpawnButtons(availableUnits, city);
-            }
+            ShowSpawnOptions(clickedTile);
         }
-        else if (clickedTile.territoryCity != null && clickedTile.currentBuilding == null)
+        else if (clickedTile.territoryCity != null 
+            && clickedTile.currentBuilding == null 
+            && clickedTile.territoryCity.owner == player)
         {
-            City city = clickedTile.territoryCity;
-            if (city.owner == player)
-            {
-                GridManager.Instance.ClearAllHighlights();
-                highlightedTiles.Clear();
-
-                var availableBuildings = player.faction.availableBuildings.Where(b => 
-                {
-                    return (!b.requiredTech || player.techState.IsUnlocked(b.requiredTech))
-                        && b.CanPlaceAt(clickedTile, city);
-                })
-                .ToArray();
-
-                if (availableBuildings.Length > 0) 
-                {
-                    UIManager.Instance.ShowBuildButtons(availableBuildings, clickedTile, city);
-                }
-            }
+            SelectTerritory(clickedTile);
         }
     }
 
+    public void ShowSpawnOptions(Tile tile)
+    {
+        Player player = TurnManager.Instance.ActivePlayer;
+
+        var availableUnits = player.faction.availableUnits
+            .Where(u => !u.unitData.requiredTech || player.techState.IsUnlocked(u.unitData.requiredTech)).ToArray();
+
+        UIManager.Instance.ShowSpawnButtons(availableUnits, tile.city);
+    }
+
+    public void SelectTerritory(Tile tile)
+    {
+        City city = tile.territoryCity;
+        Player player = TurnManager.Instance.ActivePlayer;
+
+        var availableBuildings = player.faction.availableBuildings.Where(b =>
+        {
+            return (!b.requiredTech || player.techState.IsUnlocked(b.requiredTech))
+                && b.CanPlaceAt(tile, city);
+        })
+        .ToArray();
+
+        if (availableBuildings.Length > 0)
+        {
+            UIManager.Instance.ShowBuildButtons(availableBuildings, tile, city);
+        }
+    }
 
     private void HandleSelectedUnitActions(Tile clickedTile)
     {
@@ -124,6 +126,18 @@ public class SelectionController : MonoBehaviour
             {
                 Attack(targetUnit);
                 return;
+            }
+        }
+
+        if (clickedTile == selectedUnit.currentTile)
+        {
+            DeselectAll();
+
+            if (clickedTile.territoryCity != null
+            && clickedTile.currentBuilding == null
+            && clickedTile.territoryCity.owner == TurnManager.Instance.ActivePlayer)
+            {
+                SelectTerritory(clickedTile);
             }
         }
     }
@@ -150,6 +164,7 @@ public class SelectionController : MonoBehaviour
 
         HighlightActions(selectedUnit);
         DeactivateUsedUnits(selectedUnit.owner.units);
+        if (!selectedUnit.isActive) DeselectAll();
     }
 
     private void HighlightActions(Unit unit)
