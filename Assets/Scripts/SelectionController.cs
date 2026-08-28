@@ -139,6 +139,14 @@ public class SelectionController : MonoBehaviour
             {
                 SelectTerritory(clickedTile);
             }
+
+            if (clickedTile.city != null && clickedTile.city.owner == TurnManager.Instance.ActivePlayer)
+            {
+                UIManager.Instance.ShowCityInfo(clickedTile.city);
+            }
+        } else
+        {
+            DeselectAll();
         }
     }
 

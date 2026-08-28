@@ -8,6 +8,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] RectTransform spawnButtonHolder;
     [SerializeField] RectTransform spawnPanel;
     [SerializeField] RectTransform cantSpawnText;
+    [SerializeField] TextMeshProUGUI cityNameAndLevelText;
     [SerializeField] RectTransform buildPanel;
     [SerializeField] RectTransform buildButtonHolder;
     [SerializeField] RectTransform techPanel;
@@ -57,6 +58,17 @@ public class UIManager : MonoBehaviour
                 CloseSpawnPanel();
             });
         }
+        cityNameAndLevelText.text = $"City lvl {city.level}";
+        cantSpawnText.gameObject.SetActive(city.units.Count > city.level);
+    }
+
+    public void ShowCityInfo(City city)
+    {
+        if (spawnPanel.gameObject.activeSelf) return;
+
+        spawnPanel.gameObject.SetActive(true);
+
+        cityNameAndLevelText.text = $"City lvl {city.level}";
         cantSpawnText.gameObject.SetActive(city.units.Count > city.level);
     }
 
