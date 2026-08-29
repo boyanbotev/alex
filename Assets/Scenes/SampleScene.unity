@@ -5386,6 +5386,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a416c22321831574ca9bf883aacb217f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  attackColor: {r: 1, g: 0, b: 0, a: 0.65882355}
+  moveColor: {r: 0.43710685, g: 0.97870123, b: 1, a: 0.6117647}
 --- !u!4 &1779761938
 Transform:
   m_ObjectHideFlags: 0

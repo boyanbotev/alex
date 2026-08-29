@@ -5,6 +5,8 @@ using UnityEngine.EventSystems;
 
 public class SelectionController : MonoBehaviour
 {
+    [SerializeField] Color attackColor;
+    [SerializeField] Color moveColor;
     private Unit selectedUnit;
     private List<Tile> highlightedTiles = new List<Tile>();
     private Vector3 mouseDownPosition;
@@ -190,7 +192,7 @@ public class SelectionController : MonoBehaviour
 
                 if (tile.currentUnit == null && unit.owner.visibleTiles.IsVisible(tile))
                 {
-                    tile.SetHighlight(true, Color.blue);
+                    tile.SetHighlight(true, moveColor);
                     highlightedTiles.Add(tile);
                 }
         }
@@ -204,7 +206,7 @@ public class SelectionController : MonoBehaviour
                 bool visible = unit.owner.visibleTiles.IsVisible(tile);
                 if (visible && tile.currentUnit != null && tile.currentUnit.owner != unit.owner)
                 {
-                    tile.SetHighlight(true, Color.red);
+                    tile.SetHighlight(true, attackColor);
                     highlightedTiles.Add(tile);
                 }
             }
