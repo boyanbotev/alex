@@ -20,6 +20,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] RectTransform techPurchasePanel;
     [SerializeField] TextMeshProUGUI techTitle;
     [SerializeField] RectTransform techUnlocksButtonHolder;
+    [SerializeField] RectTransform cantResearchText;
     [SerializeField] Button researchButton;
     [SerializeField] BuildingInfoPopup buildingInfoPopup;
     [SerializeField] UnitStatsPopup unitStatsPopup;
@@ -168,6 +169,8 @@ public class UIManager : MonoBehaviour
             CloseTechPanel(); // closing and reoperning refreshes
             ShowTechButtons();
         });
+
+        cantResearchText.gameObject.SetActive(tech.cost > player.stars);
     }
 
     private void CreateUnlockCard(string itemName, int cost, UnityAction onClick)
