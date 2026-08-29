@@ -1,18 +1,29 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    [Header("Spawn")]
     [SerializeField] RectTransform spawnButtonHolder;
     [SerializeField] RectTransform spawnPanel;
     [SerializeField] RectTransform cantSpawnText;
     [SerializeField] TextMeshProUGUI cityNameAndLevelText;
+    [Header("Build")]
     [SerializeField] RectTransform buildPanel;
     [SerializeField] RectTransform buildButtonHolder;
+    [Header("Tech")]
     [SerializeField] RectTransform techPanel;
     [SerializeField] RectTransform techButtonHolder;
+    [SerializeField] RectTransform techPurchasePanel;
+    [SerializeField] TextMeshProUGUI techTitle;
+    [SerializeField] RectTransform techUnlocksButtonHolder;
+    [SerializeField] Button researchButton;
+    [SerializeField] BuildingInfoPopup buildingInfoPopup;
+    [SerializeField] UnitStatsPopup unitStatsPopup;
+    [Header("Stars")]
     [SerializeField] TextMeshProUGUI starsCounter;
     [SerializeField] TextMeshProUGUI starsPerTurnCounter;
 
@@ -125,13 +136,60 @@ public class UIManager : MonoBehaviour
 
             ItemPurchaseButton itemPurchaseButton = button.GetComponent<ItemPurchaseButton>();
 
-            itemPurchaseButton.AddText("Research " + tech.techName);
+            itemPurchaseButton.AddText(tech.techName);
             itemPurchaseButton.AddCost(tech.cost);
-            itemPurchaseButton.AddListener(() => {
-                player.techState.TryResearch(tech, player);
-                CloseTechPanel();
-            });
+            itemPurchaseButton.AddListener(() => ShowTechPurchasePanel(tech, player));
         }
+    }
+
+    public void ShowTechPurchasePanel(TechData tech, Player player)
+    {
+        techPurchasePanel.gameObject.SetActive(true);
+        techTitle.text = tech.techName;
+
+        foreach (BuildingData building in player.faction.availableBuildings)
+        {
+            if (building.requiredTech != tech) continue;
+            BuildingData b = building; // local copy for the closure
+            CreateUnlockCard(b.buildingName, b.cost, () => ShowBuildingInfoPopup(b));
+        }
+
+        foreach (FactionUnit unit in player.faction.availableUnits)
+        {
+            if (unit.unitData.requiredTech != tech) continue;
+            UnitData u = unit.unitData;
+            CreateUnlockCard(u.name, u.cost, () => ShowUnitStatsPopup(u));
+        }
+
+        researchButton.onClick.RemoveAllListeners();
+        researchButton.onClick.AddListener(() => {
+            player.techState.TryResearch(tech, player);
+            CloseTechPurchasePanel();
+            CloseTechPanel(); // closing and reoperning refreshes
+            ShowTechButtons();
+        });
+    }
+
+    private void CreateUnlockCard(string itemName, int cost, UnityAction onClick)
+    {
+        var button = Instantiate(itemPurchaseButtonPrefab, techUnlocksButtonHolder);
+        ItemPurchaseButton card = button.GetComponent<ItemPurchaseButton>();
+        card.AddText(itemName);
+        card.AddCost(cost);
+        card.AddListener(onClick);
+    }
+
+    public void CloseTechPurchasePanel()
+    {
+        for (int i = 0; i < techUnlocksButtonHolder.childCount; i++)
+        {
+            Destroy(techUnlocksButtonHolder.GetChild(i).gameObject);
+        }
+
+        HideBuildingInfoPopup();
+        HideUnitStatsPopup();
+
+        techPurchasePanel.gameObject.SetActive(false);
     }
 
     public void ShowCaptureButton(City city, Unit capturer)
@@ -216,6 +274,28 @@ public class UIManager : MonoBehaviour
             Destroy(techButtonHolder.GetChild(i).gameObject);
         }
         techPanel.gameObject.SetActive(false);
+    }
+
+    public void ShowBuildingInfoPopup(BuildingData building)
+    {
+        buildingInfoPopup.gameObject.SetActive(true);
+        buildingInfoPopup.Populate(building);
+    }
+
+    public void HideBuildingInfoPopup()
+    {
+        buildingInfoPopup.gameObject.SetActive(false);
+    }
+
+    public void ShowUnitStatsPopup(UnitData unit)
+    {
+        unitStatsPopup.gameObject.SetActive(true);
+        unitStatsPopup.Populate(unit);
+    }
+
+    public void HideUnitStatsPopup()
+    {
+        unitStatsPopup.gameObject.SetActive(false);
     }
 
     public void SetStars(int value)

@@ -22,6 +22,7 @@ public class ItemPurchaseButton : MonoBehaviour
     public void AddListener(UnityAction action)
     {
         Button buttonComponent = GetComponent<Button>();
+        buttonComponent.onClick.RemoveAllListeners();
         buttonComponent.onClick.AddListener(action);
     }
 }

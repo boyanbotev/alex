@@ -6,6 +6,9 @@ public class BuildingData : ScriptableObject
     public string buildingName;
     public GameObject buildingPrefab;
 
+    [TextArea]
+    public string description;
+
     public int cost;
     public int populationGiven;
 
