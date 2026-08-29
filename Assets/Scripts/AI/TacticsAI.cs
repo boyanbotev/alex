@@ -457,8 +457,7 @@ public class TacticsAI : MonoBehaviour
         {
             action.unit.Deactivate();
 
-            if (visible) yield return new WaitForSeconds(0.1f);
-            else yield return null;
+            yield return null;
         }
 
         // move first
@@ -482,7 +481,7 @@ public class TacticsAI : MonoBehaviour
             }
         }
 
-        if (visible) yield return new WaitForSeconds(0.35f);
+        if (visible) yield return new WaitForSeconds(0.3f);
         else yield return null;
     }
 
