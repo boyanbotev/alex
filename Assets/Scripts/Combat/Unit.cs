@@ -110,7 +110,16 @@ public class Unit : MonoBehaviour
     private void Die()
     {
         isAlive = false;
-        if (currentTile != null) currentTile.currentUnit = null;
+        if (currentTile != null)
+        {
+            if (currentTile.city && currentTile.city.pendingCapturer != null)
+            {
+                currentTile.city.ClearPendingCapture();
+            }
+
+            currentTile.currentUnit = null;
+        }
+
         if (owner != null) owner.units.Remove(this);
         if (homeCity != null) homeCity.units.Remove(this);
         Destroy(gameObject);

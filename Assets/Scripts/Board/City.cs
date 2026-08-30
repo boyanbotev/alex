@@ -202,7 +202,6 @@ public class City : MonoBehaviour
         if (!HasPendingCapture)
         {
             pendingCapturer = null;
-            OnUnsiege?.Invoke(owner);
             return false;
         }
 
@@ -219,6 +218,15 @@ public class City : MonoBehaviour
         }
 
         return true;
+    }
+
+    public void ClearPendingCapture()
+    {
+        if (pendingCapturer == null)
+            return;
+
+        pendingCapturer = null;
+        OnUnsiege?.Invoke(owner);
     }
 
     public void Capture(Unit capturer)
