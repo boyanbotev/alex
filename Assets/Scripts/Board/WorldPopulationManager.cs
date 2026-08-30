@@ -99,6 +99,8 @@ public class WorldPopulationManager : MonoBehaviour
             unit.hasMoved = false;
             unit.hasAttacked = false;
 
+            TerritoryBorderManager.Instance.RebuildBorder(player);
+
             capital.units.Add(unit);
             player.units.Add(unit);
         }

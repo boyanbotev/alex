@@ -79,6 +79,8 @@ public class City : MonoBehaviour
     {
         if (centerTile == null) return;
 
+        centerTile.territoryCity = this;
+
         List<Tile> tilesInRange = GridManager.Instance.GetTilesInRange(centerTile, territoryRadius);
         foreach (Tile tile in tilesInRange)
         {
@@ -253,6 +255,7 @@ public class City : MonoBehaviour
         SetFaction(claimingPlayer.faction);
 
         FogOfWarManager.Instance.Reveal(claimingPlayer, centerTile, 2);
+        TerritoryBorderManager.Instance.RebuildAllBorders(TurnManager.Instance.players);
 
         Debug.Log($"{claimingPlayer.factionName} captured a city!");
 
