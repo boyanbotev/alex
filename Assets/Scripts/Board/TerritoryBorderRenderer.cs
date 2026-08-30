@@ -170,6 +170,7 @@ public class TerritoryBorderManager : MonoBehaviour
         lr.numCapVertices = 0;
         lr.startColor = color;
         lr.endColor = color;
+        lr.sortingLayerName = "bg";
 
         Vector3[] raised = points.Select(p => p + Vector3.up * yOffset).ToArray();
         lr.positionCount = raised.Length;
