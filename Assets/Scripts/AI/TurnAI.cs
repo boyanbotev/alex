@@ -11,7 +11,5 @@ public class TurnAI : MonoBehaviour
     {
         yield return tacticsAI.PlayTurn(player, profile);
         economyAI.HandleEconomy(player, profile);
-
-        Debug.Log($"{player.factionName} AI finished turn.");
     }
 }

@@ -224,14 +224,12 @@ public class EconomyAI : MonoBehaviour
     private float ScoreResearch(TechData tech)
     {
         float score = profile.researchBaseWeight;
-        //Debug.Log("score research " + tech.techName + "------------------------------------------");
 
         foreach (BuildingData building in controlledPlayer.faction.availableBuildings)
         {
             if (building.requiredTech == tech)
             {
                 score += profile.researchBuildingUnlockWeight;
-                //Debug.Log("+ building unlock bonus:" + profile.researchBuildingUnlockWeight);
             }
         }
 
@@ -240,7 +238,6 @@ public class EconomyAI : MonoBehaviour
             if (unit.unitData.requiredTech == tech)
             {
                 score += ScoreUnitUnlock(unit);
-                //Debug.Log("counter score: " + ScoreUnitUnlock(unit));
             }
         }
 
@@ -249,10 +246,8 @@ public class EconomyAI : MonoBehaviour
             if (other.prerequisites != null && other.prerequisites.Contains(tech))
             {
                 score += profile.researchBridgeWeight;
-                //Debug.Log("+ researchBridgeWeight: " + profile.researchBridgeWeight);
             }
         }
-        //Debug.Log(tech.techName + " final score = " + score);
 
         return score;
     }

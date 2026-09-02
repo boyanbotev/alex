@@ -69,7 +69,6 @@ public class City : MonoBehaviour
         currentPopulation -= populationToLevelUp;
         level++;
         populationToLevelUp = level + 1;
-        Debug.Log($"{cityName} leveled up to Level {level}!");
 
         starsUI.Set(BaseIncome);
         OnLevelUp?.Invoke(owner);
