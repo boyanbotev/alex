@@ -57,8 +57,6 @@ public class WorldPopulationManager : MonoBehaviour
                 allCities.Add(city);
             }
         }
-
-        Debug.Log($"Successfully spawned {allCities.Count} villages/cities.");
     }
 
     private void AssignPlayerCapitalsAndUnits()
@@ -67,7 +65,6 @@ public class WorldPopulationManager : MonoBehaviour
 
         if (players.Count > allCities.Count)
         {
-            Debug.LogError("Not enough cities generated for the number of players!");
             return;
         }
 

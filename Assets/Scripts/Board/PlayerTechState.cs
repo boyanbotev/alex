@@ -23,7 +23,6 @@ public class PlayerTechState
         if (!player.SpendStars(tech.cost)) return false;
 
         unlockedTechs.Add(tech);
-        Debug.Log($"{player.factionName} researched {tech.techName}!");
         return true;
     }
 

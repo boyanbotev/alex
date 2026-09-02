@@ -94,25 +94,21 @@ public class City : MonoBehaviour
     {
         if (centerTile.currentUnit != null)
         {
-            Debug.Log("City space is occupied!");
             return false;
         }
 
         if (units.Count >= level + 1)
         {
-            Debug.Log("City cannto create more units");
             return false;
         }
 
         if (!owner.techState.CanSpawn(factionUnit.unitData))
         {
-            Debug.Log($"{factionUnit.unitData.requiredTech.name} has not been researched yet!");
             return false;
         }
 
         if (!owner.SpendStars(cost))
         {
-            Debug.Log("Not enough Stars!");
             return false;
         }
 
@@ -143,31 +139,26 @@ public class City : MonoBehaviour
 
         if (targetTile == centerTile)
         {
-            Debug.Log("Cannot place a building on the city center tile.");
             return false;
         }
 
         if (targetTile.currentBuilding != null)
         {
-            Debug.Log("Tile already has a building!");
             return false;
         }
 
         if (!owner.techState.CanBuild(buildingData))
         {
-            Debug.Log($"{buildingData.requiredTech.name} has not been researched yet!");
             return false;
         }
 
         if (!buildingData.CanPlaceAt(targetTile, this))
         {
-            Debug.Log($"Cannot place {buildingData.buildingName} here - placement conditions not met.");
             return false;
         }
 
         if (!owner.SpendStars(buildingData.cost))
         {
-            Debug.Log("Not enough Stars!");
             return false;
         }
 
@@ -187,11 +178,6 @@ public class City : MonoBehaviour
         if (owner == unit.owner) return;
 
         pendingCapturer = unit;
-
-        Debug.Log(
-            $"{unit.owner.factionName} is occupying {cityName}. " +
-            $"Capture will resolve at the start of their next turn."
-        );
 
         OnSiege?.Invoke(owner);
 }
@@ -263,8 +249,6 @@ public class City : MonoBehaviour
 
         FogOfWarManager.Instance.Reveal(claimingPlayer, centerTile, 2);
         TerritoryBorderManager.Instance.RebuildAllBorders(TurnManager.Instance.players);
-
-        Debug.Log($"{claimingPlayer.factionName} captured a city!");
 
         OnPlayerChange?.Invoke(claimingPlayer);
     }

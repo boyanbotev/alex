@@ -57,8 +57,6 @@ public class TurnManager : MonoBehaviour
 
         if (player.isAI)
             StartCoroutine(RunAITurn(player));
-
-        Debug.Log($"Turn {turnNumber}: Start of {player.factionName}'s turn. Current Stars: {player.stars}");
     }
 
     void HealUnusedUnits(Player player)
