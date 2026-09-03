@@ -63,7 +63,7 @@ public class CameraController : MonoBehaviour
                 Vector3 diff = dragStartMouseWorld - currentWorldPos;
                 targetPosition += diff;
 
-                dragStartMouseWorld = GetMouseWorldPosition();
+                dragStartMouseWorld = currentWorldPos;
             }
             lastTouchPosition = currentPos;
         }
@@ -76,16 +76,13 @@ public class CameraController : MonoBehaviour
 
     private void ApplyMovement()
     {
-        if (isDragging)
-        {
-            transform.position = Vector3.Lerp(
-                transform.position,
-                targetPosition,
-                Time.deltaTime * panSmoothing
-            );
+        transform.position = Vector3.Lerp(
+            transform.position,
+            targetPosition,
+            Time.deltaTime * panSmoothing
+        );
 
-            transform.position = ClampCameraPosition(transform.position);
-        }
+        transform.position = ClampCameraPosition(transform.position);
     }
 
     private Vector3 GetMouseWorldPosition()

@@ -806,8 +806,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridGenerator: {fileID: 451323999}
-  panSmoothing: 20
-  dragThreshold: 5
+  panSmoothing: 10
+  dragThreshold: 50
 --- !u!1 &362058530
 GameObject:
   m_ObjectHideFlags: 0
