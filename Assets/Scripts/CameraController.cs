@@ -6,28 +6,33 @@ public class CameraController : MonoBehaviour
     [Header("Grid")]
     [SerializeField] private GridGenerator gridGenerator;
 
-    [Header("Screen Padding")]
-    [SerializeField] private float horizontalPadding = 1f;
-    [SerializeField] private float verticalPadding = 1f;
-
     [Header("Pan")]
     [SerializeField] private float panSmoothing = 0.1f;
 
     private Camera cam;
 
     private Vector3 dragStartMouseWorld;
-    private Vector3 dragStartCameraPosition;
     private bool isDragging;
     private bool startedOverUI;
+    private float totalDragDistance;
+    private Vector3 targetPosition;
+    [SerializeField] private float dragThreshold = 5f;
+    private Vector2 lastTouchPosition;
+    Plane groundPlane;
 
     private void Awake()
     {
         cam = GetComponent<Camera>();
+        Application.targetFrameRate = 60;
+        QualitySettings.vSyncCount = 0;
+        targetPosition = transform.position;
+        groundPlane = new Plane(Vector3.up, Vector3.zero);
     }
 
     private void Update()
     {
         HandlePan();
+        ApplyMovement();
     }
 
     private void HandlePan()
@@ -39,25 +44,28 @@ public class CameraController : MonoBehaviour
             if (startedOverUI)
                 return;
 
+            lastTouchPosition = Input.mousePosition;
             dragStartMouseWorld = GetMouseWorldPosition();
-            dragStartCameraPosition = transform.position;
-            isDragging = true;
+            totalDragDistance = 0f;
         }
 
-        if (Input.GetMouseButton(0) && isDragging && !startedOverUI)
+        if (Input.GetMouseButton(0) && !startedOverUI)
         {
-            Vector3 currentMouseWorld = GetMouseWorldPosition();
-            Vector3 mouseDelta = currentMouseWorld - dragStartMouseWorld;
+            Vector2 currentPos = Input.mousePosition;
 
-            Vector3 targetPosition = dragStartCameraPosition - mouseDelta;
+            float delta = Vector2.Distance(currentPos, lastTouchPosition);
+            totalDragDistance += delta;
 
-            targetPosition = ClampCameraPosition(targetPosition);
+            if (totalDragDistance > dragThreshold)
+            {
+                isDragging = true;
+                Vector3 currentWorldPos = GetMouseWorldPosition();
+                Vector3 diff = dragStartMouseWorld - currentWorldPos;
+                targetPosition += diff;
 
-            transform.position = Vector3.Lerp(
-                transform.position,
-                targetPosition,
-                panSmoothing
-            );
+                dragStartMouseWorld = GetMouseWorldPosition();
+            }
+            lastTouchPosition = currentPos;
         }
 
         if (Input.GetMouseButtonUp(0))
@@ -66,11 +74,23 @@ public class CameraController : MonoBehaviour
         }
     }
 
+    private void ApplyMovement()
+    {
+        if (isDragging)
+        {
+            transform.position = Vector3.Lerp(
+                transform.position,
+                targetPosition,
+                Time.deltaTime * panSmoothing
+            );
+
+            transform.position = ClampCameraPosition(transform.position);
+        }
+    }
+
     private Vector3 GetMouseWorldPosition()
     {
         Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-
-        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
 
         if (groundPlane.Raycast(ray, out float distance))
         {
@@ -90,102 +110,9 @@ public class CameraController : MonoBehaviour
             gridGenerator.boardSettings.height *
             gridGenerator.tileSize;
 
-        float gridMinX = -horizontalPadding;
-        float gridMaxX = gridWidth + horizontalPadding;
-
-        float gridMinZ = -verticalPadding;
-        float gridMaxZ = gridHeight + verticalPadding;
-
-        // Get the ground position of each screen edge.
-        //
-        // We only care about the edges, not whether the entire
-        // camera footprint fits inside the grid.
-
-        Vector3 left = GetGroundPoint(new Vector3(0f, 0.5f));
-        Vector3 right = GetGroundPoint(new Vector3(1f, 0.5f));
-        Vector3 bottom = GetGroundPoint(new Vector3(0.5f, 0f));
-        Vector3 top = GetGroundPoint(new Vector3(0.5f, 1f));
-
-        // Calculate how much each screen edge is offset from
-        // the camera position.
-
-        float leftOffsetX = left.x - transform.position.x;
-        float rightOffsetX = right.x - transform.position.x;
-
-        float bottomOffsetZ = bottom.z - transform.position.z;
-        float topOffsetZ = top.z - transform.position.z;
-
-        /*
-         * Horizontal bounds
-         *
-         * When panning left:
-         *     the LEFT edge of the screen must not go past
-         *     the left edge of the grid.
-         *
-         * When panning right:
-         *     the RIGHT edge of the screen must not go past
-         *     the right edge of the grid.
-         */
-
-        float minX = gridMinX - leftOffsetX;
-        float maxX = gridMaxX - rightOffsetX;
-
-        /*
-         * Vertical bounds
-         *
-         * When panning down:
-         *     the BOTTOM edge must not go past the bottom
-         *     of the grid.
-         *
-         * When panning up:
-         *     the TOP edge must not go past the top
-         *     of the grid.
-         */
-
-        float minZ = gridMinZ - bottomOffsetZ;
-        float maxZ = gridMaxZ - topOffsetZ;
-
-        /*
-         * If the camera footprint is larger than the grid,
-         * the bounds can become inverted.
-         *
-         * In that case there is no position satisfying both
-         * edges simultaneously. Instead, keep the camera
-         * centred over the grid on that axis.
-         */
-
-        if (minX <= maxX)
-        {
-            position.x = Mathf.Clamp(position.x, minX, maxX);
-        }
-        else
-        {
-            position.x = (minX + maxX) * 0.5f;
-        }
-
-        if (minZ <= maxZ)
-        {
-            position.z = Mathf.Clamp(position.z, minZ, maxZ);
-        }
-        else
-        {
-            position.z = (minZ + maxZ) * 0.5f;
-        }
+        position.x = Mathf.Clamp(position.x, -gridWidth, 0);
+        position.z = Mathf.Clamp(position.z, -gridHeight, 0);
 
         return position;
-    }
-
-    private Vector3 GetGroundPoint(Vector3 viewportPosition)
-    {
-        Ray ray = cam.ViewportPointToRay(viewportPosition);
-
-        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-
-        if (groundPlane.Raycast(ray, out float distance))
-        {
-            return ray.GetPoint(distance);
-        }
-
-        return transform.position;
     }
 }
