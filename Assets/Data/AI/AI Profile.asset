@@ -19,10 +19,11 @@ MonoBehaviour:
   retaliationWeight: 1
   survivalWeight: 3
   positionWeight: 4
-  perUnitLookaheadCandidates: 2
-  ownRolloutSteps: 2
-  enemyRolloutSteps: 2
+  perUnitLookaheadCandidates: 1
+  ownRolloutSteps: 1
+  enemyRolloutSteps: 1
   enemyThreatWeight: 2
+  LookaheadFrameBudgetMs: 2
   expansionWeight: 6
   meleeVulnerabilityWeight: 0.3
   counterWeight: 8

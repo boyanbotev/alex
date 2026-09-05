@@ -7,6 +7,9 @@ public class EconomyAI : MonoBehaviour
     private AIProfile profile;
     private Player controlledPlayer;
 
+    private readonly List<EconomyCandidateAction> _candidateBuffer = new List<EconomyCandidateAction>();
+    private readonly List<Unit> _nearbyEnemyBuffer = new List<Unit>();
+
     public void HandleEconomy(Player controlledPlayer, AIProfile profile)
     {
         this.controlledPlayer = controlledPlayer;
@@ -14,44 +17,48 @@ public class EconomyAI : MonoBehaviour
 
         while (true)
         {
-            List<EconomyCandidateAction> candidates = GenerateEconomyCandidates()
-                .Where(c => c.cost <= controlledPlayer.stars)
-                .ToList();
+            GenerateEconomyCandidates(_candidateBuffer);
 
-            if (candidates.Count == 0) break;
+            EconomyCandidateAction best = null;
+            for (int i = 0; i < _candidateBuffer.Count; i++)
+            {
+                EconomyCandidateAction c = _candidateBuffer[i];
+                if (c.cost > controlledPlayer.stars) continue;
+                if (best == null || c.score > best.score)
+                {
+                    best = c;
+                }
+            }
 
-            EconomyCandidateAction best = candidates.OrderByDescending(c => c.score).First();
-            if (best.score <= 0f) break;
+            if (best == null || best.score <= 0f) break;
 
             ExecuteEconomyAction(best);
         }
     }
 
-    private List<EconomyCandidateAction> GenerateEconomyCandidates()
+    private void GenerateEconomyCandidates(List<EconomyCandidateAction> buffer)
     {
-        List<EconomyCandidateAction> immediateCandidates = new List<EconomyCandidateAction>();
-        immediateCandidates.AddRange(GenerateBuildingCandidates());
-        immediateCandidates.AddRange(GenerateSpawnCandidates());
-
-        List<EconomyCandidateAction> researchCandidates = GenerateResearchCandidates().ToList();
-
-        List<EconomyCandidateAction> all = new List<EconomyCandidateAction>(immediateCandidates);
-        all.AddRange(researchCandidates);
-        return all;
+        buffer.Clear();
+        GenerateBuildingCandidates(buffer);
+        GenerateSpawnCandidates(buffer);
+        GenerateResearchCandidates(buffer);
     }
 
-    private IEnumerable<EconomyCandidateAction> GenerateBuildingCandidates()
+    private void GenerateBuildingCandidates(List<EconomyCandidateAction> buffer)
     {
-        foreach (City city in controlledPlayer.cities)
+        for (int i = 0; i < controlledPlayer.cities.Count; i++)
         {
-            foreach (BuildingData building in controlledPlayer.faction.availableBuildings)
+            City city = controlledPlayer.cities[i];
+
+            for (int j = 0; j < controlledPlayer.faction.availableBuildings.Length; j++)
             {
+                BuildingData building = controlledPlayer.faction.availableBuildings[j];
                 if (!controlledPlayer.techState.CanBuild(building)) continue;
 
                 Tile tile = FindBestBuildTile(building, city);
                 if (tile == null) continue;
 
-                yield return new EconomyCandidateAction
+                buffer.Add(new EconomyCandidateAction
                 {
                     kind = EconomyActionKind.PlaceBuilding,
                     building = building,
@@ -59,69 +66,73 @@ public class EconomyAI : MonoBehaviour
                     city = city,
                     cost = building.cost,
                     score = ScoreBuilding(building, city)
-                };
+                });
             }
         }
     }
 
     private Tile FindBestBuildTile(BuildingData building, City city)
     {
-        return GridManager.Instance.GetTilesInRange(city.centerTile, city.territoryRadius)
-            .Where(t => t != city.centerTile && t.currentBuilding == null && building.CanPlaceAt(t, city))
-            .FirstOrDefault();
+        List<Tile> tiles = GridManager.Instance.GetTilesInRange(city.centerTile, city.territoryRadius);
+        for (int i = 0; i < tiles.Count; i++)
+        {
+            Tile t = tiles[i];
+            if (t != city.centerTile && t.currentBuilding == null && building.CanPlaceAt(t, city))
+            {
+                return t;
+            }
+        }
+        return null;
     }
 
-    private IEnumerable<EconomyCandidateAction> GenerateSpawnCandidates()
+    private void GenerateSpawnCandidates(List<EconomyCandidateAction> buffer)
     {
-        var spawnCities = controlledPlayer.cities
-            .Where(c => c.centerTile.currentUnit == null && c.units.Count < c.level + 1);
-
-        foreach (City city in spawnCities)
+        for (int i = 0; i < controlledPlayer.cities.Count; i++)
         {
-            foreach (FactionUnit unit in controlledPlayer.faction.availableUnits)
+            City city = controlledPlayer.cities[i];
+            if (city.centerTile.currentUnit != null) continue;
+            if (city.units.Count >= city.level + 1) continue;
+
+            for (int j = 0; j < controlledPlayer.faction.availableUnits.Length; j++)
             {
+                FactionUnit unit = controlledPlayer.faction.availableUnits[j];
                 if (!controlledPlayer.techState.CanSpawn(unit.unitData)) continue;
 
-                float score = ScoreUnitForCity(unit, city);
-
-                yield return new EconomyCandidateAction
+                buffer.Add(new EconomyCandidateAction
                 {
                     kind = EconomyActionKind.SpawnUnit,
                     unit = unit,
                     city = city,
                     cost = unit.unitData.cost,
-                    score = score
-                };
+                    score = ScoreUnitForCity(unit, city)
+                });
             }
         }
     }
 
     private float ScoreUnitForCity(FactionUnit candidate, City city)
     {
+        UnitData data = candidate.unitData;
+
+        GetNearbyEnemies(city, _nearbyEnemyBuffer);
+
         float score = 0f;
         int nearbyMeleeCount = 0;
-        UnitData data = candidate.unitData;
-        List<Unit> nearbyEnemies = GetNearbyEnemies(city);
 
-        foreach (Unit enemy in nearbyEnemies)
+        for (int i = 0; i < _nearbyEnemyBuffer.Count; i++)
         {
+            Unit enemy = _nearbyEnemyBuffer[i];
             if (enemy.data.attackRange == 1)
             {
                 nearbyMeleeCount++;
             }
+            score += CalculateCounterStrength(candidate, enemy);
         }
 
         if (nearbyMeleeCount > 0)
         {
             float meleeThreat = nearbyMeleeCount * nearbyMeleeCount;
             score += meleeThreat * data.defensePower * data.maxHealth * profile.meleeVulnerabilityWeight;
-        }
-
-        List<Unit> enemies = GetNearbyEnemies(city, 6); // relatively nearby
-
-        foreach (Unit enemy in enemies)
-        {
-            score += CalculateCounterStrength(candidate, enemy);
         }
 
         if (HasUncapturedCityNearby(city))
@@ -132,58 +143,55 @@ public class EconomyAI : MonoBehaviour
         return score;
     }
 
-    private List<Unit> GetNearbyEnemies(City city, int range = 3)
+    private void GetNearbyEnemies(City city, List<Unit> buffer)
     {
-        List<Unit> enemies = new List<Unit>();
+        buffer.Clear();
 
-        foreach (Player player in TurnManager.Instance.players)
+        for (int i = 0; i < TurnManager.Instance.players.Count; i++)
         {
-            if (player == controlledPlayer)
-                continue;
+            Player player = TurnManager.Instance.players[i];
+            if (player == controlledPlayer) continue;
 
-            foreach (Unit unit in player.units)
+            List<Unit> units = player.units;
+            for (int j = 0; j < units.Count; j++)
             {
-                if (unit == null || !unit.isAlive)
-                    continue;
+                Unit unit = units[j];
+                if (unit == null || !unit.isAlive) continue;
 
-                int distance = Utils.GridDistance(
-                    city.centerTile.gridPosition,
-                    unit.currentTile.gridPosition
-                );
-
+                int distance = Utils.GridDistance(city.centerTile.gridPosition, unit.currentTile.gridPosition);
                 if (distance <= 3)
                 {
-                    enemies.Add(unit);
+                    buffer.Add(unit);
                 }
             }
         }
-
-        return enemies;
     }
 
     private bool HasUncapturedCityNearby(City city)
     {
-        foreach (City otherCity in WorldPopulationManager.Instance.allCities)
+        List<City> allCities = WorldPopulationManager.Instance.allCities;
+        for (int i = 0; i < allCities.Count; i++)
         {
-            if (otherCity == city ||
-                otherCity.owner == controlledPlayer)
-                continue;
+            City otherCity = allCities[i];
+            if (otherCity == city || otherCity.owner == controlledPlayer) continue;
 
-            int distance = Utils.GridDistance(
-                city.centerTile.gridPosition,
-                otherCity.centerTile.gridPosition
-            );
-
-            if (distance <= 8)
-                return true;
+            int distance = Utils.GridDistance(city.centerTile.gridPosition, otherCity.centerTile.gridPosition);
+            if (distance <= 8) return true;
         }
-
         return false;
     }
 
-    float CalculateCounterStrength(FactionUnit unit, Unit enemy)
+    private float CalculateCounterStrength(FactionUnit unit, Unit enemy)
     {
-        return unit.unitData.counters.FirstOrDefault(c => c.unit == enemy.data).strength * profile.counterWeight;
+        var counters = unit.unitData.counters;
+        for (int i = 0; i < counters.Length; i++)
+        {
+            if (counters[i].unit == enemy.data)
+            {
+                return counters[i].strength * profile.counterWeight;
+            }
+        }
+        return 0f;
     }
 
     private float ScoreBuilding(BuildingData building, City city)
@@ -205,19 +213,20 @@ public class EconomyAI : MonoBehaviour
         return score;
     }
 
-    private IEnumerable<EconomyCandidateAction> GenerateResearchCandidates()
+    private void GenerateResearchCandidates(List<EconomyCandidateAction> buffer)
     {
-        foreach (TechData tech in controlledPlayer.faction.availableTech)
+        for (int i = 0; i < controlledPlayer.faction.availableTech.Length; i++)
         {
+            TechData tech = controlledPlayer.faction.availableTech[i];
             if (!controlledPlayer.techState.CanResearch(tech)) continue;
 
-            yield return new EconomyCandidateAction
+            buffer.Add(new EconomyCandidateAction
             {
                 kind = EconomyActionKind.ResearchTech,
                 tech = tech,
                 cost = tech.cost,
                 score = ScoreResearch(tech)
-            };
+            });
         }
     }
 
@@ -225,24 +234,25 @@ public class EconomyAI : MonoBehaviour
     {
         float score = profile.researchBaseWeight;
 
-        foreach (BuildingData building in controlledPlayer.faction.availableBuildings)
+        for (int i = 0; i < controlledPlayer.faction.availableBuildings.Length; i++)
         {
-            if (building.requiredTech == tech)
+            if (controlledPlayer.faction.availableBuildings[i].requiredTech == tech)
             {
                 score += profile.researchBuildingUnlockWeight;
             }
         }
 
-        foreach (FactionUnit unit in controlledPlayer.faction.availableUnits)
+        for (int i = 0; i < controlledPlayer.faction.availableUnits.Length; i++)
         {
-            if (unit.unitData.requiredTech == tech)
+            if (controlledPlayer.faction.availableUnits[i].unitData.requiredTech == tech)
             {
-                score += ScoreUnitUnlock(unit);
+                score += ScoreUnitUnlock(controlledPlayer.faction.availableUnits[i]);
             }
         }
 
-        foreach (TechData other in controlledPlayer.faction.availableTech)
+        for (int i = 0; i < controlledPlayer.faction.availableTech.Length; i++)
         {
+            TechData other = controlledPlayer.faction.availableTech[i];
             if (other.prerequisites != null && other.prerequisites.Contains(tech))
             {
                 score += profile.researchBridgeWeight;
@@ -255,21 +265,23 @@ public class EconomyAI : MonoBehaviour
     // should be more sophisticated and more like the standard scoring
     private float ScoreUnitUnlock(FactionUnit unit)
     {
-        float counterScore = 0;
+        float counterScore = 0f;
         int enemyCount = 0;
 
-        foreach (var player in TurnManager.Instance.players)
+        for (int i = 0; i < TurnManager.Instance.players.Count; i++)
         {
+            Player player = TurnManager.Instance.players[i];
             if (player == controlledPlayer) continue;
 
-            foreach (var enemyUnit in player.units)
+            List<Unit> units = player.units;
+            for (int j = 0; j < units.Count; j++)
             {
-                counterScore += CalculateCounterStrength(unit, enemyUnit);
+                counterScore += CalculateCounterStrength(unit, units[j]);
                 enemyCount++;
             }
         }
 
-        return counterScore / enemyCount;
+        return enemyCount > 0 ? counterScore / enemyCount : 0f;
     }
 
     private void ExecuteEconomyAction(EconomyCandidateAction c)

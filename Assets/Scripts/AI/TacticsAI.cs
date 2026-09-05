@@ -1,14 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Android;
 
 public class TacticsAI : MonoBehaviour
 {
     private AIProfile profile;
     private Player controlledPlayer;
     private Player humanPlayer;
+
+    private readonly List<CandidateAction> _allCandidates = new List<CandidateAction>(64);
+    private readonly List<(int start, int count)> _unitRanges = new List<(int start, int count)>(16);
+    private readonly List<CandidateAction> _shortlist = new List<CandidateAction>(32);
+    private readonly List<Tile> _scratchPositions = new List<Tile>(16);
+    private readonly System.Diagnostics.Stopwatch _frameBudgetTimer = new System.Diagnostics.Stopwatch();
+
+    private CandidateAction[] _topKScratch;
+
+    private static readonly WaitForSeconds ActionAnimationWait = new WaitForSeconds(0.3f);
 
     private void Start()
     {
@@ -22,24 +30,36 @@ public class TacticsAI : MonoBehaviour
 
         while (true)
         {
-            List<CandidateAction> candidates = GenerateAllCandidates(controlledPlayer, BoardState.Live);
+            GenerateAllCandidates(controlledPlayer, BoardState.Live);
 
-            if (candidates.Count == 0)
+            if (_allCandidates.Count == 0)
                 break;
 
-            // Lookahead is much more expensive than the immediate heuristic, so only
-            // spend it on each unit's most promising options rather than every candidate.
-            // Grouping by unit (rather than a single global top-K) makes sure a unit whose
-            // best move looks mediocre in isolation still gets a chance to prove its
-            // long-term value - other units simply have strong candidates too.
-            List<CandidateAction> shortlist = candidates
-                .GroupBy(c => c.unit)
-                .SelectMany(g => g.OrderByDescending(c => c.score).Take(Mathf.Max(1, profile.perUnitLookaheadCandidates)))
-                .ToList();
+            int perUnitCount = Mathf.Max(1, profile.perUnitLookaheadCandidates);
+            SelectShortlist(perUnitCount, _shortlist);
 
-            CandidateAction best = shortlist
-                .OrderByDescending(c => EvaluateWithLookahead(c, BoardState.Live))
-                .First();
+            CandidateAction best = default;
+            float bestScore = float.NegativeInfinity;
+
+            _frameBudgetTimer.Restart();
+
+            for (int i = 0; i < _shortlist.Count; i++)
+            {
+                float score = EvaluateWithLookahead(_shortlist[i], BoardState.Live);
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    best = _shortlist[i];
+                }
+
+                bool moreToEvaluate = i < _shortlist.Count - 1;
+                if (moreToEvaluate && _frameBudgetTimer.Elapsed.TotalMilliseconds >= profile.LookaheadFrameBudgetMs)
+                {
+                    yield return null;
+                    _frameBudgetTimer.Restart();
+                }
+            }
 
             yield return Execute(best);
         }
@@ -53,22 +73,39 @@ public class TacticsAI : MonoBehaviour
     /// </summary>
     private float EvaluateWithLookahead(CandidateAction action, BoardState board)
     {
-        BoardState afterAction = ApplySim(board, action);
+        int checkpoint = board.Checkpoint();
 
-        (BoardState ownState, float ownFollowUpScore) =
-            RolloutGreedyTurn(controlledPlayer, afterAction, profile.ownRolloutSteps);
-
-        float enemyThreat = 0f;
-        foreach (Player enemy in TurnManager.Instance.players)
+        try
         {
-            if (enemy == controlledPlayer)
-                continue;
+            ApplySim(board, action);
 
-            (_, float enemyScore) = RolloutGreedyTurn(enemy, ownState, profile.enemyRolloutSteps);
-            enemyThreat += enemyScore;
+            float ownFollowUpScore =
+                RolloutGreedyTurn(
+                    controlledPlayer,
+                    board,
+                    profile.ownRolloutSteps);
+
+            float enemyThreat = 0f;
+
+            foreach (Player enemy in TurnManager.Instance.players)
+            {
+                if (enemy == controlledPlayer)
+                    continue;
+
+                enemyThreat += RolloutGreedyTurn(
+                    enemy,
+                    board,
+                    profile.enemyRolloutSteps);
+            }
+
+            return action.score +
+                   ownFollowUpScore -
+                   enemyThreat * profile.enemyThreatWeight;
         }
-
-        return action.score + ownFollowUpScore - enemyThreat * profile.enemyThreatWeight;
+        finally
+        {
+            board.Rollback(checkpoint);
+        }
     }
 
     /// <summary>
@@ -79,23 +116,33 @@ public class TacticsAI : MonoBehaviour
     /// call repeatedly). Used both to project my own remaining turn and to model an
     /// enemy's most plausible reply.
     /// </summary>
-    private (BoardState state, float totalScore) RolloutGreedyTurn(Player player, BoardState board, int maxSteps)
+    private float RolloutGreedyTurn(
+        Player player,
+        BoardState board,
+        int maxSteps)
     {
-        BoardState state = board;
         float total = 0f;
 
         for (int step = 0; step < maxSteps; step++)
         {
-            List<CandidateAction> candidates = GenerateAllCandidates(player, state);
-            if (candidates.Count == 0)
+            GenerateAllCandidates(player, board);
+
+            if (_allCandidates.Count == 0)
                 break;
 
-            CandidateAction bestNext = candidates.OrderByDescending(c => c.score).First();
-            state = ApplySim(state, bestNext);
+            CandidateAction bestNext = _allCandidates[0];
+
+            for (int i = 1; i < _allCandidates.Count; i++)
+            {
+                if (_allCandidates[i].score > bestNext.score)
+                    bestNext = _allCandidates[i];
+            }
+
+            ApplySim(board, bestNext);
             total += bestNext.score;
         }
 
-        return (state, total);
+        return total;
     }
 
     /// <summary>
@@ -103,65 +150,95 @@ public class TacticsAI : MonoBehaviour
     /// mirroring Execute()'s real mutation logic but touching no GameObjects at all -
     /// this is what makes it safe to call many times per decision while searching.
     /// </summary>
-    private BoardState ApplySim(BoardState board, CandidateAction action)
+    private void ApplySim(BoardState board, CandidateAction action)
     {
         Unit unit = action.unit;
+
         Tile from = board.GetTile(unit);
         Tile to = action.moveTile;
-        BoardState next = board;
 
         if (action.kind == ActionKind.DoNothing)
-            return next.WithDeactivated(unit);
+        {
+            board.WithDeactivated(unit);
+            return;
+        }
 
         if (to != from)
         {
-            next = next.WithMove(unit, from, to);
+            board.WithMove(unit, from, to);
 
-            if (to.city != null && next.GetOwner(to.city) != unit.owner)
-                next = next.WithPendingCityCapture(to.city, unit);
+            if (to.city != null &&
+                board.GetOwner(to.city) != unit.owner)
+            {
+                board.WithPendingCityCapture(to.city, unit);
+            }
         }
 
-        if (action.kind == ActionKind.Attack && action.target != null && next.IsAlive(action.target))
+        if (action.kind != ActionKind.Attack ||
+            action.target == null ||
+            !board.IsAlive(action.target))
         {
-            Unit target = action.target;
-            Tile targetTile = next.GetTile(target);
+            return;
+        }
 
-            (int dmg, int retaliation) = PredictDamage(unit, target, next);
+        Unit target = action.target;
+        Tile targetTile = board.GetTile(target);
 
-            int newTargetHealth = next.GetHealth(target) - dmg;
-            bool killed = newTargetHealth <= 0;
+        (int damage, int retaliation) =
+            PredictDamage(unit, target, board);
 
-            next = next.WithDamage(target, newTargetHealth);
-            next = next.WithAttacked(unit);
+        int newTargetHealth =
+            board.GetHealth(target) - damage;
 
-            bool meleeAttack = unit.data.attackRange == 1;
+        bool killed = newTargetHealth <= 0;
 
-            if (killed)
+        board.WithDamage(target, newTargetHealth);
+        board.WithAttacked(unit);
+
+        bool meleeAttack = unit.data.attackRange == 1;
+
+        if (killed)
+        {
+            if (meleeAttack)
             {
-                if (meleeAttack)
-                {
-                    next = next.WithMove(unit, to, targetTile);
+                board.WithMove(unit, to, targetTile);
 
-                    if (targetTile.city != null && next.GetOwner(targetTile.city) != unit.owner)
-                        next = next.WithPendingCityCapture(targetTile.city, unit);
+                if (targetTile.city != null &&
+                    board.GetOwner(targetTile.city) != unit.owner)
+                {
+                    board.WithPendingCityCapture(targetTile.city, unit);
                 }
             }
-            else if (Utils.IsWithinDistance(targetTile.gridPosition, to.gridPosition, target.data.attackRange))
-            {
-                int newAttackerHealth = next.GetHealth(unit) - retaliation;
-                next = next.WithDamage(unit, newAttackerHealth);
-            }
         }
+        else if (Utils.IsWithinDistance(
+                     targetTile.gridPosition,
+                     to.gridPosition,
+                     target.data.attackRange))
+        {
+            int newAttackerHealth =
+                board.GetHealth(unit) - retaliation;
 
-        return next;
+            board.WithDamage(unit, newAttackerHealth);
+        }
     }
 
-    private List<CandidateAction> GenerateAllCandidates(Player player, BoardState board)
+    private void GenerateAllCandidates(Player player, BoardState board)
     {
-        return player.units
-            .Where(u => IsUnitAvailable(u, board))
-            .SelectMany(u => GenerateCandidates(u, board))
-            .ToList();
+        _allCandidates.Clear();
+        _unitRanges.Clear();
+
+        foreach (Unit unit in player.units)
+        {
+            if (!IsUnitAvailable(unit, board))
+                continue;
+
+            int start = _allCandidates.Count;
+            AppendCandidatesForUnit(unit, board, _allCandidates);
+            int count = _allCandidates.Count - start;
+
+            if (count > 0)
+                _unitRanges.Add((start, count));
+        }
     }
 
     private bool IsUnitAvailable(Unit unit, BoardState board)
@@ -172,48 +249,49 @@ public class TacticsAI : MonoBehaviour
                && !(board.HasMoved(unit) && board.HasAttacked(unit));
     }
 
-    private IEnumerable<CandidateAction> GenerateCandidates(Unit unit, BoardState board)
+    private void AppendCandidatesForUnit(Unit unit, BoardState board, List<CandidateAction> output)
     {
-        bool staticUnit = unit.data.skills.Any(s => s == Skill.Static);
+        bool staticUnit = HasSkill(unit.data.skills, Skill.Static);
         Tile currentTile = board.GetTile(unit);
 
-        List<Tile> possiblePositions = new List<Tile> { currentTile };
+        _scratchPositions.Clear();
+        _scratchPositions.Add(currentTile);
 
         if (!board.HasMoved(unit))
         {
-            possiblePositions.AddRange(
-                GridManager.Instance
-                    .GetTilesInRange(currentTile, unit.data.moveRange)
-                    .Where(t => board.GetOccupant(t) == null)
-            );
+            foreach (Tile tile in GridManager.Instance.GetTilesInRange(currentTile, unit.data.moveRange))
+            {
+                if (board.GetOccupant(tile) == null)
+                    _scratchPositions.Add(tile);
+            }
         }
 
-        foreach (Tile position in possiblePositions)
+        for (int p = 0; p < _scratchPositions.Count; p++)
         {
+            Tile position = _scratchPositions[p];
             bool moved = position != currentTile;
 
             if (moved)
             {
-
-                yield return new CandidateAction
+                output.Add(new CandidateAction
                 {
                     unit = unit,
                     moveTile = position,
                     target = null,
                     kind = ActionKind.MoveOnly,
                     score = ScoreMove(unit, currentTile, position, board)
-                };
+                });
             }
             else
             {
-                yield return new CandidateAction
+                output.Add(new CandidateAction
                 {
                     unit = unit,
                     moveTile = currentTile,
                     target = null,
                     kind = ActionKind.DoNothing,
                     score = ScoreMove(unit, currentTile, currentTile, board)
-                };
+                });
             }
 
             if (board.HasAttacked(unit))
@@ -229,18 +307,88 @@ public class TacticsAI : MonoBehaviour
                 if (target == null || target.owner == unit.owner || !board.IsAlive(target))
                     continue;
 
-                float score = ScoreAttack(unit, position, target, board);
-
-                yield return new CandidateAction
+                output.Add(new CandidateAction
                 {
                     unit = unit,
                     moveTile = position,
                     target = target,
                     kind = ActionKind.Attack,
-                    score = score
-                };
+                    score = ScoreAttack(unit, position, target, board)
+                });
             }
         }
+    }
+
+    // Manual replacement for `skills.Any(s => s == skill)`. Takes IReadOnlyList<Skill> so it
+    // works for either an array or a List<Skill> field on UnitData without boxing an
+    // enumerator. Adjust the parameter type if unit.data.skills isn't index-accessible.
+    private static bool HasSkill(IReadOnlyList<Skill> skills, Skill skill)
+    {
+        if (skills == null)
+            return false;
+
+        for (int i = 0; i < skills.Count; i++)
+        {
+            if (skills[i] == skill)
+                return true;
+        }
+
+        return false;
+    }
+
+    private void EnsureTopKScratch(int k)
+    {
+        if (_topKScratch == null || _topKScratch.Length < k)
+            _topKScratch = new CandidateAction[Mathf.Max(1, k)];
+    }
+
+    private void SelectShortlist(int perUnitCount, List<CandidateAction> shortlistOut)
+    {
+        shortlistOut.Clear();
+        EnsureTopKScratch(perUnitCount);
+
+        for (int r = 0; r < _unitRanges.Count; r++)
+        {
+            (int start, int count) = _unitRanges[r];
+            int kept = SelectTopKForRange(start, count, perUnitCount);
+
+            for (int i = 0; i < kept; i++)
+                shortlistOut.Add(_topKScratch[i]);
+        }
+    }
+
+    private int SelectTopKForRange(int start, int count, int k)
+    {
+        int kept = 0;
+
+        for (int i = 0; i < count; i++)
+        {
+            CandidateAction candidate = _allCandidates[start + i];
+
+            if (kept < k)
+            {
+                int insertAt = kept;
+                while (insertAt > 0 && _topKScratch[insertAt - 1].score < candidate.score)
+                {
+                    _topKScratch[insertAt] = _topKScratch[insertAt - 1];
+                    insertAt--;
+                }
+                _topKScratch[insertAt] = candidate;
+                kept++;
+            }
+            else if (candidate.score > _topKScratch[kept - 1].score)
+            {
+                int insertAt = kept - 1;
+                while (insertAt > 0 && _topKScratch[insertAt - 1].score < candidate.score)
+                {
+                    _topKScratch[insertAt] = _topKScratch[insertAt - 1];
+                    insertAt--;
+                }
+                _topKScratch[insertAt] = candidate;
+            }
+        }
+
+        return kept;
     }
 
     private float ScoreAttack(Unit unit, Tile from, Unit target, BoardState board)
@@ -480,7 +628,7 @@ public class TacticsAI : MonoBehaviour
             }
         }
 
-        if (visible) yield return new WaitForSeconds(0.3f);
+        if (visible) yield return ActionAnimationWait;
         else yield return null;
     }
 

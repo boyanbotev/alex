@@ -23,7 +23,7 @@ public class CameraController : MonoBehaviour
     private void Awake()
     {
         cam = GetComponent<Camera>();
-        Application.targetFrameRate = 60;
+        //Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
         targetPosition = transform.position;
         groundPlane = new Plane(Vector3.up, Vector3.zero);

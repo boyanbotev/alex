@@ -2,89 +2,192 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// A lightweight, disposable overlay of hypothetical game state used for AI
-/// lookahead. It only stores values that differ from the live scene - anything
-/// not recorded here falls back to the real Unit/Tile/City. Every mutation
-/// returns a NEW BoardState; nothing here ever touches a GameObject, so the AI
-/// can branch into many hypothetical futures and throw most of them away with
-/// zero risk to the actual game state.
+/// Lightweight mutable overlay of hypothetical game state used by AI lookahead.
+/// Values not overridden here fall back to the live scene.
+///
+/// Simulation is done with:
+///     int checkpoint = board.Checkpoint();
+///     board.WithMove(...);
+///     ...
+///     board.Rollback(checkpoint);
+///
+/// This avoids cloning the board for every simulated action.
 /// </summary>
 public class BoardState
 {
-    private readonly Dictionary<Unit, Tile> unitTile;
-    private readonly Dictionary<Unit, int> unitHealth;
-    private readonly Dictionary<Unit, bool> unitMoved;
-    private readonly Dictionary<Unit, bool> unitAttacked;
-    private readonly Dictionary<Unit, bool> unitActive;
-    private readonly HashSet<Unit> unitDead;
-    private readonly Dictionary<Tile, Unit> tileOccupant;
-    private readonly Dictionary<City, Player> cityOwner;
-    private readonly Dictionary<City, Unit> pendingCityCaptures;
+    private readonly Dictionary<Unit, Tile> unitTile = new();
+    private readonly Dictionary<Unit, int> unitHealth = new();
+    private readonly Dictionary<Unit, bool> unitMoved = new();
+    private readonly Dictionary<Unit, bool> unitAttacked = new();
+    private readonly Dictionary<Unit, bool> unitActive = new();
+    private readonly HashSet<Unit> unitDead = new();
+    private readonly Dictionary<Tile, Unit> tileOccupant = new();
+    private readonly Dictionary<City, Player> cityOwner = new();
+    private readonly Dictionary<City, Unit> pendingCityCaptures = new();
 
-    /// <summary>
-    /// The "no overrides yet" state - reads always fall through to the real scene.
-    /// </summary>
-    public static readonly BoardState Live = new BoardState();
+    private readonly List<Undo> undoLog = new();
 
-    public BoardState()
+    public static readonly BoardState Live = new();
+
+    private enum UndoType
     {
-        unitTile = new Dictionary<Unit, Tile>();
-        unitHealth = new Dictionary<Unit, int>();
-        unitMoved = new Dictionary<Unit, bool>();
-        unitAttacked = new Dictionary<Unit, bool>();
-        unitActive = new Dictionary<Unit, bool>();
-        unitDead = new HashSet<Unit>();
-        tileOccupant = new Dictionary<Tile, Unit>();
-        cityOwner = new Dictionary<City, Player>();
-        pendingCityCaptures = new Dictionary<City, Unit>();
+        UnitTile,
+        UnitHealth,
+        UnitMoved,
+        UnitAttacked,
+        UnitActive,
+        UnitDead,
+        TileOccupant,
+        CityOwner,
+        PendingCapture
     }
 
-    private BoardState(BoardState src)
+    private struct Undo
     {
-        unitTile = new Dictionary<Unit, Tile>(src.unitTile);
-        unitHealth = new Dictionary<Unit, int>(src.unitHealth);
-        unitMoved = new Dictionary<Unit, bool>(src.unitMoved);
-        unitAttacked = new Dictionary<Unit, bool>(src.unitAttacked);
-        unitActive = new Dictionary<Unit, bool>(src.unitActive);
-        unitDead = new HashSet<Unit>(src.unitDead);
-        tileOccupant = new Dictionary<Tile, Unit>(src.tileOccupant);
-        cityOwner = new Dictionary<City, Player>(src.cityOwner);
-        pendingCityCaptures = new Dictionary<City, Unit>(src.pendingCityCaptures);
+        public UndoType type;
+
+        public Unit unit;
+        public Tile tile;
+        public City city;
+
+        public Tile oldTile;
+        public Unit oldUnit;
+        public Player oldOwner;
+
+        public int oldHealth;
+        public bool oldBool;
+        public bool wasPresent;
     }
 
-    // ---------------- Readers ----------------
+    // ---------------------------------------------------------------------
+    // Checkpoint / rollback
+    // ---------------------------------------------------------------------
 
-    public Tile GetTile(Unit u) => unitTile.TryGetValue(u, out var t) ? t : u.currentTile;
-    public int GetHealth(Unit u) => unitHealth.TryGetValue(u, out var h) ? h : u.currentHealth;
-    public bool HasMoved(Unit u) => unitMoved.TryGetValue(u, out var m) ? m : u.hasMoved;
-    public bool HasAttacked(Unit u) => unitAttacked.TryGetValue(u, out var a) ? a : u.hasAttacked;
-    public bool IsActive(Unit u) => unitActive.TryGetValue(u, out var a) ? a : u.isActive;
-    public bool IsAlive(Unit u) => !unitDead.Contains(u) && u.isAlive;
-    public Player GetOwner(City c) => cityOwner.TryGetValue(c, out var p) ? p : c.owner;
-    public bool HasPendingCityCapture(City city)
+    public int Checkpoint()
     {
-        return pendingCityCaptures.ContainsKey(city);
+        return undoLog.Count;
     }
 
-    public Unit GetPendingCityCapturer(City city)
+    public void Rollback(int checkpoint)
     {
-        return pendingCityCaptures.TryGetValue(city, out var unit)
+        for (int i = undoLog.Count - 1; i >= checkpoint; i--)
+        {
+            Undo u = undoLog[i];
+
+            switch (u.type)
+            {
+                case UndoType.UnitTile:
+                    Restore(unitTile, u.unit, u.oldTile, u.wasPresent);
+                    break;
+
+                case UndoType.UnitHealth:
+                    Restore(unitHealth, u.unit, u.oldHealth, u.wasPresent);
+                    break;
+
+                case UndoType.UnitMoved:
+                    Restore(unitMoved, u.unit, u.oldBool, u.wasPresent);
+                    break;
+
+                case UndoType.UnitAttacked:
+                    Restore(unitAttacked, u.unit, u.oldBool, u.wasPresent);
+                    break;
+
+                case UndoType.UnitActive:
+                    Restore(unitActive, u.unit, u.oldBool, u.wasPresent);
+                    break;
+
+                case UndoType.UnitDead:
+                    if (u.oldBool)
+                        unitDead.Add(u.unit);
+                    else
+                        unitDead.Remove(u.unit);
+                    break;
+
+                case UndoType.TileOccupant:
+                    Restore(tileOccupant, u.tile, u.oldUnit, u.wasPresent);
+                    break;
+
+                case UndoType.CityOwner:
+                    Restore(cityOwner, u.city, u.oldOwner, u.wasPresent);
+                    break;
+
+                case UndoType.PendingCapture:
+                    Restore(pendingCityCaptures, u.city, u.oldUnit, u.wasPresent);
+                    break;
+            }
+        }
+
+        undoLog.RemoveRange(checkpoint, undoLog.Count - checkpoint);
+    }
+
+    private static void Restore<TKey, TValue>(
+        Dictionary<TKey, TValue> dictionary,
+        TKey key,
+        TValue oldValue,
+        bool wasPresent)
+    {
+        if (wasPresent)
+            dictionary[key] = oldValue;
+        else
+            dictionary.Remove(key);
+    }
+
+    // ---------------------------------------------------------------------
+    // Readers
+    // ---------------------------------------------------------------------
+
+    public Tile GetTile(Unit unit) =>
+        unitTile.TryGetValue(unit, out Tile tile)
+            ? tile
+            : unit.currentTile;
+
+    public int GetHealth(Unit unit) =>
+        unitHealth.TryGetValue(unit, out int health)
+            ? health
+            : unit.currentHealth;
+
+    public bool HasMoved(Unit unit) =>
+        unitMoved.TryGetValue(unit, out bool moved)
+            ? moved
+            : unit.hasMoved;
+
+    public bool HasAttacked(Unit unit) =>
+        unitAttacked.TryGetValue(unit, out bool attacked)
+            ? attacked
+            : unit.hasAttacked;
+
+    public bool IsActive(Unit unit) =>
+        unitActive.TryGetValue(unit, out bool active)
+            ? active
+            : unit.isActive;
+
+    public bool IsAlive(Unit unit) =>
+        !unitDead.Contains(unit) && unit.isAlive;
+
+    public Player GetOwner(City city) =>
+        cityOwner.TryGetValue(city, out Player owner)
+            ? owner
+            : city.owner;
+
+    public bool HasPendingCityCapture(City city) =>
+        pendingCityCaptures.ContainsKey(city);
+
+    public Unit GetPendingCityCapturer(City city) =>
+        pendingCityCaptures.TryGetValue(city, out Unit unit)
             ? unit
             : null;
-    }
 
-    public Unit GetOccupant(Tile t)
+    public Unit GetOccupant(Tile tile)
     {
-        if (tileOccupant.TryGetValue(t, out var overridden))
-            return overridden;
+        if (tileOccupant.TryGetValue(tile, out Unit occupant))
+            return occupant;
 
-        Unit live = t.currentUnit;
+        Unit live = tile.currentUnit;
+
         if (live == null)
             return null;
 
-        // If this unit has been simulated as having moved away, or died,
-        // the live occupant reference is stale for this hypothetical state.
-        if (unitTile.TryGetValue(live, out var movedTo) && movedTo != t)
+        if (unitTile.TryGetValue(live, out Tile movedTo) && movedTo != tile)
             return null;
 
         if (unitDead.Contains(live))
@@ -93,91 +196,275 @@ public class BoardState
         return live;
     }
 
-    // ---------------- Mutators ----------------
+    // ---------------------------------------------------------------------
+    // Mutators
+    // ---------------------------------------------------------------------
 
-    public BoardState WithMove(Unit unit, Tile from, Tile to)
+    public void WithMove(Unit unit, Tile from, Tile to)
     {
-        BoardState s = new BoardState(this);
-        s.tileOccupant[from] = null;
-        s.tileOccupant[to] = unit;
-        s.unitTile[unit] = to;
-        s.unitMoved[unit] = true;
+        SetTileOccupant(from, null);
+        SetTileOccupant(to, unit);
+        SetUnitTile(unit, to);
+        SetUnitMoved(unit, true);
 
-        s.RemovePendingCapturesForUnit(unit);
+        RemovePendingCapturesForUnit(unit);
 
-        if (unit.data.skills.Any(sk => sk == Skill.Static))
-            s.unitActive[unit] = false;
-
-        return s;
+        if (HasSkill(unit, Skill.Static))
+            SetUnitActive(unit, false);
     }
 
-    public BoardState WithPendingCityCapture(City city, Unit unit)
+    public void WithPendingCityCapture(City city, Unit unit)
     {
-        BoardState s = new BoardState(this);
-
-        s.pendingCityCaptures[city] = unit;
-
-        return s;
+        SetPendingCapture(city, unit);
     }
 
-    public BoardState WithoutPendingCityCapture(City city)
+    public void WithoutPendingCityCapture(City city)
     {
-        BoardState s = new BoardState(this);
-        s.pendingCityCaptures.Remove(city);
-        return s;
+        RemovePendingCapture(city);
     }
 
-    public BoardState WithCityClaim(City city, Player newOwner)
+    public void WithCityClaim(City city, Player owner)
     {
-        BoardState s = new BoardState(this);
-
-        s.cityOwner[city] = newOwner;
-
-        s.pendingCityCaptures.Remove(city);
-
-        return s;
+        SetCityOwner(city, owner);
+        RemovePendingCapture(city);
     }
 
-    public BoardState WithDamage(Unit unit, int newHealth)
+    public void WithDamage(Unit unit, int newHealth)
     {
-        BoardState s = new BoardState(this);
-        s.unitHealth[unit] = newHealth;
+        SetUnitHealth(unit, newHealth);
 
         if (newHealth <= 0)
         {
-            s.unitDead.Add(unit);
-            Tile tile = s.GetTile(unit);
-            s.tileOccupant[tile] = null;
-
-            s.RemovePendingCapturesForUnit(unit);
+            SetUnitDead(unit, true);
+            SetTileOccupant(GetTile(unit), null);
+            RemovePendingCapturesForUnit(unit);
         }
-
-        return s;
     }
 
-    public BoardState WithAttacked(Unit unit)
+    public void WithAttacked(Unit unit)
     {
-        BoardState s = new BoardState(this);
-        s.unitAttacked[unit] = true;
-        s.unitMoved[unit] = true;
-        return s;
+        SetUnitAttacked(unit, true);
+        SetUnitMoved(unit, true);
     }
 
-    public BoardState WithDeactivated(Unit unit)
+    public void WithDeactivated(Unit unit)
     {
-        BoardState s = new BoardState(this);
-        s.unitActive[unit] = false;
-        return s;
+        SetUnitActive(unit, false);
+    }
+
+    // ---------------------------------------------------------------------
+    // Setters + undo recording
+    // ---------------------------------------------------------------------
+
+    private void SetUnitTile(Unit unit, Tile value)
+    {
+        unitTile.TryGetValue(unit, out Tile oldValue);
+        bool present = unitTile.ContainsKey(unit);
+
+        if (present && oldValue == value)
+            return;
+
+        undoLog.Add(new Undo
+        {
+            type = UndoType.UnitTile,
+            unit = unit,
+            oldTile = oldValue,
+            wasPresent = present
+        });
+
+        unitTile[unit] = value;
+    }
+
+    private void SetUnitHealth(Unit unit, int value)
+    {
+        bool present = unitHealth.TryGetValue(unit, out int oldValue);
+
+        if (present && oldValue == value)
+            return;
+
+        undoLog.Add(new Undo
+        {
+            type = UndoType.UnitHealth,
+            unit = unit,
+            oldHealth = oldValue,
+            wasPresent = present
+        });
+
+        unitHealth[unit] = value;
+    }
+
+    private void SetUnitMoved(Unit unit, bool value)
+    {
+        bool present = unitMoved.TryGetValue(unit, out bool oldValue);
+
+        if (present && oldValue == value)
+            return;
+
+        undoLog.Add(new Undo
+        {
+            type = UndoType.UnitMoved,
+            unit = unit,
+            oldBool = oldValue,
+            wasPresent = present
+        });
+
+        unitMoved[unit] = value;
+    }
+
+    private void SetUnitAttacked(Unit unit, bool value)
+    {
+        bool present = unitAttacked.TryGetValue(unit, out bool oldValue);
+
+        if (present && oldValue == value)
+            return;
+
+        undoLog.Add(new Undo
+        {
+            type = UndoType.UnitAttacked,
+            unit = unit,
+            oldBool = oldValue,
+            wasPresent = present
+        });
+
+        unitAttacked[unit] = value;
+    }
+
+    private void SetUnitActive(Unit unit, bool value)
+    {
+        bool present = unitActive.TryGetValue(unit, out bool oldValue);
+
+        if (present && oldValue == value)
+            return;
+
+        undoLog.Add(new Undo
+        {
+            type = UndoType.UnitActive,
+            unit = unit,
+            oldBool = oldValue,
+            wasPresent = present
+        });
+
+        unitActive[unit] = value;
+    }
+
+    private void SetUnitDead(Unit unit, bool value)
+    {
+        bool present = unitDead.Contains(unit);
+
+        if (present == value)
+            return;
+
+        undoLog.Add(new Undo
+        {
+            type = UndoType.UnitDead,
+            unit = unit,
+            oldBool = present
+        });
+
+        if (value)
+            unitDead.Add(unit);
+        else
+            unitDead.Remove(unit);
+    }
+
+    private void SetTileOccupant(Tile tile, Unit value)
+    {
+        bool present = tileOccupant.TryGetValue(tile, out Unit oldValue);
+
+        if (present && oldValue == value)
+            return;
+
+        undoLog.Add(new Undo
+        {
+            type = UndoType.TileOccupant,
+            tile = tile,
+            oldUnit = oldValue,
+            wasPresent = present
+        });
+
+        tileOccupant[tile] = value;
+    }
+
+    private void SetCityOwner(City city, Player value)
+    {
+        bool present = cityOwner.TryGetValue(city, out Player oldValue);
+
+        if (present && oldValue == value)
+            return;
+
+        undoLog.Add(new Undo
+        {
+            type = UndoType.CityOwner,
+            city = city,
+            oldOwner = oldValue,
+            wasPresent = present
+        });
+
+        cityOwner[city] = value;
+    }
+
+    private void SetPendingCapture(City city, Unit unit)
+    {
+        bool present = pendingCityCaptures.TryGetValue(city, out Unit oldValue);
+
+        if (present && oldValue == unit)
+            return;
+
+        undoLog.Add(new Undo
+        {
+            type = UndoType.PendingCapture,
+            city = city,
+            oldUnit = oldValue,
+            wasPresent = present
+        });
+
+        pendingCityCaptures[city] = unit;
+    }
+
+    private void RemovePendingCapture(City city)
+    {
+        if (!pendingCityCaptures.TryGetValue(city, out Unit oldValue))
+            return;
+
+        undoLog.Add(new Undo
+        {
+            type = UndoType.PendingCapture,
+            city = city,
+            oldUnit = oldValue,
+            wasPresent = true
+        });
+
+        pendingCityCaptures.Remove(city);
     }
 
     private void RemovePendingCapturesForUnit(Unit unit)
     {
-        List<City> citiesToRemove = pendingCityCaptures
-            .Where(pair => pair.Value == unit)
-            .Select(pair => pair.Key)
-            .ToList();
+        foreach (City city in WorldPopulationManager.Instance.allCities)
+        {
+            if (city == null)
+                continue;
 
-        foreach (City city in citiesToRemove)
-            pendingCityCaptures.Remove(city);
+            if (pendingCityCaptures.TryGetValue(city, out Unit capturer) &&
+                capturer == unit)
+            {
+                RemovePendingCapture(city);
+            }
+        }
+    }
+
+    private static bool HasSkill(Unit unit, Skill skill)
+    {
+        if (unit.data.skills == null)
+            return false;
+
+        int skillsCount = unit.data.skills.Count();
+
+        for (int i = 0; i < skillsCount; i++)
+        {
+            if (unit.data.skills[i] == skill)
+                return true;
+        }
+
+        return false;
     }
 }

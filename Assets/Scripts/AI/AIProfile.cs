@@ -21,6 +21,7 @@ public class AIProfile : ScriptableObject
     public int enemyRolloutSteps = 2;
     [Tooltip("How heavily to weigh the simulated enemy response when scoring a candidate.")]
     public float enemyThreatWeight = 1f;
+    public double LookaheadFrameBudgetMs = 4.0;
 
     [Header("Economy - Spawning Units")]
     public float expansionWeight = 6f;

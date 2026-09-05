@@ -19,19 +19,25 @@ public class GridManager : MonoBehaviour
 
     public List<Tile> GetTilesInRange(Tile startTile, int range)
     {
-        List<Tile> inRange = new List<Tile>();
+        int cx = startTile.gridPosition.x;
+        int cy = startTile.gridPosition.y;
+        int side = range * 2 + 1;
 
-        foreach (var kvp in grid)
+        List<Tile> inRange = new List<Tile>(side * side - 1);
+
+        for (int x = cx - range; x <= cx + range; x++)
         {
-            int dx = Mathf.Abs(kvp.Key.x - startTile.gridPosition.x);
-            int dy = Mathf.Abs(kvp.Key.y - startTile.gridPosition.y);
-            int distance = Mathf.Max(dx, dy); // Chebyshev distance
-
-            if (distance <= range && distance > 0)
+            for (int y = cy - range; y <= cy + range; y++)
             {
-                inRange.Add(kvp.Value);
+                if (x == cx && y == cy) continue;
+
+                if (grid.TryGetValue(new Vector2Int(x, y), out Tile tile))
+                {
+                    inRange.Add(tile);
+                }
             }
         }
+
         return inRange;
     }
 
