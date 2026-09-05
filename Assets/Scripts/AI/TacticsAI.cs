@@ -43,6 +43,8 @@ public class TacticsAI : MonoBehaviour
 
             _frameBudgetTimer.Restart();
 
+            if (_shortlist.Count == 1) yield return Execute(_shortlist[0]);
+
             for (int i = 0; i < _shortlist.Count; i++)
             {
                 float score = EvaluateWithLookahead(_shortlist[i], BoardState.Live);
