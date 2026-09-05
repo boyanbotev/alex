@@ -43,9 +43,11 @@ public class TacticsAI : MonoBehaviour
 
             _frameBudgetTimer.Restart();
 
-            if (_shortlist.Count == 1) yield return Execute(_shortlist[0]);
+            int len = Mathf.Min(_shortlist.Count, profile.maxShortlistSize);
 
-            for (int i = 0; i < _shortlist.Count; i++)
+            if (len == 1) yield return Execute(_shortlist[0]);
+
+            for (int i = 0; i < len; i++)
             {
                 float score = EvaluateWithLookahead(_shortlist[i], BoardState.Live);
 
@@ -55,7 +57,7 @@ public class TacticsAI : MonoBehaviour
                     best = _shortlist[i];
                 }
 
-                bool moreToEvaluate = i < _shortlist.Count - 1;
+                bool moreToEvaluate = i < len - 1;
                 if (moreToEvaluate && _frameBudgetTimer.Elapsed.TotalMilliseconds >= profile.LookaheadFrameBudgetMs)
                 {
                     yield return null;

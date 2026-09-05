@@ -22,6 +22,8 @@ public class AIProfile : ScriptableObject
     [Tooltip("How heavily to weigh the simulated enemy response when scoring a candidate.")]
     public float enemyThreatWeight = 1f;
     public double LookaheadFrameBudgetMs = 4.0;
+    [Tooltip("The maximum number of actions to evaluate with lookahead per iteration")]
+    public int maxShortlistSize = 5;
 
     [Header("Economy - Spawning Units")]
     public float expansionWeight = 6f;

@@ -24,6 +24,7 @@ MonoBehaviour:
   enemyRolloutSteps: 1
   enemyThreatWeight: 2
   LookaheadFrameBudgetMs: 2
+  maxShortlistSize: 5
   expansionWeight: 6
   meleeVulnerabilityWeight: 0.3
   counterWeight: 8
