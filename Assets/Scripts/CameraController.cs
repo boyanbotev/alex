@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
-
 public class CameraController : MonoBehaviour
 {
     [Header("Grid")]
@@ -39,7 +37,7 @@ public class CameraController : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            startedOverUI = EventSystem.current.IsPointerOverGameObject();
+            startedOverUI = UIRaycastUtility.IsPointerOverBlockingUI(Input.mousePosition);
 
             if (startedOverUI)
                 return;

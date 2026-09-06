@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.EventSystems;
-
 public class SelectionController : MonoBehaviour
 {
     [SerializeField] Color attackColor;
@@ -21,7 +19,7 @@ public class SelectionController : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
-            if (EventSystem.current.IsPointerOverGameObject())
+            if (UIRaycastUtility.IsPointerOverBlockingUI(Input.mousePosition))
             {
                 return;
             }
@@ -31,7 +29,7 @@ public class SelectionController : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            if (EventSystem.current.IsPointerOverGameObject())
+            if (UIRaycastUtility.IsPointerOverBlockingUI(Input.mousePosition))
             {
                 return;
             }
