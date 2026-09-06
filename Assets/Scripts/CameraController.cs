@@ -7,6 +7,9 @@ public class CameraController : MonoBehaviour
     [Header("Pan")]
     [SerializeField] private float panSmoothing = 0.1f;
 
+    [SerializeField] private float referenceOrthoSize = 4f;
+    [SerializeField] private float referenceScreenHeight = 1080f;
+
     private Camera cam;
 
     private Vector3 dragStartMouseWorld;
@@ -17,6 +20,7 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float dragThreshold = 5f;
     private Vector2 lastTouchPosition;
     Plane groundPlane;
+    private int lastScreenHeight;
 
     private void Awake()
     {
@@ -25,12 +29,28 @@ public class CameraController : MonoBehaviour
         QualitySettings.vSyncCount = 0;
         targetPosition = transform.position;
         groundPlane = new Plane(Vector3.up, Vector3.zero);
+
+        ApplyCameraScale();
     }
 
     private void Update()
     {
+        if (Screen.height != lastScreenHeight)
+            ApplyCameraScale();
+
         HandlePan();
         ApplyMovement();
+    }
+
+    private void ApplyCameraScale()
+    {
+        lastScreenHeight = Screen.height;
+
+        if (cam.orthographic)
+        {
+            cam.orthographicSize =
+                referenceOrthoSize * Screen.height / referenceScreenHeight;
+        }
     }
 
     private void HandlePan()
