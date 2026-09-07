@@ -12,6 +12,7 @@ public class SelectionController : MonoBehaviour
 
     private void Update()
     {
+        if (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady) return;
         if (TurnManager.Instance.ActivePlayer.isAI)
         {
             return;

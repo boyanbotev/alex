@@ -1,27 +1,42 @@
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
+using Unity.Profiling;
 
 public class FogOfWarManager : MonoBehaviour
 {
     public static FogOfWarManager Instance;
+    private static readonly ProfilerMarker creationMarker = new ProfilerMarker("WorldGeneration.FogTile");
     public GameObject fogTilePrefab;
 
     private Dictionary<Vector2Int, GameObject> fogTiles = new Dictionary<Vector2Int, GameObject>();
 
     private void Awake() => Instance = this;
 
-    public void CreateFogTiles()
+    public IEnumerator CreateFogTiles(GenerationBudget budget)
     {
         foreach (var kvp in GridManager.Instance.grid)
         {
+            if (budget.ShouldYield())
+            {
+                yield return null;
+                budget.ShouldYield(); // Start timing this frame before doing more work.
+            }
             Tile tile = kvp.Value;
-            GameObject fogObj = Instantiate(fogTilePrefab, tile.transform.position, Quaternion.identity, tile.transform);
+            GameObject fogObj;
+            using (creationMarker.Auto())
+                fogObj = Instantiate(fogTilePrefab, tile.transform.position, Quaternion.identity, tile.transform);
             fogTiles[tile.gridPosition] = fogObj;
             tile.city?.Hide();
         }
 
         foreach (Player player in TurnManager.Instance.players)
         {
+            if (budget.ShouldYield())
+            {
+                yield return null;
+                budget.ShouldYield(); // Start timing this frame before doing more work.
+            }
             var settings = GridGenerator.Instance.boardSettings;
             player.visibleTiles = new VisibilityState(settings.width, settings.height);
 

@@ -1,9 +1,12 @@
 using UnityEngine;
+using Unity.Profiling;
+using System.Collections;
 using System.Collections.Generic;
 
 public class WorldPopulationManager : MonoBehaviour
 {
     public static WorldPopulationManager Instance;
+    private static readonly ProfilerMarker creationMarker = new ProfilerMarker("WorldGeneration.City");
 
     [Header("Prefabs")]
     public GameObject villagePrefab;
@@ -25,26 +28,58 @@ public class WorldPopulationManager : MonoBehaviour
     }
 
     // Called right after GridGenerator.cs finishes generating tiles
-    public void PopulateWorld()
+    public IEnumerator PopulateWorld(GenerationBudget budget)
     {
-        SpawnNeutralVillages();
-        AssignPlayerCapitalsAndUnits();
-        FogOfWarManager.Instance.CreateFogTiles();
+        WorldLoadingOverlay.Show("Placing cities...");
+        yield return SpawnNeutralVillages(budget);
+        WorldLoadingOverlay.Show("Preparing players...");
+        yield return AssignPlayerCapitalsAndUnits(budget);
+        WorldLoadingOverlay.Show("Creating fog...");
+        yield return FogOfWarManager.Instance.CreateFogTiles(budget);
     }
 
-    private void SpawnNeutralVillages()
+    private IEnumerator SpawnNeutralVillages(GenerationBudget budget)
     {
-        List<Tile> validLandTiles = GetValidLandTiles();
-        ShuffleList(validLandTiles); // Randomize placement order
+        var validLandTiles = new List<Tile>();
+        foreach (var entry in GridManager.Instance.grid)
+        {
+            if (budget.ShouldYield())
+            {
+                yield return null;
+                budget.ShouldYield(); // Start timing this frame before doing more work.
+            }
+            Tile tile = entry.Value;
+            if (tile.terrainType == TerrainType.Field || tile.terrainType == TerrainType.Forest)
+                validLandTiles.Add(tile);
+        }
+        for (int i = 0; i < validLandTiles.Count; i++)
+        {
+            if (budget.ShouldYield())
+            {
+                yield return null;
+                budget.ShouldYield(); // Start timing this frame before doing more work.
+            }
+            int randomIndex = Random.Range(i, validLandTiles.Count);
+            Tile temp = validLandTiles[i];
+            validLandTiles[i] = validLandTiles[randomIndex];
+            validLandTiles[randomIndex] = temp;
+        }
 
         foreach (Tile tile in validLandTiles)
         {
             if (allCities.Count >= targetCityCount) break;
+            if (budget.ShouldYield())
+            {
+                yield return null;
+                budget.ShouldYield(); // Start timing this frame before doing more work.
+            }
 
             if (IsFarEnoughFromOtherCities(tile) && IsFarEnoughFromEdge(tile))
             {
                 // Instantiate Village/City model
-                GameObject cityObj = Instantiate(villagePrefab, tile.transform.position, Quaternion.identity, tile.transform);
+                GameObject cityObj;
+                using (creationMarker.Auto())
+                    cityObj = Instantiate(villagePrefab, tile.transform.position, Quaternion.identity, tile.transform);
                 City city = cityObj.GetComponent<City>();
 
                 city.cityName = $"Village {allCities.Count + 1}";
@@ -59,13 +94,13 @@ public class WorldPopulationManager : MonoBehaviour
         }
     }
 
-    private void AssignPlayerCapitalsAndUnits()
+    private IEnumerator AssignPlayerCapitalsAndUnits(GenerationBudget budget)
     {
         List<Player> players = TurnManager.Instance.players;
 
         if (players.Count > allCities.Count)
         {
-            return;
+            throw new System.InvalidOperationException("Not enough cities for all players. Adjust city placement settings.");
         }
 
         // Pick capitals that maximize starting distance between players (Farthest-Point Algorithm)
@@ -73,6 +108,11 @@ public class WorldPopulationManager : MonoBehaviour
 
         for (int i = 0; i < players.Count; i++)
         {
+            if (budget.ShouldYield())
+            {
+                yield return null;
+                budget.ShouldYield(); // Start timing this frame before doing more work.
+            }
             Player player = players[i];
             City capital = capitals[i];
 
@@ -175,29 +215,4 @@ public class WorldPopulationManager : MonoBehaviour
             && candidateTile.gridPosition.y >= minMargin;
     }
 
-    private List<Tile> GetValidLandTiles()
-    {
-        List<Tile> landTiles = new List<Tile>();
-        foreach (var kvp in GridManager.Instance.grid)
-        {
-            Tile tile = kvp.Value;
-            // Villages can only spawn on Fields or Forests (not Water/Mountains)
-            if (tile.terrainType == TerrainType.Field || tile.terrainType == TerrainType.Forest)
-            {
-                landTiles.Add(tile);
-            }
-        }
-        return landTiles;
-    }
-
-    private void ShuffleList<T>(List<T> list)
-    {
-        for (int i = 0; i < list.Count; i++)
-        {
-            T temp = list[i];
-            int randomIndex = Random.Range(i, list.Count);
-            list[i] = list[randomIndex];
-            list[randomIndex] = temp;
-        }
-    }
 }

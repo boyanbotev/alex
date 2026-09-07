@@ -19,13 +19,16 @@ public class TurnManager : MonoBehaviour
         Instance = this;
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
+        while (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady)
+            yield return null;
         StartTurn(ActivePlayer);
     }
 
     public void EndTurn()
     {
+        if (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady) return;
         List<Player> alivePlayers = players.FindAll(p => p.IsAlive());
         if (alivePlayers.Count == 1)
         {

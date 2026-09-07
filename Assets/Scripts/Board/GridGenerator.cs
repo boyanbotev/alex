@@ -1,8 +1,11 @@
 using UnityEngine;
+using Unity.Profiling;
+using System.Collections;
 
 public class GridGenerator : MonoBehaviour
 {
     public static GridGenerator Instance;
+    private static readonly ProfilerMarker creationMarker = new ProfilerMarker("WorldGeneration.TerrainTile");
 
     [Header("Grid Size")]
     public BoardSettings boardSettings;
@@ -28,23 +31,37 @@ public class GridGenerator : MonoBehaviour
         seed = Random.Range(0f, 100f);
     }
 
-    private void Start()
-    {
-        GenerateGrid();
+    [Header("Loading")]
+    [Min(0.1f)] public float generationBudgetMilliseconds = 4f;
+    public bool IsReady { get; private set; }
 
-        // Trigger World Population after grid is ready
+    private IEnumerator Start()
+    {
+        WorldLoadingOverlay.Show("Creating terrain...");
+        yield return null;
+        yield return null;
+        var budget = new GenerationBudget(generationBudgetMilliseconds);
+        yield return GenerateGrid(budget);
         if (WorldPopulationManager.Instance != null)
-        {
-            WorldPopulationManager.Instance.PopulateWorld();
-        }
+            yield return WorldPopulationManager.Instance.PopulateWorld(budget);
+        // Let spawned components finish Start before beginning gameplay.
+        yield return null;
+        IsReady = true;
+        yield return null;
+        WorldLoadingOverlay.Hide();
     }
 
-    public void GenerateGrid()
+    public IEnumerator GenerateGrid(GenerationBudget budget)
     {
         for (int x = 0; x < boardSettings.width; x++)
         {
             for (int y = 0; y < boardSettings.height; y++)
             {
+                if (budget.ShouldYield())
+                {
+                    yield return null;
+                    budget.ShouldYield(); // Start timing this frame before doing more work.
+                }
                 Vector2Int gridPos = new Vector2Int(x, y);
                 Vector3 worldPos = GridToWorldPosition(x, y);
 
@@ -52,7 +69,9 @@ public class GridGenerator : MonoBehaviour
                 GameObject tilePrefab = GetTerrainPrefabForPosition(x, y);
 
                 // Instantiate Tile
-                GameObject tileObj = Instantiate(tilePrefab, worldPos, Quaternion.identity, transform);
+                GameObject tileObj;
+                using (creationMarker.Auto())
+                    tileObj = Instantiate(tilePrefab, worldPos, Quaternion.identity, transform);
                 tileObj.name = $"Tile_{x}_{y}";
 
                 Tile tileScript = tileObj.GetComponent<Tile>();

@@ -35,6 +35,7 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
+        if (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady) return;
         if (Screen.height != lastScreenHeight)
             ApplyCameraScale();
 

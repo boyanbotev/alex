@@ -633,7 +633,7 @@ public class TacticsAI : MonoBehaviour
         }
 
         if (visible) yield return ActionAnimationWait;
-        else yield return null;
+        else yield return new WaitForSeconds(0.2f);
     }
 
     private bool IsVisibleToLocalPlayer(CandidateAction action)
