@@ -882,6 +882,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gridGenerator: {fileID: 451323999}
   panSmoothing: 10
+  inertiaDamping: 4
+  inertiaStopSpeed: 0.5
   referenceOrthoSize: 4.5
   referenceScreenHeight: 1080
   dragThreshold: 50
@@ -1468,6 +1470,7 @@ MonoBehaviour:
   waterTilePrefab: {fileID: 4525404964014115685, guid: 94d09891bc172db46ba758f5fc6b2aa0, type: 3}
   noiseScale: 0.15
   seed: 0
+  generationBudgetMilliseconds: 4
 --- !u!4 &451324000
 Transform:
   m_ObjectHideFlags: 0
@@ -5803,13 +5806,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8316f60824c33f847accd1b3ca81a239, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  opacity: 0.38
-  height: 90
-  tint:
-    r: 0
-    g: 0
-    b: 0
-    a: 1
 --- !u!1 &1907666300
 GameObject:
   m_ObjectHideFlags: 0

@@ -6,13 +6,15 @@ public class CameraController : MonoBehaviour
 
     [Header("Pan")]
     [SerializeField] private float panSmoothing = 0.1f;
+    [SerializeField, Min(0.01f)] private float inertiaDamping = 4f;
+    [SerializeField, Min(0f)] private float inertiaStopSpeed = 0.01f;
 
     [SerializeField] private float referenceOrthoSize = 4f;
     [SerializeField] private float referenceScreenHeight = 1080f;
 
     private Camera cam;
 
-    private Vector3 dragStartMouseWorld;
+    private Vector3 panVelocity;
     private bool isDragging;
     private bool startedOverUI;
     private float totalDragDistance;
@@ -58,17 +60,20 @@ public class CameraController : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+            panVelocity = Vector3.zero;
+            targetPosition = transform.position;
+            isDragging = false;
             startedOverUI = UIRaycastUtility.IsPointerOverBlockingUI(Input.mousePosition);
 
             if (startedOverUI)
                 return;
 
             lastTouchPosition = Input.mousePosition;
-            dragStartMouseWorld = GetMouseWorldPosition();
             totalDragDistance = 0f;
         }
 
-        if (Input.GetMouseButton(0) && !startedOverUI)
+        bool released = Input.GetMouseButtonUp(0);
+        if ((Input.GetMouseButton(0) || released) && !startedOverUI)
         {
             Vector2 currentPos = Input.mousePosition;
 
@@ -78,23 +83,41 @@ public class CameraController : MonoBehaviour
             if (totalDragDistance > dragThreshold)
             {
                 isDragging = true;
-                Vector3 currentWorldPos = GetMouseWorldPosition();
-                Vector3 diff = dragStartMouseWorld - currentWorldPos;
-                targetPosition += diff;
 
-                dragStartMouseWorld = currentWorldPos;
+                Vector3 diff = GetPointerWorldPosition(lastTouchPosition)
+                    - GetPointerWorldPosition(currentPos);
+                targetPosition = ClampCameraPosition(targetPosition + diff);
+
+                if (!released || delta > 0f)
+                    panVelocity = Time.deltaTime > 0f ? diff / Time.deltaTime : Vector3.zero;
             }
             lastTouchPosition = currentPos;
         }
 
-        if (Input.GetMouseButtonUp(0))
+        if (released)
         {
             isDragging = false;
+            targetPosition = transform.position;
         }
     }
 
     private void ApplyMovement()
     {
+        if (!Input.GetMouseButton(0))
+        {
+            float damping = Mathf.Max(0.01f, inertiaDamping);
+            float decay = Mathf.Exp(-damping * Time.deltaTime);
+            Vector3 nextPosition = transform.position + panVelocity * ((1f - decay) / damping);
+            targetPosition = ClampCameraPosition(nextPosition);
+            panVelocity *= decay;
+            if (targetPosition.x != nextPosition.x) panVelocity.x = 0f;
+            if (targetPosition.z != nextPosition.z) panVelocity.z = 0f;
+            if (panVelocity.sqrMagnitude <= inertiaStopSpeed * inertiaStopSpeed)
+                panVelocity = Vector3.zero;
+            transform.position = targetPosition;
+            return;
+        }
+
         transform.position = Vector3.Lerp(
             transform.position,
             targetPosition,
@@ -104,9 +127,9 @@ public class CameraController : MonoBehaviour
         transform.position = ClampCameraPosition(transform.position);
     }
 
-    private Vector3 GetMouseWorldPosition()
+    private Vector3 GetPointerWorldPosition(Vector2 screenPosition)
     {
-        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+        Ray ray = cam.ScreenPointToRay(screenPosition);
 
         if (groundPlane.Raycast(ray, out float distance))
         {
