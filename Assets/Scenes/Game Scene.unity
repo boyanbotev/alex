@@ -883,7 +883,8 @@ MonoBehaviour:
   gridGenerator: {fileID: 451323999}
   panSmoothing: 10
   inertiaDamping: 4
-  inertiaStopSpeed: 0.5
+  inertiaStopSpeed: 0.01
+  maxPanVelocity: 35
   referenceOrthoSize: 4.5
   referenceScreenHeight: 1080
   dragThreshold: 50

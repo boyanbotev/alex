@@ -8,6 +8,8 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float panSmoothing = 0.1f;
     [SerializeField, Min(0.01f)] private float inertiaDamping = 4f;
     [SerializeField, Min(0f)] private float inertiaStopSpeed = 0.01f;
+    [Tooltip("Maximum release speed in world units per second. Zero disables coasting.")]
+    [SerializeField, Min(0f)] private float maxPanVelocity = 10f;
 
     [SerializeField] private float referenceOrthoSize = 4f;
     [SerializeField] private float referenceScreenHeight = 1080f;
@@ -97,6 +99,7 @@ public class CameraController : MonoBehaviour
         if (released)
         {
             isDragging = false;
+            panVelocity = Vector3.ClampMagnitude(panVelocity, Mathf.Max(0f, maxPanVelocity));
             targetPosition = transform.position;
         }
     }
