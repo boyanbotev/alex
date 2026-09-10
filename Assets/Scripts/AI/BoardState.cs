@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 
 /// <summary>
 /// Lightweight mutable overlay of hypothetical game state used by AI lookahead.
@@ -24,6 +23,7 @@ public class BoardState
     private readonly Dictionary<Tile, Unit> tileOccupant = new();
     private readonly Dictionary<City, Player> cityOwner = new();
     private readonly Dictionary<City, Unit> pendingCityCaptures = new();
+    private readonly List<City> capturesToRemove = new();
 
     private readonly List<Undo> undoLog = new();
 
@@ -258,8 +258,7 @@ public class BoardState
 
     private void SetUnitTile(Unit unit, Tile value)
     {
-        unitTile.TryGetValue(unit, out Tile oldValue);
-        bool present = unitTile.ContainsKey(unit);
+        bool present = unitTile.TryGetValue(unit, out Tile oldValue);
 
         if (present && oldValue == value)
             return;
@@ -439,17 +438,17 @@ public class BoardState
 
     private void RemovePendingCapturesForUnit(Unit unit)
     {
-        foreach (City city in WorldPopulationManager.Instance.allCities)
+        // Collect before removing so dictionary enumeration stays valid. Reuse the buffer.
+        capturesToRemove.Clear();
+        foreach (var capture in pendingCityCaptures)
         {
-            if (city == null)
-                continue;
-
-            if (pendingCityCaptures.TryGetValue(city, out Unit capturer) &&
-                capturer == unit)
-            {
-                RemovePendingCapture(city);
-            }
+            if (capture.Value == unit)
+                capturesToRemove.Add(capture.Key);
         }
+
+        for (int i = 0; i < capturesToRemove.Count; i++)
+            RemovePendingCapture(capturesToRemove[i]);
+        capturesToRemove.Clear();
     }
 
     private static bool HasSkill(Unit unit, Skill skill)
@@ -457,7 +456,7 @@ public class BoardState
         if (unit.data.skills == null)
             return false;
 
-        int skillsCount = unit.data.skills.Count();
+        int skillsCount = unit.data.skills.Length;
 
         for (int i = 0; i < skillsCount; i++)
         {
