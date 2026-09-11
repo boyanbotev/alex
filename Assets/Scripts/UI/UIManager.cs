@@ -36,6 +36,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] GameObject captureButtonPrefab;
 
     public static UIManager Instance;
+    private TechTreeView techTree;
+    private TechData selectedTech;
+    private Player techPlayer;
 
     private readonly Dictionary<City, GameObject> captureButtons = new Dictionary<City, GameObject>();
 
@@ -49,6 +52,7 @@ public class UIManager : MonoBehaviour
         while (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady)
             yield return null;
         SetStarsPerTurn(TurnManager.Instance.players.Find(p => !p.isAI).CalculateTurnIncome());
+        PrepareTechTree(TurnManager.Instance.players.Find(p => !p.isAI));
     }
 
     private void OnEnable()
@@ -126,28 +130,29 @@ public class UIManager : MonoBehaviour
         if (techPanel.gameObject.activeSelf) return;
 
         var player = TurnManager.Instance.ActivePlayer;
-        var availableTech = player.faction.availableTech;
 
         if (player.isAI) return;
 
         techPanel.gameObject.SetActive(true);
+        PrepareTechTree(player);
+    }
 
-        foreach (TechData tech in availableTech)
+    private void PrepareTechTree(Player player)
+    {
+        if (player == null) return;
+        if (techTree == null)
         {
-            if (!player.techState.CanResearch(tech)) continue;
-
-            var button = Instantiate(itemPurchaseButtonPrefab, techButtonHolder);
-
-            ItemPurchaseButton itemPurchaseButton = button.GetComponent<ItemPurchaseButton>();
-
-            itemPurchaseButton.AddText(tech.techName);
-            itemPurchaseButton.AddCost(tech.cost);
-            itemPurchaseButton.AddListener(() => ShowTechPurchasePanel(tech, player));
+            techTree = techButtonHolder.gameObject.AddComponent<TechTreeView>();
+            techTree.Initialize(techButtonHolder, itemPurchaseButtonPrefab, ShowTechPurchasePanel);
         }
+        techTree.Show(player);
     }
 
     public void ShowTechPurchasePanel(TechData tech, Player player)
     {
+        if (techPurchasePanel.gameObject.activeSelf) CloseTechPurchasePanel();
+        selectedTech = tech;
+        techPlayer = player;
         techPurchasePanel.gameObject.SetActive(true);
         techTitle.text = tech.techName;
 
@@ -169,11 +174,17 @@ public class UIManager : MonoBehaviour
         researchButton.onClick.AddListener(() => {
             player.techState.TryResearch(tech, player);
             CloseTechPurchasePanel();
-            CloseTechPanel(); // closing and reoperning refreshes
-            ShowTechButtons();
+            techTree.RefreshState();
         });
 
-        cantResearchText.gameObject.SetActive(tech.cost > player.stars);
+        RefreshResearchState();
+    }
+
+    private void RefreshResearchState()
+    {
+        if (selectedTech == null || techPlayer == null) return;
+        researchButton.interactable = techPlayer.techState.CanResearch(selectedTech) && selectedTech.cost <= techPlayer.stars;
+        cantResearchText.gameObject.SetActive(!techPlayer.techState.IsUnlocked(selectedTech) && selectedTech.cost > techPlayer.stars);
     }
 
     private void CreateUnlockCard(string itemName, int cost, UnityAction onClick)
@@ -196,6 +207,8 @@ public class UIManager : MonoBehaviour
         HideUnitStatsPopup();
 
         techPurchasePanel.gameObject.SetActive(false);
+        selectedTech = null;
+        techPlayer = null;
     }
 
     public void ShowCaptureButton(City city, Unit capturer)
@@ -275,10 +288,7 @@ public class UIManager : MonoBehaviour
 
     public void CloseTechPanel()
     {
-        for (int i = 0; i < techButtonHolder.childCount; i++)
-        {
-            Destroy(techButtonHolder.GetChild(i).gameObject);
-        }
+        if (techPurchasePanel.gameObject.activeSelf) CloseTechPurchasePanel();
         techPanel.gameObject.SetActive(false);
     }
 
@@ -307,6 +317,8 @@ public class UIManager : MonoBehaviour
     public void SetStars(int value)
     {
         starsCounter.text = value + " stars";
+        if (techTree != null) techTree.RefreshState();
+        RefreshResearchState();
     }
 
     public void SetStarsPerTurn(int value)
