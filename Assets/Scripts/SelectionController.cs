@@ -11,10 +11,27 @@ public class SelectionController : MonoBehaviour
     private static readonly System.Func<Tile, Unit> GetLiveOccupant = tile => tile.currentUnit;
     private Vector3 mouseDownPosition;
     private const float DragThreshold = 10f;
+    private DiplomacyState diplomacy;
+
+    private void OnDisable()
+    {
+        if (diplomacy != null) diplomacy.RelationChanged -= OnRelationChanged;
+        diplomacy = null;
+    }
+
+    private void OnRelationChanged(Player a, Player b, DiplomaticRelation relation)
+    {
+        if (selectedUnit != null) HighlightActions(selectedUnit);
+    }
 
     private void Update()
     {
         if (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady) return;
+        if (diplomacy == null)
+        {
+            diplomacy = TurnManager.Instance.Diplomacy;
+            diplomacy.RelationChanged += OnRelationChanged;
+        }
         if (TurnManager.Instance.ActivePlayer.isAI)
         {
             return;

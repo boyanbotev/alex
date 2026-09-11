@@ -8,6 +8,11 @@ public class DiplomacyIntegrationTests : TacticsTestFixture
     private void SetRelation(DiplomaticRelation relation)
     {
         var state = turns.Diplomacy;
+        if (relation == DiplomaticRelation.Peace)
+        {
+            state.MakePeace(player, enemy);
+            return;
+        }
         var matrix = (DiplomaticRelation[,])typeof(DiplomacyState)
             .GetField("relations", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(state);
         matrix[0, 1] = matrix[1, 0] = relation;

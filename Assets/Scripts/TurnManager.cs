@@ -16,7 +16,48 @@ public class TurnManager : MonoBehaviour
 
     private DiplomacyState diplomacy;
     // The roster must be populated before first access and stays fixed for the match.
-    public DiplomacyState Diplomacy => diplomacy ??= new DiplomacyState(players);
+    public DiplomacyState Diplomacy
+    {
+        get
+        {
+            if (diplomacy == null)
+            {
+                diplomacy = new DiplomacyState(players);
+                diplomacy.RelationChanged += OnRelationChanged;
+            }
+            return diplomacy;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (diplomacy != null) diplomacy.RelationChanged -= OnRelationChanged;
+        if (Instance == this) Instance = null;
+    }
+
+    private void OnRelationChanged(Player a, Player b, DiplomaticRelation relation)
+    {
+        if (WorldPopulationManager.Instance == null) return;
+        foreach (City city in WorldPopulationManager.Instance.allCities)
+        {
+            if (city == null || (city.owner != a && city.owner != b)) continue;
+            Player other = city.owner == a ? b : a;
+            if (city.pendingCapturer != null && city.pendingCapturer.owner == other)
+                city.ClearPendingCapture();
+
+            Unit occupant = city.centerTile != null ? city.centerTile.currentUnit : null;
+            if (relation == DiplomaticRelation.Peace)
+            {
+                if (occupant != null && occupant.owner == other)
+                    UIManager.Instance?.HideCaptureButton(city);
+            }
+            else if (relation == DiplomaticRelation.War && occupant != null &&
+                     occupant.isAlive && occupant.owner == other)
+            {
+                city.SetPendingCapture(occupant);
+            }
+        }
+    }
 
     private void Awake()
     {

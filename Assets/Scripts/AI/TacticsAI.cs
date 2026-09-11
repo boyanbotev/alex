@@ -25,6 +25,7 @@ public class TacticsAI : MonoBehaviour
 
         while (true)
         {
+            int diplomacyRevision = TurnManager.Instance.Diplomacy.Revision;
             _candidates.Generate(controlledPlayer, BoardState.Live);
 
             if (_candidates.Candidates.Count == 0)
@@ -42,12 +43,13 @@ public class TacticsAI : MonoBehaviour
 
             if (len == 1)
             {
-                yield return Execute(_shortlist[0]);
+                yield return Execute(_shortlist[0], diplomacyRevision);
                 continue;
             }
 
             for (int i = 0; i < len; i++)
             {
+                if (TurnManager.Instance.Diplomacy.Revision != diplomacyRevision) break;
                 float score = EvaluateWithLookahead(_shortlist[i], BoardState.Live);
 
                 if (score > bestScore)
@@ -64,7 +66,10 @@ public class TacticsAI : MonoBehaviour
                 }
             }
 
-            yield return Execute(best);
+            // A manual transition may happen while lookahead yields between frames.
+            // Discard every old score and regenerate, including move-only plans.
+            if (TurnManager.Instance.Diplomacy.Revision != diplomacyRevision) continue;
+            yield return Execute(best, diplomacyRevision);
         }
     }
 
@@ -143,8 +148,9 @@ public class TacticsAI : MonoBehaviour
         return total;
     }
 
-    private IEnumerator Execute(CandidateAction action)
+    private IEnumerator Execute(CandidateAction action, int diplomacyRevision)
     {
+        if (TurnManager.Instance.Diplomacy.Revision != diplomacyRevision) yield break;
         if (action.kind == ActionKind.Attack &&
             (action.target == null || !action.target.isAlive ||
              !InteractionRules.CanAttack(action.unit.owner, action.target.owner)))

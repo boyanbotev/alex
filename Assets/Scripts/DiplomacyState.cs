@@ -11,12 +11,30 @@ public enum DiplomaticRelation
 /// <summary>
 /// Match relations, independent of ownership and action permissions.
 /// Captures a fixed roster; indices remain stable if the source list is reordered.
-/// Relation changes are intentionally a later step.
 /// </summary>
 public sealed class DiplomacyState
 {
     private readonly Dictionary<Player, int> playerIndices;
     private readonly DiplomaticRelation[,] relations;
+    public event Action<Player, Player, DiplomaticRelation> RelationChanged;
+    public int Revision { get; private set; }
+
+    public bool DeclareWar(Player a, Player b) => SetRelation(a, b, DiplomaticRelation.War);
+
+    // Applies agreed peace. Negotiation/acceptance belongs to the caller.
+    public bool MakePeace(Player a, Player b) => SetRelation(a, b, DiplomaticRelation.Peace);
+
+    private bool SetRelation(Player a, Player b, DiplomaticRelation relation)
+    {
+        int i = GetIndex(a);
+        int j = GetIndex(b);
+        if (i == j) throw new ArgumentException("A player cannot change relations with itself.");
+        if (relations[i, j] == relation) return false;
+        relations[i, j] = relations[j, i] = relation;
+        Revision++;
+        RelationChanged?.Invoke(a, b, relation);
+        return true;
+    }
 
     public DiplomacyState(IReadOnlyList<Player> players)
     {
