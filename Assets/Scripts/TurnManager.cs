@@ -14,6 +14,10 @@ public class TurnManager : MonoBehaviour
     public Player ActivePlayer => players[activePlayerIndex];
     public TurnAI ai;
 
+    private DiplomacyState diplomacy;
+    // The roster must be populated before first access and stays fixed for the match.
+    public DiplomacyState Diplomacy => diplomacy ??= new DiplomacyState(players);
+
     private void Awake()
     {
         Instance = this;
@@ -23,6 +27,7 @@ public class TurnManager : MonoBehaviour
     {
         while (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady)
             yield return null;
+        _ = Diplomacy;
         StartTurn(ActivePlayer);
     }
 

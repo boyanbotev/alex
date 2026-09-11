@@ -106,7 +106,7 @@ public sealed class CandidateGenerator
             {
                 Unit target = board.GetOccupant(attackTile);
 
-                if (target == null || target.owner == unit.owner || !board.IsAlive(target))
+                if (target == null || !InteractionRules.CanAttack(unit.owner, target.owner) || !board.IsAlive(target))
                     continue;
 
                 output.Add(new CandidateAction

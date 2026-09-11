@@ -46,7 +46,7 @@ public class Unit : MonoBehaviour
 
         FogOfWarManager.Instance.Reveal(owner, targetTile, 1); // unit sight range
 
-        if (targetTile.city != null && targetTile.city.owner != owner)
+        if (targetTile.city != null && InteractionRules.CanCapture(owner, targetTile.city.owner))
         {
             targetTile.city.SetPendingCapture(this);
         }
@@ -59,7 +59,8 @@ public class Unit : MonoBehaviour
 
     public void Attack(Unit defender)
     {
-        if (hasAttacked || !isActive) return;
+        if (hasAttacked || !isActive || defender == null || !defender.isAlive
+            || !InteractionRules.CanAttack(owner, defender.owner)) return;
 
         (int, int) damages = CalculateDamage(this, defender);
         int attackDamage = damages.Item1;

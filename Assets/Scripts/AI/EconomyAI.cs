@@ -150,7 +150,7 @@ public class EconomyAI : MonoBehaviour
         for (int i = 0; i < TurnManager.Instance.players.Count; i++)
         {
             Player player = TurnManager.Instance.players[i];
-            if (player == controlledPlayer) continue;
+            if (!InteractionRules.CanAttack(controlledPlayer, player)) continue;
 
             List<Unit> units = player.units;
             for (int j = 0; j < units.Count; j++)
@@ -173,7 +173,7 @@ public class EconomyAI : MonoBehaviour
         for (int i = 0; i < allCities.Count; i++)
         {
             City otherCity = allCities[i];
-            if (otherCity == city || otherCity.owner == controlledPlayer) continue;
+            if (otherCity == city || !InteractionRules.CanCapture(controlledPlayer, otherCity.owner)) continue;
 
             int distance = Utils.GridDistance(city.centerTile.gridPosition, otherCity.centerTile.gridPosition);
             if (distance <= 8) return true;
@@ -271,7 +271,7 @@ public class EconomyAI : MonoBehaviour
         for (int i = 0; i < TurnManager.Instance.players.Count; i++)
         {
             Player player = TurnManager.Instance.players[i];
-            if (player == controlledPlayer) continue;
+            if (!InteractionRules.CanAttack(controlledPlayer, player)) continue;
 
             List<Unit> units = player.units;
             for (int j = 0; j < units.Count; j++)

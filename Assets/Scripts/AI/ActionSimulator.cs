@@ -4,6 +4,11 @@ public static class ActionSimulator
     public static void Apply(BoardState board, CandidateAction action)
     {
         Unit unit = action.unit;
+        // Revalidate before applying any part of a queued attack, including movement.
+        if (action.kind == ActionKind.Attack &&
+            (action.target == null || !board.IsAlive(action.target) ||
+             !InteractionRules.CanAttack(unit.owner, action.target.owner)))
+            return;
 
         Tile from = board.GetTile(unit);
         Tile to = action.moveTile;
@@ -19,7 +24,7 @@ public static class ActionSimulator
             board.WithMove(unit, from, to);
 
             if (to.city != null &&
-                board.GetOwner(to.city) != unit.owner)
+                InteractionRules.CanCapture(unit.owner, board.GetOwner(to.city)))
             {
                 board.WithPendingCityCapture(to.city, unit);
             }
@@ -55,7 +60,7 @@ public static class ActionSimulator
                 board.WithMove(unit, to, targetTile);
 
                 if (targetTile.city != null &&
-                    board.GetOwner(targetTile.city) != unit.owner)
+                    InteractionRules.CanCapture(unit.owner, board.GetOwner(targetTile.city)))
                 {
                     board.WithPendingCityCapture(targetTile.city, unit);
                 }

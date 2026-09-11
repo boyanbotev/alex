@@ -31,7 +31,7 @@ public class City : MonoBehaviour
         pendingCapturer != null &&
         pendingCapturer.isAlive &&
         pendingCapturer.currentTile == centerTile &&
-        pendingCapturer.owner != owner;
+        InteractionRules.CanCapture(pendingCapturer.owner, owner);
 
     public int BaseIncome => level + 1;
 
@@ -175,7 +175,7 @@ public class City : MonoBehaviour
     public void SetPendingCapture(Unit unit)
     {
         if (unit == null) return;
-        if (owner == unit.owner) return;
+        if (!InteractionRules.CanCapture(unit.owner, owner)) return;
 
         pendingCapturer = unit;
 
@@ -216,7 +216,8 @@ public class City : MonoBehaviour
 
     public void Capture(Unit capturer)
     {
-        if (capturer == null || !capturer.isAlive)
+        if (capturer == null || !capturer.isAlive
+            || !InteractionRules.CanCapture(capturer.owner, owner))
             return;
 
         if (capturer.currentTile != centerTile)

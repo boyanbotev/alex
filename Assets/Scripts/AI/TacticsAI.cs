@@ -95,7 +95,7 @@ public class TacticsAI : MonoBehaviour
 
             foreach (Player enemy in TurnManager.Instance.players)
             {
-                if (enemy == controlledPlayer)
+                if (!InteractionRules.CanAttack(controlledPlayer, enemy))
                     continue;
 
                 enemyThreat += RolloutGreedyTurn(
@@ -145,6 +145,11 @@ public class TacticsAI : MonoBehaviour
 
     private IEnumerator Execute(CandidateAction action)
     {
+        if (action.kind == ActionKind.Attack &&
+            (action.target == null || !action.target.isAlive ||
+             !InteractionRules.CanAttack(action.unit.owner, action.target.owner)))
+            yield break;
+
         bool visible = IsVisibleToLocalPlayer(action);
 
         Tile targetTile = action.target != null

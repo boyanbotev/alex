@@ -125,7 +125,7 @@ public class SelectionController : MonoBehaviour
         if (highlightedTiles.Contains(clickedTile) && clickedTile.currentUnit != null)
         {
             Unit targetUnit = clickedTile.currentUnit;
-            if (targetUnit.owner != TurnManager.Instance.ActivePlayer && !selectedUnit.hasAttacked)
+            if (InteractionRules.CanAttack(selectedUnit.owner, targetUnit.owner) && !selectedUnit.hasAttacked)
             {
                 Attack(targetUnit);
                 return;
@@ -206,7 +206,7 @@ public class SelectionController : MonoBehaviour
             foreach (Tile tile in attackTiles)
             {
                 bool visible = unit.owner.visibleTiles.IsVisible(tile);
-                if (visible && tile.currentUnit != null && tile.currentUnit.owner != unit.owner)
+                if (visible && tile.currentUnit != null && InteractionRules.CanAttack(unit.owner, tile.currentUnit.owner))
                 {
                     tile.SetHighlight(true, attackColor);
                     highlightedTiles.Add(tile);
@@ -222,17 +222,28 @@ public class SelectionController : MonoBehaviour
             if ((unit.hasMoved && unit.hasAttacked) || !unit.isActive) unit.Deactivate();
             else if (unit.hasMoved)
             {
-                List<Player> enemyPlayers = TurnManager.Instance.players.ToList(); // TODO: get the player's enemies, which will be stored
-                enemyPlayers.Remove(unit.owner);
-
-                bool hasInRangeOpponents = enemyPlayers.Any(enemyPlayer =>
-                    enemyPlayer.units.Visible(unit.owner.visibleTiles)
-                        .Any(u => Utils.IsWithinDistance(u.currentTile.gridPosition, unit.currentTile.gridPosition, unit.data.attackRange))
-                );
+                bool hasInRangeOpponents = HasInRangeEnemy(unit);
 
                 if (!hasInRangeOpponents) unit.Deactivate();
             }
         }
+    }
+
+    private static bool HasInRangeEnemy(Unit unit)
+    {
+        foreach (Player other in TurnManager.Instance.players)
+        {
+            if (!InteractionRules.CanAttack(unit.owner, other)) continue;
+            foreach (Unit target in other.units)
+            {
+                if (target != null && target.isAlive &&
+                    unit.owner.visibleTiles.IsVisible(target.currentTile) &&
+                    Utils.IsWithinDistance(target.currentTile.gridPosition,
+                        unit.currentTile.gridPosition, unit.data.attackRange))
+                    return true;
+            }
+        }
+        return false;
     }
 
     private Tile GetClickedTile()

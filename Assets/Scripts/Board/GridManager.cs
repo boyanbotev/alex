@@ -71,7 +71,7 @@ public class GridManager : MonoBehaviour
                     Tile next = GetTileAt(position + new Vector2Int(dx, dy));
                     if (next == null || moveVisited.Contains(next)) continue;
                     Unit occupant = getOccupant(next);
-                    if (occupant != null && occupant.owner != owner) continue;
+                    if (occupant != null && !InteractionRules.CanPassThrough(owner, occupant.owner)) continue;
 
                     if (blockCorners && dx != 0 && dy != 0
                         && IsEnemyAt(position + new Vector2Int(dx, 0), owner, getOccupant)
@@ -90,7 +90,7 @@ public class GridManager : MonoBehaviour
     {
         Tile tile = GetTileAt(position);
         Unit occupant = tile != null ? getOccupant(tile) : null;
-        return occupant != null && occupant.owner != owner;
+        return occupant != null && InteractionRules.CanAttack(owner, occupant.owner);
     }
 
     public void ClearAllHighlights()
