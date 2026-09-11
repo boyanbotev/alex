@@ -10,6 +10,8 @@ public sealed class CandidateGenerator
     private readonly List<(int start, int count)> _unitRanges = new(16);
     private readonly List<Tile> _scratchPositions = new(16);
     private CandidateAction[] _topKScratch;
+    private BoardState _occupancyBoard;
+    private System.Func<Tile, Unit> _getOccupant;
 
     // Valid until the next Generate call. A shortlist is copied into the caller's buffer.
     public IReadOnlyList<CandidateAction> Candidates => _allCandidates;
@@ -22,6 +24,11 @@ public sealed class CandidateGenerator
 
     public void Generate(Player player, BoardState board)
     {
+        if (_occupancyBoard != board)
+        {
+            _occupancyBoard = board;
+            _getOccupant = board.GetOccupant;
+        }
         _allCandidates.Clear();
         _unitRanges.Clear();
 
@@ -53,16 +60,13 @@ public sealed class CandidateGenerator
         Tile currentTile = board.GetTile(unit);
 
         _scratchPositions.Clear();
-        _scratchPositions.Add(currentTile);
 
         if (!board.HasMoved(unit))
         {
-            foreach (Tile tile in grid.GetTilesInRange(currentTile, unit.data.moveRange))
-            {
-                if (board.GetOccupant(tile) == null)
-                    _scratchPositions.Add(tile);
-            }
+            grid.GetReachableMoveTiles(currentTile, unit.owner, unit.data.moveRange,
+                _getOccupant, _scratchPositions);
         }
+        _scratchPositions.Insert(0, currentTile);
 
         for (int p = 0; p < _scratchPositions.Count; p++)
         {

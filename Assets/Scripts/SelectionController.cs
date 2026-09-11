@@ -7,6 +7,8 @@ public class SelectionController : MonoBehaviour
     [SerializeField] Color moveColor;
     private Unit selectedUnit;
     private List<Tile> highlightedTiles = new List<Tile>();
+    private readonly List<Tile> moveTiles = new(64);
+    private static readonly System.Func<Tile, Unit> GetLiveOccupant = tile => tile.currentUnit;
     private Vector3 mouseDownPosition;
     private const float DragThreshold = 10f;
 
@@ -186,7 +188,8 @@ public class SelectionController : MonoBehaviour
         // Highlight Valid Movement Range
         if (!unit.hasMoved)
         {
-            List<Tile> moveTiles = GridManager.Instance.GetTilesInRange(unit.currentTile, unit.data.moveRange);
+            GridManager.Instance.GetReachableMoveTiles(unit.currentTile, unit.owner, unit.data.moveRange,
+                GetLiveOccupant, moveTiles);
             foreach (Tile tile in moveTiles)
 
                 if (tile.currentUnit == null && unit.owner.visibleTiles.IsVisible(tile))
