@@ -11,6 +11,9 @@ public class BuildingData : ScriptableObject
 
     public int cost;
     public int populationGiven;
+    public bool isNeuron;
+    public bool constructionDisabled;
+    [Range(0f, 1f)] public float demolitionRefundFraction = 0.5f;
 
     [Tooltip("Tech required to unlock this building. Leave empty if it's available from the start.")]
     public TechData requiredTech;

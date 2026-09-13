@@ -28,7 +28,8 @@ public class PlayerTechState
 
     public bool CanBuild(BuildingData building)
     {
-        return building.requiredTech == null || IsUnlocked(building.requiredTech);
+        return building != null && !building.constructionDisabled &&
+            (building.requiredTech == null || IsUnlocked(building.requiredTech));
     }
 
     public bool CanSpawn(UnitData unit)

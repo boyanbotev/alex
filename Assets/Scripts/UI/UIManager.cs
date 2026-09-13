@@ -62,6 +62,7 @@ public class UIManager : MonoBehaviour
         City.OnSiege += OnSiege;
         City.OnUnsiege += OnUnsiege;
         City.OnLevelUp += OnLevelUp;
+        NeuronNetwork.IncomeChanged += RefreshNeuronIncome;
     }
 
     private void OnDisable()
@@ -71,6 +72,7 @@ public class UIManager : MonoBehaviour
         City.OnSiege -= OnSiege;
         City.OnUnsiege -= OnUnsiege;
         City.OnLevelUp -= OnLevelUp;
+        NeuronNetwork.IncomeChanged -= RefreshNeuronIncome;
     }
 
     public void ShowSpawnButtons(FactionUnit[] availableUnits, City city)
@@ -107,6 +109,7 @@ public class UIManager : MonoBehaviour
 
     public void ShowBuildButtons(BuildingData[] availableBuildings, Tile tile, City city)
     {
+        Player builder = TurnManager.Instance.ActivePlayer;
         if (buildPanel.gameObject.activeSelf) return;
 
         buildPanel.gameObject.SetActive(true);
@@ -119,7 +122,12 @@ public class UIManager : MonoBehaviour
             itemPurchaseButton.AddText("Build " + building.name);
             itemPurchaseButton.AddCost(building.cost);
             itemPurchaseButton.AddListener(() => {
-                city.PlaceBuilding(building, tile);
+                if (TurnManager.Instance.ActivePlayer == builder)
+                {
+                    if (building.isNeuron) builder.PlaceNeuron(building, tile);
+                    else if (city != null && city.owner == builder) city.PlaceBuilding(building, tile);
+                }
+                GridManager.Instance.ClearAllHighlights();
                 CloseBuildPanel();
             });
         }
@@ -158,7 +166,7 @@ public class UIManager : MonoBehaviour
 
         foreach (BuildingData building in player.faction.availableBuildings)
         {
-            if (building.requiredTech != tech) continue;
+            if (building.constructionDisabled || building.requiredTech != tech) continue;
             BuildingData b = building; // local copy for the closure
             CreateUnlockCard(b.buildingName, b.cost, () => ShowBuildingInfoPopup(b));
         }
@@ -324,6 +332,13 @@ public class UIManager : MonoBehaviour
     public void SetStarsPerTurn(int value)
     {
         starsPerTurnCounter.text = $"(+{value})";
+    }
+
+    private void RefreshNeuronIncome()
+    {
+        if (TurnManager.Instance == null) return;
+        Player human = TurnManager.Instance.players.Find(p => !p.isAI);
+        if (human != null) SetStarsPerTurn(human.CalculateTurnIncome());
     }
 
     public void OnSiege(Player siegedPlayer)

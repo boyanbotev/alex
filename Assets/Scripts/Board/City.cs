@@ -34,11 +34,17 @@ public class City : MonoBehaviour
         InteractionRules.CanCapture(pendingCapturer.owner, owner);
 
     public int BaseIncome => level + 1;
+    public int NeuronIncome => TurnManager.Instance != null ? TurnManager.Instance.Neurons.GetIncome(this) : 0;
+    public int TotalIncome => BaseIncome + NeuronIncome;
+    public void RefreshIncomeLabel()
+    {
+        if (starsUI != null) starsUI.Set(HasPendingCapture ? 0 : TotalIncome);
+    }
 
     private void Start()
     {
         populationUI.Set(currentPopulation, populationToLevelUp);
-        starsUI.Set(BaseIncome);
+        RefreshIncomeLabel();
     }
 
     public void Reveal()
@@ -70,7 +76,7 @@ public class City : MonoBehaviour
         level++;
         populationToLevelUp = level + 1;
 
-        starsUI.Set(BaseIncome);
+        RefreshIncomeLabel();
         OnLevelUp?.Invoke(owner);
     }
 
@@ -136,6 +142,8 @@ public class City : MonoBehaviour
     public bool PlaceBuilding(BuildingData buildingData, Tile targetTile)
     {
         if (buildingData == null || targetTile == null) return false;
+        if (buildingData.isNeuron) return owner != null && owner.PlaceNeuron(buildingData, targetTile);
+        if (owner == null || targetTile.territoryCity != this || targetTile.city != null) return false;
 
         if (targetTile == centerTile)
         {
@@ -180,6 +188,7 @@ public class City : MonoBehaviour
         pendingCapturer = unit;
 
         OnSiege?.Invoke(owner);
+        RefreshIncomeLabel();
 }
 
     public bool ResolvePendingCapture(bool showUI)
@@ -212,6 +221,7 @@ public class City : MonoBehaviour
 
         pendingCapturer = null;
         OnUnsiege?.Invoke(owner);
+        RefreshIncomeLabel();
     }
 
     public void Capture(Unit capturer)
@@ -251,6 +261,7 @@ public class City : MonoBehaviour
         FogOfWarManager.Instance.Reveal(claimingPlayer, centerTile, 2);
         TerritoryBorderManager.Instance.RebuildAllBorders(TurnManager.Instance.players);
 
+        TurnManager.Instance.Neurons.Invalidate();
         OnPlayerChange?.Invoke(claimingPlayer);
     }
 

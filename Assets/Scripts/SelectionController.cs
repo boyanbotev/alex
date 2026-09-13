@@ -95,9 +95,7 @@ public class SelectionController : MonoBehaviour
         {
             ShowSpawnOptions(clickedTile);
         }
-        else if (clickedTile.territoryCity != null 
-            && clickedTile.currentBuilding == null 
-            && clickedTile.territoryCity.owner == player)
+        else if (clickedTile.city == null && clickedTile.currentBuilding == null)
         {
             SelectTerritory(clickedTile);
         }
@@ -111,6 +109,7 @@ public class SelectionController : MonoBehaviour
             .Where(u => !u.unitData.requiredTech || player.techState.IsUnlocked(u.unitData.requiredTech)).ToArray();
 
         UIManager.Instance.ShowSpawnButtons(availableUnits, tile.city);
+        HighlightNeuronSites(player);
     }
 
     public void SelectTerritory(Tile tile)
@@ -120,14 +119,15 @@ public class SelectionController : MonoBehaviour
 
         var availableBuildings = player.faction.availableBuildings.Where(b =>
         {
-            return (!b.requiredTech || player.techState.IsUnlocked(b.requiredTech))
-                && b.CanPlaceAt(tile, city);
+            return player.techState.CanBuild(b) && (b.isNeuron ? player.CanPlaceNeuron(b, tile) :
+                city != null && city.owner == player && tile.city == null && b.CanPlaceAt(tile, city));
         })
         .ToArray();
 
         if (availableBuildings.Length > 0)
         {
             UIManager.Instance.ShowBuildButtons(availableBuildings, tile, city);
+            tile.SetHighlight(true, moveColor);
         }
     }
 
@@ -153,9 +153,7 @@ public class SelectionController : MonoBehaviour
         {
             DeselectAll();
 
-            if (clickedTile.territoryCity != null
-            && clickedTile.currentBuilding == null
-            && clickedTile.territoryCity.owner == TurnManager.Instance.ActivePlayer)
+            if (clickedTile.city == null && clickedTile.currentBuilding == null)
             {
                 SelectTerritory(clickedTile);
             }
@@ -163,6 +161,7 @@ public class SelectionController : MonoBehaviour
             if (clickedTile.city != null && clickedTile.city.owner == TurnManager.Instance.ActivePlayer)
             {
                 UIManager.Instance.ShowCityInfo(clickedTile.city);
+                HighlightNeuronSites(TurnManager.Instance.ActivePlayer);
             }
         } else
         {
@@ -281,5 +280,18 @@ public class SelectionController : MonoBehaviour
         selectedUnit = null;
         highlightedTiles.Clear();
         GridManager.Instance.ClearAllHighlights();
+        UIManager.Instance.CloseBuildPanel();
+        UIManager.Instance.CloseSpawnPanel();
+    }
+
+    private void HighlightNeuronSites(Player player)
+    {
+        foreach (BuildingData data in player.faction.availableBuildings)
+        {
+            if (!data.isNeuron || !player.techState.CanBuild(data)) continue;
+            foreach (Tile tile in GridManager.Instance.grid.Values)
+                if (player.CanPlaceNeuron(data, tile)) tile.SetHighlight(true, moveColor);
+            break;
+        }
     }
 }

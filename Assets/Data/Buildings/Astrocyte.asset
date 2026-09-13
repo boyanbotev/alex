@@ -17,6 +17,7 @@ MonoBehaviour:
   description: Creates 2 population towards leveling up the city. Can only be placed
     next to a neuron.
   cost: 5
+  constructionDisabled: 1
   populationGiven: 2
   requiredTech: {fileID: 11400000, guid: c1328990d578ffd44ad2e0effe8bf672, type: 2}
   placementConditions:

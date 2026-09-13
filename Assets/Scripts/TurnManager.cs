@@ -13,6 +13,9 @@ public class TurnManager : MonoBehaviour
 
     public Player ActivePlayer => players[activePlayerIndex];
     public TurnAI ai;
+    [Min(0)] public int neuronStarsPerConnection = 1;
+    private NeuronNetwork neurons;
+    public NeuronNetwork Neurons => neurons ??= new NeuronNetwork(this);
 
     private DiplomacyState diplomacy;
     // The roster must be populated before first access and stays fixed for the match.
@@ -37,6 +40,7 @@ public class TurnManager : MonoBehaviour
 
     private void OnRelationChanged(Player a, Player b, DiplomaticRelation relation)
     {
+        Neurons.Invalidate();
         if (WorldPopulationManager.Instance == null) return;
         foreach (City city in WorldPopulationManager.Instance.allCities)
         {
@@ -69,6 +73,7 @@ public class TurnManager : MonoBehaviour
         while (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady)
             yield return null;
         _ = Diplomacy;
+        Neurons.Invalidate();
         StartTurn(ActivePlayer);
     }
 

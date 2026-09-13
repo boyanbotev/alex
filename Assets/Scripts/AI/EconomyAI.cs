@@ -53,7 +53,7 @@ public class EconomyAI : MonoBehaviour
             for (int j = 0; j < controlledPlayer.faction.availableBuildings.Length; j++)
             {
                 BuildingData building = controlledPlayer.faction.availableBuildings[j];
-                if (!controlledPlayer.techState.CanBuild(building)) continue;
+                if (building.isNeuron || !controlledPlayer.techState.CanBuild(building)) continue;
 
                 Tile tile = FindBestBuildTile(building, city);
                 if (tile == null) continue;
