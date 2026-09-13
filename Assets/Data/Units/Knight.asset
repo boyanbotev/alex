@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5cc17c9ad383174aa741bc5951e2bfa, type: 3}
   m_Name: Knight
   m_EditorClassIdentifier: 
-  cost: 6
+  cost: 8
   maxHealth: 10
   attackPower: 3
   defensePower: 1

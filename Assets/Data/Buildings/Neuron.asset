@@ -14,10 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buildingName: Neuron
   buildingPrefab: {fileID: 3495969668921847790, guid: 75a6b484470708c42a8b7720f7bd31ea, type: 3}
-  description: Connects cities through adjacent neuron segments, including diagonals. Each connected neighbouring city grants stars per turn. Extend from your city centres or your own segments.
-  cost: 3
+  description: Connects cities through adjacent neuron segments, including diagonals.
+    Each connected neighbouring city grants stars per turn. Extend from your city
+    centres or your own segments.
+  cost: 4
   populationGiven: 0
   isNeuron: 1
+  constructionDisabled: 0
   demolitionRefundFraction: 0.5
   requiredTech: {fileID: 11400000, guid: 19d9dfc725a3ff945aad5084a33f41a3, type: 2}
   placementConditions: []
