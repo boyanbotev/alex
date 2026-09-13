@@ -7,7 +7,6 @@ public class City : MonoBehaviour
     public static event Action<Player> OnPlayerChange;
     public static event Action<Player> OnUnsiege;
     public static event Action<Player> OnSiege;
-    public static event Action<Player> OnLevelUp;
     public string cityName;
     public Player owner;
     public Tile centerTile;
@@ -16,12 +15,9 @@ public class City : MonoBehaviour
     public CityStarsUI starsUI;
     public List<Unit> units = new List<Unit>();
     public List<Building> buildings = new List<Building>();
-    public int level = 1;
-    public int currentPopulation = 0;
-    public int populationToLevelUp = 2;
 
     [Header("Territory")]
-    [Tooltip("How many tiles out from centerTile belong to this city's territory. Grows with level in LevelUp().")]
+    [Tooltip("How many tiles out from centerTile belong to this city's territory.")]
     public int territoryRadius = 1;
 
     [Header("Capture")]
@@ -33,51 +29,29 @@ public class City : MonoBehaviour
         pendingCapturer.currentTile == centerTile &&
         InteractionRules.CanCapture(pendingCapturer.owner, owner);
 
-    public int BaseIncome => level + 1;
+    public int BaseIncome => 2;
     public int NeuronIncome => TurnManager.Instance != null ? TurnManager.Instance.Neurons.GetIncome(this) : 0;
-    public int TotalIncome => BaseIncome + NeuronIncome;
+    public int TotalIncome => HasPendingCapture ? 0 : BaseIncome + NeuronIncome;
+    public int UnitCapacity => TotalIncome;
     public void RefreshIncomeLabel()
     {
-        if (starsUI != null) starsUI.Set(HasPendingCapture ? 0 : TotalIncome);
+        if (starsUI != null) starsUI.Set(TotalIncome);
     }
 
     private void Start()
     {
-        populationUI.Set(currentPopulation, populationToLevelUp);
+        if (populationUI != null) populationUI.gameObject.SetActive(false);
         RefreshIncomeLabel();
     }
 
     public void Reveal()
     {
-        populationUI.gameObject.SetActive(true);
         starsUI.gameObject.SetActive(true);
     }
 
     public void Hide()
     {
-        populationUI.gameObject.SetActive(false);
         starsUI.gameObject.SetActive(false);
-    }
-
-    public void AddPopulation(int amount)
-    {
-        currentPopulation += amount;
-        if (currentPopulation >= populationToLevelUp)
-        {
-            LevelUp();
-        }
-
-        populationUI.Set(currentPopulation, populationToLevelUp);
-    }
-
-    private void LevelUp()
-    {
-        currentPopulation -= populationToLevelUp;
-        level++;
-        populationToLevelUp = level + 1;
-
-        RefreshIncomeLabel();
-        OnLevelUp?.Invoke(owner);
     }
 
     public void ClaimTerritory()
@@ -103,7 +77,7 @@ public class City : MonoBehaviour
             return false;
         }
 
-        if (units.Count >= level + 1)
+        if (units.Count >= UnitCapacity)
         {
             return false;
         }

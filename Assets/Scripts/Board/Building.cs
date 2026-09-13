@@ -43,10 +43,6 @@ public class Building : MonoBehaviour
         owner = owningCity != null ? owningCity.owner : null;
         paidCost = data.cost;
 
-        if (!data.isNeuron && parentCity != null && data.populationGiven > 0)
-        {
-            parentCity.AddPopulation(data.populationGiven);
-        }
     }
 
     private void OnDestroy()

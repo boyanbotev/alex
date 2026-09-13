@@ -68,7 +68,7 @@ public class EconomyAI : MonoBehaviour
                     buildTile = tile,
                     city = city,
                     cost = building.cost,
-                    score = ScoreBuilding(building, city)
+                    score = profile.buildingBaseWeight
                 });
             }
         }
@@ -94,7 +94,7 @@ public class EconomyAI : MonoBehaviour
         {
             City city = controlledPlayer.cities[i];
             if (city.centerTile.currentUnit != null) continue;
-            if (city.units.Count >= city.level + 1) continue;
+            if (city.units.Count >= city.UnitCapacity) continue;
 
             for (int j = 0; j < controlledPlayer.faction.availableUnits.Length; j++)
             {
@@ -195,25 +195,6 @@ public class EconomyAI : MonoBehaviour
             }
         }
         return 0f;
-    }
-
-    private float ScoreBuilding(BuildingData building, City city)
-    {
-        float score = profile.buildingBaseWeight;
-
-        if (building.populationGiven > 0 && city.populationToLevelUp > 0)
-        {
-            float progressFraction = Mathf.Clamp01((float)building.populationGiven / city.populationToLevelUp);
-            score += progressFraction * profile.cityGrowthWeight;
-
-            bool completesLevelUp = city.currentPopulation + building.populationGiven >= city.populationToLevelUp;
-            if (completesLevelUp)
-            {
-                score += profile.cityGrowthWeight;
-            }
-        }
-
-        return score;
     }
 
     private void GenerateResearchCandidates(List<EconomyCandidateAction> buffer)

@@ -39,6 +39,7 @@ public class UIManager : MonoBehaviour
     private TechTreeView techTree;
     private TechData selectedTech;
     private Player techPlayer;
+    private City displayedCity;
 
     private readonly Dictionary<City, GameObject> captureButtons = new Dictionary<City, GameObject>();
 
@@ -61,7 +62,6 @@ public class UIManager : MonoBehaviour
         City.OnPlayerChange += OnClaim;
         City.OnSiege += OnSiege;
         City.OnUnsiege += OnUnsiege;
-        City.OnLevelUp += OnLevelUp;
         NeuronNetwork.IncomeChanged += RefreshNeuronIncome;
     }
 
@@ -71,7 +71,6 @@ public class UIManager : MonoBehaviour
         City.OnPlayerChange -= OnClaim;
         City.OnSiege -= OnSiege;
         City.OnUnsiege -= OnUnsiege;
-        City.OnLevelUp -= OnLevelUp;
         NeuronNetwork.IncomeChanged -= RefreshNeuronIncome;
     }
 
@@ -93,8 +92,8 @@ public class UIManager : MonoBehaviour
                 CloseSpawnPanel();
             });
         }
-        cityNameAndLevelText.text = $"City lvl {city.level}";
-        cantSpawnText.gameObject.SetActive(city.units.Count > city.level);
+        displayedCity = city;
+        RefreshCityCapacity();
     }
 
     public void ShowCityInfo(City city)
@@ -103,8 +102,8 @@ public class UIManager : MonoBehaviour
 
         spawnPanel.gameObject.SetActive(true);
 
-        cityNameAndLevelText.text = $"City lvl {city.level}";
-        cantSpawnText.gameObject.SetActive(city.units.Count > city.level);
+        displayedCity = city;
+        RefreshCityCapacity();
     }
 
     public void ShowBuildButtons(BuildingData[] availableBuildings, Tile tile, City city)
@@ -353,9 +352,17 @@ public class UIManager : MonoBehaviour
         RefreshResearchState();
     }
 
+    private void RefreshCityCapacity()
+    {
+        if (displayedCity == null || !spawnPanel.gameObject.activeSelf) return;
+        cityNameAndLevelText.text = $"Units {displayedCity.units.Count}/{displayedCity.UnitCapacity}";
+        cantSpawnText.gameObject.SetActive(displayedCity.units.Count >= displayedCity.UnitCapacity);
+    }
+
     public void SetStarsPerTurn(int value)
     {
         starsPerTurnCounter.text = $"(+{value})";
+        RefreshCityCapacity();
     }
 
     private void RefreshNeuronIncome()
@@ -389,11 +396,4 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void OnLevelUp(Player player)
-    {
-        if (!player.isAI)
-        {
-            SetStarsPerTurn(player.CalculateTurnIncome());
-        }
-    }
 }

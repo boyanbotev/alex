@@ -2521,7 +2521,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tacticsAI: {fileID: 750415855}
   economyAI: {fileID: 750415856}
-  profile: {fileID: 11400000, guid: b7b1b3878ad1aed43b37ed5ffd5e7603, type: 2}
+  profile: {fileID: 11400000, guid: abd7b859627c00147a8b8641866b33d7, type: 2}
 --- !u!114 &750415855
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4926,6 +4926,7 @@ MonoBehaviour:
   activePlayerIndex: 0
   turnNumber: 1
   ai: {fileID: 750415854}
+  neuronStarsPerConnection: 1
 --- !u!4 &1461332122
 Transform:
   m_ObjectHideFlags: 0

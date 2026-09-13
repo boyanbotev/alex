@@ -31,10 +31,8 @@ public class AIProfile : ScriptableObject
     public float counterWeight = 8f;
 
     [Header("Economy - Buildings")]
-    [Tooltip("Flat score every buildable building gets, so population-neutral buildings can still win when nothing else is pressing.")]
+    [Tooltip("Score for ordinary buildings.")]
     public float buildingBaseWeight = 2f;
-    [Tooltip("Scales how much a building's populationGiven is worth, weighted by how close it gets the city to leveling up.")]
-    public float cityGrowthWeight = 12f;
 
     [Header("Economy - Neurons")]
     [Tooltip("Connection income divided by remaining route cost is multiplied by this score. Competes with units, buildings and research.")]

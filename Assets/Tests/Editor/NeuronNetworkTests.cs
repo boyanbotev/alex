@@ -124,7 +124,6 @@ public class NeuronNetworkTests : TacticsTestFixture
         var data = Asset<BuildingData>();
         data.isNeuron = true;
         data.cost = 3;
-        data.populationGiven = 10; // Neurons must never grant population, even with stale asset data.
         data.buildingPrefab = Component<Building>().gameObject;
         player.faction = Asset<Faction>();
         player.faction.availableBuildings = new[] { data };
@@ -142,7 +141,6 @@ public class NeuronNetworkTests : TacticsTestFixture
             Assert.That(built.parentCity, Is.Null);
             Assert.That(built.paidCost, Is.EqualTo(3));
             Assert.That(built.DemolitionRefund, Is.EqualTo(1));
-            Assert.That(city.currentPopulation, Is.Zero);
             Assert.That(player.stars, Is.EqualTo(2));
             Assert.That(player.PlaceNeuron(data, target), Is.False);
             Assert.That(player.CanPlaceNeuron(data, extension), Is.True);
@@ -173,6 +171,46 @@ public class NeuronNetworkTests : TacticsTestFixture
     }
 
     [Test]
+    public void UnitCapacityTracksConnectionsAndKeepsExistingUnitsAfterCut()
+    {
+        var a = City(Tile(0), player);
+        var b = City(Tile(2), enemy);
+        var road = Segment(1, 0, player);
+        a.units.Add(Component<Unit>());
+        a.units.Add(Component<Unit>());
+        Assert.That(a.UnitCapacity, Is.EqualTo(2));
+        Assert.That(a.SpawnUnit(null, 2), Is.False); // Capacity checked before purchase.
+        turns.Diplomacy.MakePeace(player, enemy);
+        Assert.That(a.UnitCapacity, Is.EqualTo(3));
+
+        player.faction = Asset<Faction>();
+        var recruit = Asset<FactionUnit>();
+        recruit.unitData = Asset<UnitData>();
+        var prefab = Component<Unit>();
+        prefab.data = recruit.unitData;
+        recruit.prefab = prefab.gameObject;
+        Assert.That(a.SpawnUnit(recruit, 2), Is.True);
+        var spawned = a.centerTile.currentUnit;
+        try
+        {
+            a.centerTile.currentUnit = null; // The recruit leaves the city centre.
+            turns.Diplomacy.DeclareWar(player, enemy);
+            Assert.That(a.UnitCapacity, Is.EqualTo(2));
+            Assert.That(a.units.Count, Is.EqualTo(3));
+            int stars = player.stars;
+            Assert.That(a.SpawnUnit(recruit, 2), Is.False);
+            Assert.That(player.stars, Is.EqualTo(stars));
+            turns.Diplomacy.MakePeace(player, enemy);
+            Assert.That(a.UnitCapacity, Is.EqualTo(3));
+            road.tile.currentBuilding = null;
+            turns.Neurons.Invalidate();
+            Assert.That(a.UnitCapacity, Is.EqualTo(2));
+            Assert.That(a.units.Count, Is.EqualTo(3));
+        }
+        finally { Object.DestroyImmediate(spawned.gameObject); }
+    }
+
+    [Test]
     public void CityIncomeIncludesNetworkButSiegedCityDoesNotPay()
     {
         var a = City(Tile(0), player);
@@ -182,5 +220,7 @@ public class NeuronNetworkTests : TacticsTestFixture
         Assert.That(player.CalculateTurnIncome(), Is.EqualTo(6));
         a.SetPendingCapture(Unit(enemy, a.centerTile));
         Assert.That(player.CalculateTurnIncome(), Is.EqualTo(3));
+        Assert.That(a.UnitCapacity, Is.Zero);
+        Assert.That(b.UnitCapacity, Is.EqualTo(3));
     }
 }
