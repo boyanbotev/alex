@@ -25,4 +25,9 @@ public class ItemPurchaseButton : MonoBehaviour
         buttonComponent.onClick.RemoveAllListeners();
         buttonComponent.onClick.AddListener(action);
     }
+
+    public void AddRefund(int amount)
+    {
+        CostText.text = "+" + amount + " stars";
+    }
 }

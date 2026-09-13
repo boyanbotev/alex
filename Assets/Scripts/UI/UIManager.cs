@@ -133,6 +133,30 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void ShowNeuronActions(Building segment, Unit unit, UnityAction onComplete)
+    {
+        CloseBuildPanel();
+        Player actor = TurnManager.Instance.ActivePlayer;
+        if (segment == null || !segment.IsPlacedNeuron) return;
+        bool demolish = segment.CanDemolish(actor);
+        if (!demolish && (unit == null || !unit.CanSeverNeuron(segment))) return;
+        buildPanel.gameObject.SetActive(true);
+        var button = Instantiate(itemPurchaseButtonPrefab, buildButtonHolder).GetComponent<ItemPurchaseButton>();
+        bool declaresWar = !demolish && !TurnManager.Instance.Diplomacy.IsAtWar(actor, segment.owner);
+        button.AddText(demolish ? "Demolish neuron" : declaresWar ? "Sever neuron (declares war)" : "Sever neuron");
+        button.AddRefund(segment.DemolitionRefund);
+        button.AddListener(() =>
+        {
+            if (segment != null)
+            {
+                if (demolish) segment.TryDemolish(actor);
+                else if (unit != null) unit.TrySeverNeuron(segment);
+            }
+            CloseBuildPanel();
+            onComplete?.Invoke();
+        });
+    }
+
     public void ShowTechButtons()
     {
         if (techPanel.gameObject.activeSelf) return;

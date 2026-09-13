@@ -88,6 +88,28 @@ public class Unit : MonoBehaviour
         }
     }
 
+    public bool CanSeverNeuron(Building segment)
+    {
+        if (!isAlive || !isActive || hasAttacked || data == null || data.attackPower <= 0 ||
+            owner == null || TurnManager.Instance == null || TurnManager.Instance.ActivePlayer != owner ||
+            segment == null || !segment.IsPlacedNeuron || segment.owner == null || segment.owner == owner ||
+            currentTile != segment.tile || currentTile.currentUnit != this ||
+            owner.visibleTiles == null || !owner.visibleTiles.IsVisible(currentTile)) return false;
+        return TurnManager.Instance.Diplomacy.GetRelation(owner, segment.owner) != DiplomaticRelation.Allied;
+    }
+
+    public bool TrySeverNeuron(Building segment)
+    {
+        if (!CanSeverNeuron(segment)) return false;
+        hasAttacked = true;
+        // Match the existing attack rule: attacking also consumes movement.
+        hasMoved = true;
+        TurnManager.Instance.Diplomacy.DeclareWar(owner, segment.owner);
+        segment.RemoveNeuron(owner);
+        Deactivate();
+        return true;
+    }
+
     public void Heal()
     {
         if (hasAttacked || hasMoved || hasCaptured) return;
@@ -144,9 +166,12 @@ public class Unit : MonoBehaviour
 
     public void Deactivate()
     {
-        Color color = render.material.color;
-        color.a = 0.7f;
-        render.material.color = color;
+        if (render != null)
+        {
+            Color color = render.material.color;
+            color.a = 0.7f;
+            render.material.color = color;
+        }
         isActive = false;
     }
 }

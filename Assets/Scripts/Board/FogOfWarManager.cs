@@ -56,7 +56,9 @@ public class FogOfWarManager : MonoBehaviour
 
     public void RevealSingle(Player player, Tile tile)
     {
+        bool newlyVisible = !player.visibleTiles.IsVisible(tile);
         player.visibleTiles.SetVisible(tile.gridPosition);
+        if (!player.isAI && newlyVisible) NeuronSegmentVisual.RefreshAround(tile);
 
         if (!player.isAI && fogTiles.TryGetValue(tile.gridPosition, out GameObject fogObj))
         {

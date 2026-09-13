@@ -81,6 +81,7 @@ public class Player : MonoBehaviour
         building.Initialize(data, tile, null);
         building.owner = this;
         tile.currentBuilding = building;
+        NeuronSegmentVisual.RefreshAround(tile);
         TurnManager.Instance.Neurons.Invalidate();
         return true;
     }

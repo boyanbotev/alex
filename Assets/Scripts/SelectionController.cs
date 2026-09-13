@@ -99,6 +99,10 @@ public class SelectionController : MonoBehaviour
         {
             SelectTerritory(clickedTile);
         }
+        else if (clickedTile.currentBuilding != null)
+        {
+            UIManager.Instance.ShowNeuronActions(clickedTile.currentBuilding, null, DeselectAll);
+        }
     }
 
     public void ShowSpawnOptions(Tile tile)
@@ -150,7 +154,10 @@ public class SelectionController : MonoBehaviour
 
         if (clickedTile == selectedUnit.currentTile)
         {
+            Unit unit = selectedUnit;
             DeselectAll();
+            if (clickedTile.currentBuilding != null)
+                UIManager.Instance.ShowNeuronActions(clickedTile.currentBuilding, unit, DeselectAll);
 
             if (clickedTile.city == null && clickedTile.currentBuilding == null)
             {
@@ -196,6 +203,7 @@ public class SelectionController : MonoBehaviour
     {
         GridManager.Instance.ClearAllHighlights();
         highlightedTiles.Clear();
+        UIManager.Instance.ShowNeuronActions(unit.currentTile.currentBuilding, unit, DeselectAll);
 
         if (!unit.isActive) return;
 
@@ -245,6 +253,7 @@ public class SelectionController : MonoBehaviour
 
     private static bool HasInRangeEnemy(Unit unit)
     {
+        if (unit.CanSeverNeuron(unit.currentTile.currentBuilding)) return true;
         foreach (Player other in TurnManager.Instance.players)
         {
             if (!InteractionRules.CanAttack(unit.owner, other)) continue;

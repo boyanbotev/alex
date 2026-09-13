@@ -12,6 +12,9 @@ public class BuildingData : ScriptableObject
     public int cost;
     public int populationGiven;
     public bool isNeuron;
+    [Min(0.02f)] public float neuronWidth = 0.16f;
+    [Tooltip("Height above the tile surface.")]
+    [Min(0.01f)] public float neuronHeight = 0.04f;
     public bool constructionDisabled;
     [Range(0f, 1f)] public float demolitionRefundFraction = 0.5f;
 
