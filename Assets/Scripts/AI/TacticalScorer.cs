@@ -6,6 +6,38 @@ public sealed class TacticalScorer
     private AIProfile profile;
     private IReadOnlyList<Player> players;
     private IReadOnlyList<City> cities;
+    private readonly NeuronRaidScorer neuronRaids = new();
+    private readonly Dictionary<(Player, Building), float> raidValues = new();
+
+    public void BeginGeneration() => raidValues.Clear();
+
+    private float RaidValue(Unit unit, Building segment, BoardState board)
+    {
+        var key = (unit.owner, segment);
+        if (!raidValues.TryGetValue(key, out float value))
+        {
+            value = neuronRaids.Evaluate(unit.owner, segment, board, cities, profile);
+            raidValues[key] = value;
+        }
+        return value;
+    }
+
+    public bool ShouldConsiderSever(Unit unit, Building segment, BoardState board) =>
+        (board.IsAtWar(unit.owner, segment.owner) || profile.neuronRaidMayDeclareWar) &&
+        RaidValue(unit, segment, board) > 0f;
+
+    public float ScoreSever(Unit unit, Tile position, Building segment, BoardState board)
+    {
+        float value = RaidValue(unit, segment, board);
+        int checkpoint = board.Checkpoint();
+        try
+        {
+            // Include danger from the faction that this action would turn hostile.
+            board.WithWar(unit.owner, segment.owner);
+            return value + ScoreMove(unit, board.GetTile(unit), position, board);
+        }
+        finally { board.Rollback(checkpoint); }
+    }
 
     public void Configure(AIProfile profile, IReadOnlyList<Player> players, IReadOnlyList<City> cities)
     {
@@ -44,7 +76,7 @@ public sealed class TacticalScorer
             unit.data.attackRange == 1 &&
             targetTile != null &&
             targetTile.city != null &&
-            InteractionRules.CanCapture(unit.owner, board.GetOwner(targetTile.city)))
+            board.CanCapture(unit.owner, board.GetOwner(targetTile.city)))
         {
             score += profile.cityCaptureWeight;
         }
@@ -65,7 +97,7 @@ public sealed class TacticalScorer
 
         score += ScoreCityProgress(from, to, unit.owner, board);
 
-        if (to.city != null && InteractionRules.CanCapture(unit.owner, board.GetOwner(to.city)))
+        if (to.city != null && board.CanCapture(unit.owner, board.GetOwner(to.city)))
         {
             score += profile.cityCaptureWeight;
         }
@@ -103,7 +135,7 @@ public sealed class TacticalScorer
         for (int p = 0; p < players.Count; p++)
         {
             Player enemy = players[p];
-            if (!InteractionRules.CanAttack(unit.owner, enemy))
+            if (!board.IsAtWar(unit.owner, enemy))
                 continue;
 
             foreach (Unit enemyUnit in enemy.units)
@@ -139,7 +171,7 @@ public sealed class TacticalScorer
         for (int p = 0; p < players.Count; p++)
         {
             Player enemy = players[p];
-            if (!InteractionRules.CanAttack(unit.owner, enemy))
+            if (!board.IsAtWar(unit.owner, enemy))
                 continue;
 
             foreach (Unit enemyUnit in enemy.units)
@@ -191,7 +223,7 @@ public sealed class TacticalScorer
         for (int c = 0; c < cities.Count; c++)
         {
             City city = cities[c];
-            if (city == null || !InteractionRules.CanCapture(owner, board.GetOwner(city)))
+            if (city == null || !board.CanCapture(owner, board.GetOwner(city)))
                 continue;
 
             int distance = Utils.GridDistance(

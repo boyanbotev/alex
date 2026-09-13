@@ -24,6 +24,8 @@ public class BoardState
     private readonly Dictionary<City, Player> cityOwner = new();
     private readonly Dictionary<City, Unit> pendingCityCaptures = new();
     private readonly List<City> capturesToRemove = new();
+    private readonly HashSet<Building> removedNeurons = new();
+    private readonly HashSet<(Player, Player)> declaredWars = new();
 
     private readonly List<Undo> undoLog = new();
 
@@ -39,7 +41,9 @@ public class BoardState
         UnitDead,
         TileOccupant,
         CityOwner,
-        PendingCapture
+        PendingCapture,
+        RemovedNeuron,
+        DeclaredWar
     }
 
     private struct Undo
@@ -49,6 +53,9 @@ public class BoardState
         public Unit unit;
         public Tile tile;
         public City city;
+        public Building building;
+        public Player playerA;
+        public Player playerB;
 
         public Tile oldTile;
         public Unit oldUnit;
@@ -114,6 +121,12 @@ public class BoardState
                 case UndoType.PendingCapture:
                     Restore(pendingCityCaptures, u.city, u.oldUnit, u.wasPresent);
                     break;
+                case UndoType.RemovedNeuron:
+                    removedNeurons.Remove(u.building);
+                    break;
+                case UndoType.DeclaredWar:
+                    declaredWars.Remove((u.playerA, u.playerB));
+                    break;
             }
         }
 
@@ -171,6 +184,43 @@ public class BoardState
 
     public bool HasPendingCityCapture(City city) =>
         pendingCityCaptures.ContainsKey(city);
+
+    public bool IsAtWar(Player a, Player b) => a != null && b != null &&
+        (declaredWars.Contains((a, b)) || declaredWars.Contains((b, a)) || TurnManager.Instance.Diplomacy.IsAtWar(a, b));
+
+    public bool CanCapture(Player player, Player owner) => player != null && (owner == null || IsAtWar(player, owner));
+
+    public Building GetBuilding(Tile tile)
+    {
+        Building building = tile != null ? tile.currentBuilding : null;
+        return building != null && !removedNeurons.Contains(building) ? building : null;
+    }
+
+    public bool CanSeverNeuron(Unit unit, Tile position, Building segment)
+    {
+        if (unit == null || !IsAlive(unit) || !IsActive(unit) || HasAttacked(unit) ||
+            unit.data.attackPower <= 0 || segment == null || !segment.IsPlacedNeuron ||
+            GetBuilding(position) != segment || segment.owner == null || segment.owner == unit.owner ||
+            unit.owner.visibleTiles == null || !unit.owner.visibleTiles.IsVisible(position)) return false;
+        if (position != GetTile(unit) && (HasMoved(unit) || HasSkill(unit, Skill.Static) ||
+            Utils.GridDistance(position.gridPosition, GetTile(unit).gridPosition) > unit.data.moveRange)) return false;
+        Unit occupant = GetOccupant(position);
+        return (occupant == null || occupant == unit) &&
+            TurnManager.Instance.Diplomacy.GetRelation(unit.owner, segment.owner) != DiplomaticRelation.Allied;
+    }
+
+    public void WithWar(Player a, Player b)
+    {
+        if (IsAtWar(a, b)) return;
+        declaredWars.Add((a, b));
+        undoLog.Add(new Undo { type = UndoType.DeclaredWar, playerA = a, playerB = b });
+    }
+
+    public void WithRemovedNeuron(Building building)
+    {
+        if (!removedNeurons.Add(building)) return;
+        undoLog.Add(new Undo { type = UndoType.RemovedNeuron, building = building });
+    }
 
     public Unit GetPendingCityCapturer(City city) =>
         pendingCityCaptures.TryGetValue(city, out Unit unit)

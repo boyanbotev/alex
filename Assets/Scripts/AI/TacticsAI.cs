@@ -11,6 +11,7 @@ public class TacticsAI : MonoBehaviour
     private readonly TacticalScorer _scorer = new();
     private readonly CandidateGenerator _candidates = new();
     private readonly List<CandidateAction> _shortlist = new List<CandidateAction>(32);
+    private readonly List<Tile> severMoveTiles = new();
     private readonly System.Diagnostics.Stopwatch _frameBudgetTimer = new System.Diagnostics.Stopwatch();
     private static readonly WaitForSeconds ActionAnimationWait = new WaitForSeconds(0.3f);
 
@@ -100,7 +101,7 @@ public class TacticsAI : MonoBehaviour
 
             foreach (Player enemy in TurnManager.Instance.players)
             {
-                if (!InteractionRules.CanAttack(controlledPlayer, enemy))
+                if (!board.IsAtWar(controlledPlayer, enemy))
                     continue;
 
                 enemyThreat += RolloutGreedyTurn(
@@ -151,6 +152,18 @@ public class TacticsAI : MonoBehaviour
     private IEnumerator Execute(CandidateAction action, int diplomacyRevision)
     {
         if (TurnManager.Instance.Diplomacy.Revision != diplomacyRevision) yield break;
+        if (action.kind == ActionKind.SeverNeuron &&
+            !BoardState.Live.CanSeverNeuron(action.unit, action.moveTile, action.neuron)) yield break;
+        if (action.kind == ActionKind.SeverNeuron)
+        {
+            if (TurnManager.Instance.ActivePlayer != action.unit.owner) yield break;
+            if (action.moveTile != action.unit.currentTile)
+            {
+                GridManager.Instance.GetReachableMoveTiles(action.unit.currentTile, action.unit.owner,
+                    action.unit.data.moveRange, BoardState.Live.GetOccupant, severMoveTiles);
+                if (!severMoveTiles.Contains(action.moveTile)) yield break;
+            }
+        }
         if (action.kind == ActionKind.Attack &&
             (action.target == null || !action.target.isAlive ||
              !InteractionRules.CanAttack(action.unit.owner, action.target.owner)))
@@ -180,6 +193,8 @@ public class TacticsAI : MonoBehaviour
         }
 
         // then attack
+        if (action.kind == ActionKind.SeverNeuron)
+            action.unit.TrySeverNeuron(action.neuron);
         if (action.kind == ActionKind.Attack &&
             action.target != null &&
             action.target.isAlive)
@@ -200,6 +215,7 @@ public class TacticsAI : MonoBehaviour
 
     private bool IsVisibleToLocalPlayer(CandidateAction action)
     {
+        if (humanPlayer == null || humanPlayer.visibleTiles == null) return false;
         if (humanPlayer.visibleTiles.IsVisible(action.unit.currentTile))
             return true;
 

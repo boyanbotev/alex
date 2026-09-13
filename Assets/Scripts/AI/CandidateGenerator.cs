@@ -12,6 +12,7 @@ public sealed class CandidateGenerator
     private CandidateAction[] _topKScratch;
     private BoardState _occupancyBoard;
     private System.Func<Tile, Unit> _getOccupant;
+    private System.Func<Player, Player, bool> _isAtWar;
 
     // Valid until the next Generate call. A shortlist is copied into the caller's buffer.
     public IReadOnlyList<CandidateAction> Candidates => _allCandidates;
@@ -24,10 +25,12 @@ public sealed class CandidateGenerator
 
     public void Generate(Player player, BoardState board)
     {
+        scorer.BeginGeneration();
         if (_occupancyBoard != board)
         {
             _occupancyBoard = board;
             _getOccupant = board.GetOccupant;
+            _isAtWar = board.IsAtWar;
         }
         _allCandidates.Clear();
         _unitRanges.Clear();
@@ -64,7 +67,7 @@ public sealed class CandidateGenerator
         if (!board.HasMoved(unit))
         {
             grid.GetReachableMoveTiles(currentTile, unit.owner, unit.data.moveRange,
-                _getOccupant, _scratchPositions);
+                _getOccupant, _scratchPositions, _isAtWar);
         }
         _scratchPositions.Insert(0, currentTile);
 
@@ -102,11 +105,21 @@ public sealed class CandidateGenerator
             if (moved && staticUnit)
                 continue;
 
+            Building segment = board.GetBuilding(position);
+            if (board.CanSeverNeuron(unit, position, segment) && scorer.ShouldConsiderSever(unit, segment, board))
+            {
+                output.Add(new CandidateAction
+                {
+                    unit = unit, moveTile = position, neuron = segment, kind = ActionKind.SeverNeuron,
+                    score = scorer.ScoreSever(unit, position, segment, board)
+                });
+            }
+
             foreach (Tile attackTile in grid.GetTilesInRange(position, unit.data.attackRange))
             {
                 Unit target = board.GetOccupant(attackTile);
 
-                if (target == null || !InteractionRules.CanAttack(unit.owner, target.owner) || !board.IsAlive(target))
+                if (target == null || !board.IsAtWar(unit.owner, target.owner) || !board.IsAlive(target))
                     continue;
 
                 output.Add(new CandidateAction

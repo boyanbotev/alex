@@ -45,7 +45,7 @@ public class GridManager : MonoBehaviour
 
     // Reuses search buffers; results are cleared and filled with empty destinations only.
     public void GetReachableMoveTiles(Tile start, Player owner, int range,
-        System.Func<Tile, Unit> getOccupant, List<Tile> results)
+        System.Func<Tile, Unit> getOccupant, List<Tile> results, System.Func<Player, Player, bool> isAtWar = null)
     {
         results.Clear();
         moveQueue.Clear();
@@ -74,8 +74,8 @@ public class GridManager : MonoBehaviour
                     if (occupant != null && !InteractionRules.CanPassThrough(owner, occupant.owner)) continue;
 
                     if (blockCorners && dx != 0 && dy != 0
-                        && IsEnemyAt(position + new Vector2Int(dx, 0), owner, getOccupant)
-                        && IsEnemyAt(position + new Vector2Int(0, dy), owner, getOccupant))
+                        && IsEnemyAt(position + new Vector2Int(dx, 0), owner, getOccupant, isAtWar)
+                        && IsEnemyAt(position + new Vector2Int(0, dy), owner, getOccupant, isAtWar))
                         continue;
 
                     moveVisited.Add(next);
@@ -86,11 +86,12 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    private bool IsEnemyAt(Vector2Int position, Player owner, System.Func<Tile, Unit> getOccupant)
+    private bool IsEnemyAt(Vector2Int position, Player owner, System.Func<Tile, Unit> getOccupant,
+        System.Func<Player, Player, bool> isAtWar)
     {
         Tile tile = GetTileAt(position);
         Unit occupant = tile != null ? getOccupant(tile) : null;
-        return occupant != null && InteractionRules.CanAttack(owner, occupant.owner);
+        return occupant != null && (isAtWar != null ? isAtWar(owner, occupant.owner) : InteractionRules.CanAttack(owner, occupant.owner));
     }
 
     public void ClearAllHighlights()

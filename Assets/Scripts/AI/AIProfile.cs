@@ -41,6 +41,12 @@ public class AIProfile : ScriptableObject
     [Min(0f)] public float neuronConstructionWeight = 24f;
     [Tooltip("Only start or continue routes whose remaining cost can be earned back within this many income turns.")]
     [Min(0f)] public float neuronMaxPaybackTurns = 12f;
+    [Header("Tactics - Neurons")]
+    [Min(0f)] public float neuronRaidIncomeWeight = 6f;
+    [Min(0f)] public float neuronRaidFriendlyLossWeight = 10f;
+    [Min(0f)] public float neuronRaidRefundWeight = 1f;
+    public bool neuronRaidMayDeclareWar = true;
+    [Min(0f)] public float neuronRaidWarPenalty = 24f;
 
     [Header("Economy - Research")]
     [Tooltip("Flat score every researchable tech gets.")]
