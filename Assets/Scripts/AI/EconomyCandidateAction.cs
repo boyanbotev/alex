@@ -1,4 +1,4 @@
-public enum EconomyActionKind { ResearchTech, PlaceBuilding, SpawnUnit }
+public enum EconomyActionKind { ResearchTech, PlaceBuilding, SpawnUnit, PlaceNeuron }
 
 public class EconomyCandidateAction
 {

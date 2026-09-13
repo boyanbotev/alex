@@ -9,6 +9,7 @@ public class EconomyAI : MonoBehaviour
 
     private readonly List<EconomyCandidateAction> _candidateBuffer = new List<EconomyCandidateAction>();
     private readonly List<Unit> _nearbyEnemyBuffer = new List<Unit>();
+    private readonly NeuronConstructionPlanner neuronPlanner = new();
 
     public void HandleEconomy(Player controlledPlayer, AIProfile profile)
     {
@@ -32,7 +33,8 @@ public class EconomyAI : MonoBehaviour
 
             if (best == null || best.score <= 0f) break;
 
-            ExecuteEconomyAction(best);
+            // Failed validation must not repeat the same rejected purchase indefinitely.
+            if (!ExecuteEconomyAction(best)) break;
         }
     }
 
@@ -40,6 +42,7 @@ public class EconomyAI : MonoBehaviour
     {
         buffer.Clear();
         GenerateBuildingCandidates(buffer);
+        neuronPlanner.GenerateCandidates(controlledPlayer, profile, buffer);
         GenerateSpawnCandidates(buffer);
         GenerateResearchCandidates(buffer);
     }
@@ -236,7 +239,8 @@ public class EconomyAI : MonoBehaviour
 
         for (int i = 0; i < controlledPlayer.faction.availableBuildings.Length; i++)
         {
-            if (controlledPlayer.faction.availableBuildings[i].requiredTech == tech)
+            if (!controlledPlayer.faction.availableBuildings[i].constructionDisabled &&
+                controlledPlayer.faction.availableBuildings[i].requiredTech == tech)
             {
                 score += profile.researchBuildingUnlockWeight;
             }
@@ -284,19 +288,19 @@ public class EconomyAI : MonoBehaviour
         return enemyCount > 0 ? counterScore / enemyCount : 0f;
     }
 
-    private void ExecuteEconomyAction(EconomyCandidateAction c)
+    private bool ExecuteEconomyAction(EconomyCandidateAction c)
     {
         switch (c.kind)
         {
             case EconomyActionKind.ResearchTech:
-                controlledPlayer.techState.TryResearch(c.tech, controlledPlayer);
-                break;
+                return controlledPlayer.techState.TryResearch(c.tech, controlledPlayer);
             case EconomyActionKind.PlaceBuilding:
-                c.city.PlaceBuilding(c.building, c.buildTile);
-                break;
+                return c.city.PlaceBuilding(c.building, c.buildTile);
             case EconomyActionKind.SpawnUnit:
-                c.city.SpawnUnit(c.unit, c.unit.unitData.cost);
-                break;
+                return c.city.SpawnUnit(c.unit, c.unit.unitData.cost);
+            case EconomyActionKind.PlaceNeuron:
+                return controlledPlayer.PlaceNeuron(c.building, c.buildTile);
         }
+        return false;
     }
 }

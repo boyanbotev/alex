@@ -53,12 +53,24 @@ public class Player : MonoBehaviour
 
     public bool CanPlaceNeuron(BuildingData data, Tile tile)
     {
+        if (!CanPlaceNeuronSite(data, tile)) return false;
+        return HasNeuronBuildAnchor(tile);
+    }
+
+    // Shared with route planning, where earlier planned segments provide the anchor.
+    public bool CanPlaceNeuronSite(BuildingData data, Tile tile)
+    {
         if (data == null || !data.isNeuron || !techState.CanBuild(data) || tile == null ||
             tile.city != null || tile.currentBuilding != null || faction == null || faction.availableBuildings == null ||
             System.Array.IndexOf(faction.availableBuildings, data) < 0) return false;
         if (visibleTiles == null || !visibleTiles.IsVisible(tile)) return false;
         var diplomacy = TurnManager.Instance.Diplomacy;
         if (tile.territoryCity != null && diplomacy.IsAtWar(this, tile.territoryCity.owner)) return false;
+        return true;
+    }
+
+    public bool HasNeuronBuildAnchor(Tile tile)
+    {
         for (int dx = -1; dx <= 1; dx++)
         for (int dy = -1; dy <= 1; dy++)
         {

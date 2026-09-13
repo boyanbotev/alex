@@ -36,6 +36,12 @@ public class AIProfile : ScriptableObject
     [Tooltip("Scales how much a building's populationGiven is worth, weighted by how close it gets the city to leveling up.")]
     public float cityGrowthWeight = 12f;
 
+    [Header("Economy - Neurons")]
+    [Tooltip("Connection income divided by remaining route cost is multiplied by this score. Competes with units, buildings and research.")]
+    [Min(0f)] public float neuronConstructionWeight = 24f;
+    [Tooltip("Only start or continue routes whose remaining cost can be earned back within this many income turns.")]
+    [Min(0f)] public float neuronMaxPaybackTurns = 12f;
+
     [Header("Economy - Research")]
     [Tooltip("Flat score every researchable tech gets.")]
     public float researchBaseWeight = 3f;
