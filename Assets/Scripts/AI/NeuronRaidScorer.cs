@@ -66,9 +66,7 @@ public sealed class NeuronRaidScorer
                 }
                 if (!visited.Add(next)) continue;
                 Building road = board.GetBuilding(next);
-                if (road == null || road == removed || !road.IsPlacedNeuron || road.owner == null ||
-                    AtWar(ownerA, road.owner, actor, newEnemy, board) ||
-                    AtWar(ownerB, road.owner, actor, newEnemy, board)) continue;
+                if (road == null || road == removed || !road.IsPlacedNeuron || road.owner == null) continue;
                 queue.Add(next);
             }
         }

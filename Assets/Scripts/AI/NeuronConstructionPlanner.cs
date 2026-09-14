@@ -58,7 +58,6 @@ public sealed class NeuronConstructionPlanner
         distance[source.centerTile] = 0;
         firstBuild[source.centerTile] = null;
         frontier.Add((0, sequence++, source.centerTile));
-        var diplomacy = TurnManager.Instance.Diplomacy;
         int remainingTargets = 0;
         foreach (City target in targets)
             if (target.owner == destinationOwner) remainingTargets++;
@@ -99,13 +98,12 @@ public sealed class NeuronConstructionPlanner
                 bool existing = segment != null;
                 if (existing)
                 {
-                    if (!segment.IsPlacedNeuron || segment.owner == null || diplomacy.IsAtWar(player, segment.owner) ||
-                        diplomacy.IsAtWar(destinationOwner, segment.owner)) continue;
+                    if (!segment.IsPlacedNeuron || segment.owner == null) continue;
                 }
                 else
                 {
                     if (!player.CanPlaceNeuronSite(data, next)) continue;
-                    // Peaceful roads permit transit but cannot anchor our next purchase.
+                    // Other players' roads permit transit but cannot anchor our next purchase.
                     // A planned empty tile will become our own segment before we extend it.
                     Building previous = current.currentBuilding;
                     if (previous != null && previous.owner != player && !player.HasNeuronBuildAnchor(next)) continue;

@@ -46,7 +46,7 @@ public class NeuronNetworkTests : TacticsTestFixture
     }
 
     [Test]
-    public void ThirdPartyMustBeAtPeaceWithBothEndpoints()
+    public void ThirdPartyOwnershipDoesNotBlockConnections()
     {
         var third = Component<Player>();
         turns.players.Add(third);
@@ -55,11 +55,11 @@ public class NeuronNetworkTests : TacticsTestFixture
         var b = City(Tile(2), enemy);
         turns.Diplomacy.MakePeace(player, enemy);
         turns.Diplomacy.MakePeace(player, third);
-        Assert.That(turns.Neurons.AreConnected(a, b), Is.False);
+        Assert.That(turns.Neurons.AreConnected(a, b), Is.True);
         turns.Diplomacy.MakePeace(enemy, third);
         Assert.That(turns.Neurons.AreConnected(a, b), Is.True);
         turns.Diplomacy.DeclareWar(player, third);
-        Assert.That(b.NeuronIncome, Is.Zero);
+        Assert.That(b.NeuronIncome, Is.EqualTo(1));
     }
 
     [Test]

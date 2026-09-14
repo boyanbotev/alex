@@ -117,7 +117,7 @@ public class NeuronConstructionTests : TacticsTestFixture
     }
 
     [Test]
-    public void ThirdPartyRoadMustPermitBothEndpointOwners()
+    public void ThirdPartyRoadAllowsTransitRegardlessOfItsDiplomacy()
     {
         Configure();
         var third = Component<Player>(); turns.players.Add(third);
@@ -126,8 +126,9 @@ public class NeuronConstructionTests : TacticsTestFixture
         Road(Visible(2), third);
         Endpoint(Visible(3), enemy);
         turns.Diplomacy.MakePeace(player, enemy);
+        Assert.That(Plan(), Is.Not.Empty);
         turns.Diplomacy.MakePeace(player, third);
-        Assert.That(Plan(), Is.Empty);
+        Assert.That(Plan(), Is.Not.Empty);
         turns.Diplomacy.MakePeace(enemy, third);
         Assert.That(Plan(), Is.Not.Empty);
     }
