@@ -10,7 +10,7 @@ public class Building : MonoBehaviour
     public int DemolitionRefund => data == null ? 0 : Mathf.FloorToInt(Mathf.Max(0, paidCost) * Mathf.Clamp01(data.demolitionRefundFraction));
     public bool IsPlacedNeuron => this != null && data != null && data.isNeuron && tile != null && tile.currentBuilding == this;
 
-    public bool CanDemolish(Player actor) => IsPlacedNeuron && actor != null && actor == owner &&
+    public bool CanDemolish(Player actor) => IsPlacedNeuron && actor != null && (actor == owner || tile.territoryCity?.owner == actor) &&
         TurnManager.Instance != null && TurnManager.Instance.ActivePlayer == actor &&
         actor.visibleTiles != null && actor.visibleTiles.IsVisible(tile);
 
