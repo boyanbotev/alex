@@ -72,8 +72,6 @@ public sealed class NeuronNetwork
                     if (!visited.Add(next)) continue;
                     Building segment = next.currentBuilding;
                     if (segment == null || segment.data == null || !segment.data.isNeuron || segment.owner == null) continue;
-                    if (turns.Diplomacy.IsAtWar(source.owner, segment.owner) ||
-                        turns.Diplomacy.IsAtWar(destinationOwner, segment.owner)) continue;
                     queue.Add(next);
                 }
             }
