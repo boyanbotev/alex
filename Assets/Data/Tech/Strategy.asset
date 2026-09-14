@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   techName: Strategy
   description: 
-  cost: 5
+  cost: 4
   prerequisites: []

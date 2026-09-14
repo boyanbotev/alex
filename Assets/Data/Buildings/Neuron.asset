@@ -17,9 +17,10 @@ MonoBehaviour:
   description: Connects cities through adjacent neuron segments, including diagonals.
     Each connected neighbouring city grants stars per turn. Extend from your city
     centres or your own segments.
-  cost: 4
-  populationGiven: 0
+  cost: 5
   isNeuron: 1
+  neuronWidth: 0.16
+  neuronHeight: 0.04
   constructionDisabled: 0
   demolitionRefundFraction: 0.5
   requiredTech: {fileID: 11400000, guid: 19d9dfc725a3ff945aad5084a33f41a3, type: 2}
