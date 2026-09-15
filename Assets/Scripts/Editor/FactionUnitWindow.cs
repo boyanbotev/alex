@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -73,19 +72,25 @@ public sealed class FactionUnitWindow : EditorWindow
             var next = (Faction)EditorGUILayout.ObjectField("Faction", faction, typeof(Faction), false);
             if (next != faction) { faction = next; selected = null; }
             if (GUILayout.Button("New", GUILayout.Width(55)))
-            {
-                var created = CreateAsset<Faction>("New Faction", "Assets/Data/Factions");
-                if (created != null) { faction = created; selected = null; RefreshAssets(); }
-            }
+                FactionNameWindow.Open(null, false, SelectFaction);
             using (new EditorGUI.DisabledScope(faction == null))
-                if (GUILayout.Button("Duplicate", GUILayout.Width(80))) DuplicateFaction();
+            {
+                if (GUILayout.Button("Duplicate", GUILayout.Width(80))) FactionNameWindow.Open(faction, false, SelectFaction);
+                if (GUILayout.Button("Rename", GUILayout.Width(70))) FactionNameWindow.Open(faction, true, SelectFaction);
+            }
         }
         using (new EditorGUILayout.HorizontalScope())
             foreach (var item in factions)
                 if (GUILayout.Button(item.name)) { faction = item; selected = null; }
         if (faction == null) return;
 
-        DrawProperties(faction, "cityPrefab", "startingUnit", "availableBuildings", "availableTech", "startingUnlockedTech");
+        var cityTemplate = (GameObject)EditorGUILayout.ObjectField("City prefab", faction.cityPrefab, typeof(GameObject), false);
+        if (cityTemplate != faction.cityPrefab && cityTemplate != null)
+        {
+            try { FactionAssetUtility.SetCity(faction, cityTemplate); }
+            catch (Exception error) { EditorUtility.DisplayDialog("Could not assign city", error.Message, "OK"); }
+        }
+        DrawProperties(faction, "startingUnit", "availableBuildings", "availableTech", "startingUnlockedTech");
         EditorGUILayout.HelpBox("Starting techs are free grants. Only listed techs are unlocked, regardless of prerequisites.", MessageType.Info);
         EditorGUILayout.LabelField("Roster", EditorStyles.boldLabel);
         foreach (var entry in faction.availableUnits ?? Array.Empty<FactionUnit>())
@@ -117,12 +122,8 @@ public sealed class FactionUnitWindow : EditorWindow
         using (new EditorGUI.DisabledScope(addData == null || addPrefab == null || addPrefab.GetComponent<Unit>() == null))
             if (GUILayout.Button("Add unit to faction"))
             {
-                selected = CreateEntry(faction, addData, addPrefab);
-                Undo.RecordObject(faction, "Add roster unit");
-                faction.availableUnits = (faction.availableUnits ?? Array.Empty<FactionUnit>()).Append(selected).ToArray();
-                if (faction.startingUnit == null) faction.startingUnit = selected;
-                EditorUtility.SetDirty(faction);
-                RefreshAssets();
+                try { selected = FactionAssetUtility.AddUnit(faction, addData, addPrefab); RefreshAssets(); }
+                catch (Exception error) { EditorUtility.DisplayDialog("Could not add unit", error.Message, "OK"); }
             }
         if (selected != null && (faction.availableUnits ?? Array.Empty<FactionUnit>()).Contains(selected))
         {
@@ -133,35 +134,9 @@ public sealed class FactionUnitWindow : EditorWindow
             {
                 EditorGUILayout.HelpBox("This entry belongs to another faction. Add it using stats and prefab to create an independent entry.", MessageType.Warning);
             }
-            else if (selected.unitData != null)
-            {
-                if (GUILayout.Button("Make stats unique"))
-                {
-                    var copy = Instantiate(selected.unitData);
-                    copy.counterType = selected.unitData.CounterType;
-                    AssetDatabase.CreateAsset(copy, AssetDatabase.GenerateUniqueAssetPath(Folder(faction) + "/" + selected.name + " Stats.asset"));
-                    Undo.RegisterCreatedObjectUndo(copy, "Create unique stats");
-                    Undo.RecordObject(selected, "Use unique stats");
-                    selected.unitData = copy;
-                    EditorUtility.SetDirty(selected);
-                    RefreshAssets();
-                }
-            }
             DrawStats(selected.unitData);
             using (new EditorGUI.DisabledScope(selected.prefab == null))
             {
-                EditorGUILayout.HelpBox("Prefab visuals may be shared. Make a prefab copy before changing only this faction's appearance.", MessageType.Info);
-                if (GUILayout.Button("Make prefab unique"))
-                {
-                    string source = AssetDatabase.GetAssetPath(selected.prefab);
-                    string path = AssetDatabase.GenerateUniqueAssetPath(Folder(faction) + "/" + selected.name + ".prefab");
-                    if (AssetDatabase.CopyAsset(source, path))
-                    {
-                        Undo.RecordObject(selected, "Use unique prefab");
-                        selected.prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-                        EditorUtility.SetDirty(selected);
-                    }
-                }
                 if (GUILayout.Button("Open prefab to edit visuals")) AssetDatabase.OpenAsset(selected.prefab);
             }
         }
@@ -204,7 +179,7 @@ public sealed class FactionUnitWindow : EditorWindow
         var users = entries.Where(e => e.unitData == data).Select(e => e.name).ToArray();
         EditorGUILayout.LabelField("Stats: " + data.name, EditorStyles.boldLabel);
         EditorGUILayout.HelpBox("Used by: " + (users.Length == 0 ? "no faction units" : string.Join(", ", users)), MessageType.Info);
-        DrawProperties(data, "cost", "maxHealth", "attackPower", "defensePower", "moveRange", "attackRange", "skills", "counters", "counterType", "requiredTech");
+        DrawProperties(data, "cost", "maxHealth", "attackPower", "defensePower", "moveRange", "attackRange", "skills", "counters", "requiredTech");
     }
 
     private static void DrawProperties(UnityEngine.Object asset, params string[] names)
@@ -238,8 +213,6 @@ public sealed class FactionUnitWindow : EditorWindow
     }
 
     private static void Warn(string message) => EditorGUILayout.HelpBox(message, MessageType.Warning);
-    private static string Folder(UnityEngine.Object asset) => Path.GetDirectoryName(AssetDatabase.GetAssetPath(asset)).Replace('\\', '/');
-
     private static T CreateAsset<T>(string name, string folder) where T : ScriptableObject
     {
         string path = EditorUtility.SaveFilePanelInProject("Create " + typeof(T).Name, name, "asset", "Choose asset location", folder);
@@ -250,37 +223,11 @@ public sealed class FactionUnitWindow : EditorWindow
         return asset;
     }
 
-    private static FactionUnit CreateEntry(Faction target, UnitData data, GameObject prefab)
+    private void SelectFaction(Faction value)
     {
-        var entry = CreateInstance<FactionUnit>();
-        entry.faction = target;
-        entry.unitData = data;
-        entry.prefab = prefab;
-        AssetDatabase.CreateAsset(entry, AssetDatabase.GenerateUniqueAssetPath(Folder(target) + "/" + target.name + " " + (data != null ? data.name : "Unit") + ".asset"));
-        Undo.RegisterCreatedObjectUndo(entry, "Create faction unit");
-        return entry;
-    }
-
-    private void DuplicateFaction()
-    {
-        var source = faction;
-        var copy = CreateAsset<Faction>(source.name + " Copy", Folder(source));
-        if (copy == null) return;
-        string name = copy.name;
-        EditorUtility.CopySerialized(source, copy);
-        copy.name = name;
-        var mapping = new System.Collections.Generic.Dictionary<FactionUnit, FactionUnit>();
-        foreach (var entry in (source.availableUnits ?? Array.Empty<FactionUnit>()).Append(source.startingUnit))
-        {
-            if (entry == null || mapping.ContainsKey(entry)) continue;
-            mapping[entry] = CreateEntry(copy, entry.unitData, entry.prefab);
-        }
-        copy.availableUnits = (source.availableUnits ?? Array.Empty<FactionUnit>()).Select(e => e != null ? mapping[e] : null).ToArray();
-        copy.startingUnit = source.startingUnit != null ? mapping[source.startingUnit] : null;
-        copy.units = Array.Empty<FactionUnit>();
-        EditorUtility.SetDirty(copy);
-        faction = copy;
+        faction = value;
         selected = null;
         RefreshAssets();
+        Repaint();
     }
 }

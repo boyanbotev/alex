@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ebf700537d6ddf478327d164ac50b81, type: 3}
+  m_Name: Love Defender
+  m_EditorClassIdentifier: 
+  unitData: {fileID: 11400000, guid: 1b4d97fd2d7b5314fadb11f1a30f2101, type: 2}
+  faction: {fileID: 11400000, guid: 5999dffb9d250354b9adb70eb82d7bf2, type: 2}
+  prefab: {fileID: 2117174584716598732, guid: ebcd596ba430a334c808fe077aea98ef, type: 3}

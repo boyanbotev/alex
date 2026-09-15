@@ -40,6 +40,12 @@ MonoBehaviour:
     startingStars: 5
     startingCityNames:
     - cool
+  - faction: {fileID: 11400000, guid: 5999dffb9d250354b9adb70eb82d7bf2, type: 2}
+    color: {r: 1, g: 0.60062885, b: 0.91227496, a: 1}
+    isAI: 1
+    startingStars: 5
+    startingCityNames:
+    - Sadie
   neutralCityNames:
   - guitar
   - girl
@@ -47,5 +53,4 @@ MonoBehaviour:
   - procrastinate
   - video
   - addicting
-  - Sadie
   blockDiagonalsBetweenEnemies: 1
