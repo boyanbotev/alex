@@ -355,7 +355,7 @@ public class UIManager : MonoBehaviour
     private void RefreshCityCapacity()
     {
         if (displayedCity == null || !spawnPanel.gameObject.activeSelf) return;
-        cityNameAndLevelText.text = $"Units {displayedCity.units.Count}/{displayedCity.UnitCapacity}";
+        cityNameAndLevelText.text = $"{displayedCity.cityName} · Units {displayedCity.units.Count}/{displayedCity.UnitCapacity}";
         cantSpawnText.gameObject.SetActive(displayedCity.units.Count >= displayedCity.UnitCapacity);
     }
 
