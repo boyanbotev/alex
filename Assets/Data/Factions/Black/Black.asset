@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cityPrefab: {fileID: 4072920081775810972, guid: 2cd26fbb3ba27814fa9fa01a31387dbf, type: 3}
   units: []
-  startingUnit: {fileID: 11400000, guid: 1a3ce859ab36bf94788af3783c902bd1, type: 2}
+  startingUnit: {fileID: 11400000, guid: f0478dc086a5a9f4f8f536e9140d64b4, type: 2}
   availableUnits:
   - {fileID: 11400000, guid: 1a3ce859ab36bf94788af3783c902bd1, type: 2}
   - {fileID: 11400000, guid: ee548fa2e3f59134ba5c3fe293a1d965, type: 2}
@@ -33,3 +33,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0f80d8f5e80b385438c0c41566678087, type: 2}
   - {fileID: 11400000, guid: 99df853a656905b4e8ce81046a7a7ef2, type: 2}
   - {fileID: 11400000, guid: 4f6243906ed07f241a08269cdab5f87f, type: 2}
+  startingUnlockedTech:
+  - {fileID: 11400000, guid: 99df853a656905b4e8ce81046a7a7ef2, type: 2}

@@ -189,7 +189,7 @@ public class EconomyAI : MonoBehaviour
         var counters = unit.unitData.counters;
         for (int i = 0; i < counters.Length; i++)
         {
-            if (counters[i].unit == enemy.data)
+            if (counters[i].unit != null && counters[i].unit.CounterType == enemy.data.CounterType)
             {
                 return counters[i].strength * profile.counterWeight;
             }

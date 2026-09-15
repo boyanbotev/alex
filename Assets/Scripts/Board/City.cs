@@ -72,6 +72,8 @@ public class City : MonoBehaviour
 
     public bool SpawnUnit(FactionUnit factionUnit, int cost)
     {
+        if (factionUnit == null || factionUnit.unitData == null || factionUnit.prefab == null ||
+            factionUnit.prefab.GetComponent<Unit>() == null) return false;
         if (centerTile.currentUnit != null)
         {
             return false;
@@ -95,6 +97,7 @@ public class City : MonoBehaviour
 
         GameObject unitObj = Instantiate(factionUnit.prefab, centerTile.transform.position, Quaternion.identity);
         Unit unit = unitObj.GetComponent<Unit>();
+        unit.data = factionUnit.unitData;
 
         unit.owner = owner;
         unit.currentTile = centerTile;

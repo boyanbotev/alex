@@ -33,3 +33,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0f80d8f5e80b385438c0c41566678087, type: 2}
   - {fileID: 11400000, guid: 99df853a656905b4e8ce81046a7a7ef2, type: 2}
   - {fileID: 11400000, guid: 4f6243906ed07f241a08269cdab5f87f, type: 2}
+  startingUnlockedTech:
+  - {fileID: 11400000, guid: 0f80d8f5e80b385438c0c41566678087, type: 2}

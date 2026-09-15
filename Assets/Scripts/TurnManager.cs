@@ -77,6 +77,7 @@ public class TurnManager : MonoBehaviour
             Player player = new GameObject(entry.faction.name).AddComponent<Player>();
             player.transform.SetParent(transform, false);
             player.faction = entry.faction;
+            player.techState.InitializeStartingTech(entry.faction.startingUnlockedTech);
             player.factionName = entry.faction.name;
             player.factionColor = entry.color;
             player.isAI = entry.isAI;

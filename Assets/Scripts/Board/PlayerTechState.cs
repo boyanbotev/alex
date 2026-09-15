@@ -6,6 +6,14 @@ public class PlayerTechState
 {
     private readonly HashSet<TechData> unlockedTechs = new HashSet<TechData>();
 
+    public void InitializeStartingTech(IEnumerable<TechData> techs)
+    {
+        unlockedTechs.Clear();
+        if (techs == null) return;
+        foreach (TechData tech in techs)
+            if (tech != null) unlockedTechs.Add(tech);
+    }
+
     public bool IsUnlocked(TechData tech)
     {
         return tech != null && unlockedTechs.Contains(tech);

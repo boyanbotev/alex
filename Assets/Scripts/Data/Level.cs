@@ -45,7 +45,7 @@ public class Level : ScriptableObject {
         int humanCount = 0;
         foreach (var entry in factions) {
             if (entry == null || entry.faction == null || entry.faction.cityPrefab == null ||
-                entry.faction.startingUnit == null || entry.faction.startingUnit.prefab == null ||
+                entry.faction.startingUnit == null || entry.faction.startingUnit.unitData == null || entry.faction.startingUnit.prefab == null ||
                 entry.faction.startingUnit.prefab.GetComponent<Unit>() == null ||
                 entry.startingStars < 0 || entry.startingCityNames == null || entry.startingCityNames.Length == 0)
                 throw new InvalidOperationException($"Level '{name}': each faction needs its prefabs, starting cities and non-negative stars.");

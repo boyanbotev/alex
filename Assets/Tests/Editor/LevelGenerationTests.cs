@@ -113,6 +113,7 @@ public class LevelGenerationTests : TacticsTestFixture
             entry.faction = Asset<Faction>();
             entry.faction.cityPrefab = Component<City>().gameObject;
             entry.faction.startingUnit = Asset<FactionUnit>();
+            entry.faction.startingUnit.unitData = Asset<UnitData>();
             entry.faction.startingUnit.prefab = Component<Unit>().gameObject;
         }
         level.factions[0].isAI = false;

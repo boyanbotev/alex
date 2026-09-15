@@ -67,6 +67,7 @@ public class WorldPopulationManager : MonoBehaviour
     {
         GameObject unitObj = Instantiate(player.faction.startingUnit.prefab, capital.centerTile.transform.position, Quaternion.identity);
         Unit unit = unitObj.GetComponent<Unit>();
+        unit.data = player.faction.startingUnit.unitData;
         unit.owner = player;
         unit.currentTile = capital.centerTile;
         capital.centerTile.currentUnit = unit;
