@@ -7,13 +7,8 @@ public class GridGenerator : MonoBehaviour
     public static GridGenerator Instance;
     private static readonly ProfilerMarker creationMarker = new ProfilerMarker("WorldGeneration.TerrainTile");
 
-    [Header("Grid Size")]
-    public BoardSettings boardSettings;
-    public float tileSize = 1.0f;
-
-    [Header("Grid Type")]
-    [Tooltip("Check this for 3D low-poly models with rotated camera. Uncheck for 2D isometric sprites.")]
-    public bool is3DIsometric = true;
+    [UnityEngine.Serialization.FormerlySerializedAs("boardSettings")]
+    public Level level;
 
     [Header("Tile Prefabs")]
     public GameObject fieldTilePrefab;
@@ -21,14 +16,12 @@ public class GridGenerator : MonoBehaviour
     public GameObject mountainTilePrefab;
     public GameObject waterTilePrefab;
 
-    [Header("Generation Settings")]
-    public float noiseScale = 0.15f;
-    public float seed = 0f;
+    private float terrainOffset;
+    public System.Random GenerationRandom { get; private set; }
 
     private void Awake()
     {
         Instance = this;
-        seed = Random.Range(0f, 100f);
     }
 
     [Header("Loading")]
@@ -37,6 +30,11 @@ public class GridGenerator : MonoBehaviour
 
     private IEnumerator Start()
     {
+        if (level == null) throw new System.InvalidOperationException("Assign a Level to GridGenerator.");
+        level.Validate();
+        TurnManager.Instance.InitializePlayers(level);
+        GenerationRandom = new System.Random(level.randomizeSeed ? Random.Range(0, int.MaxValue) : level.seed);
+        terrainOffset = (float)GenerationRandom.NextDouble() * 100f;
         WorldLoadingOverlay.Show("Creating terrain...");
         yield return null;
         yield return null;
@@ -53,9 +51,9 @@ public class GridGenerator : MonoBehaviour
 
     public IEnumerator GenerateGrid(GenerationBudget budget)
     {
-        for (int x = 0; x < boardSettings.width; x++)
+        for (int x = 0; x < level.width; x++)
         {
-            for (int y = 0; y < boardSettings.height; y++)
+            for (int y = 0; y < level.height; y++)
             {
                 if (budget.ShouldYield())
                 {
@@ -80,7 +78,7 @@ public class GridGenerator : MonoBehaviour
                 tileScript.gridPosition = gridPos;
 
                 // Handle 2D Isometric Sprite Sorting Order
-                if (!is3DIsometric)
+                if (!level.is3DIsometric)
                 {
                     SpriteRenderer sr = tileObj.GetComponent<SpriteRenderer>();
                     if (sr != null)
@@ -99,16 +97,16 @@ public class GridGenerator : MonoBehaviour
     // Convert Grid Index (X, Y) into Isometric World Coordinates
     public Vector3 GridToWorldPosition(int x, int y)
     {
-        if (is3DIsometric)
+        if (level.is3DIsometric)
         {
             // Flat 3D Plane — standard position. Isometric look comes from the Orthographic Camera angle!
-            return new Vector3(x * tileSize, 0, y * tileSize);
+            return new Vector3(x * level.tileSize, 0, y * level.tileSize);
         }
         else
         {
             // 2D Diamond Isometric Transformation
-            float halfWidth = tileSize / 2f;
-            float halfHeight = tileSize / 4f; // Standard 2:1 isometric ratio
+            float halfWidth = level.tileSize / 2f;
+            float halfHeight = level.tileSize / 4f; // Standard 2:1 isometric ratio
 
             float worldX = (x - y) * halfWidth;
             float worldY = (x + y) * halfHeight;
@@ -120,7 +118,7 @@ public class GridGenerator : MonoBehaviour
     private GameObject GetTerrainPrefabForPosition(int x, int y)
     {
         // Generate values using noise
-        float noiseValue = Mathf.PerlinNoise((x + seed) * noiseScale, (y + seed) * noiseScale);
+        float noiseValue = Mathf.PerlinNoise((x + terrainOffset) * level.noiseScale, (y + terrainOffset) * level.noiseScale);
 
         if (noiseValue < 0.35f) return waterTilePrefab;
         if (noiseValue < 0.65f) return fieldTilePrefab;

@@ -15,11 +15,6 @@ public class TacticsAI : MonoBehaviour
     private readonly System.Diagnostics.Stopwatch _frameBudgetTimer = new System.Diagnostics.Stopwatch();
     private static readonly WaitForSeconds ActionAnimationWait = new WaitForSeconds(0.3f);
 
-    private void Start()
-    {
-        humanPlayer = TurnManager.Instance.players.Find(p => !p.isAI);
-    }
-
     public IEnumerator PlayTurn(Player player, AIProfile profile)
     {
         Configure(player, profile);
@@ -78,6 +73,7 @@ public class TacticsAI : MonoBehaviour
     {
         this.profile = profile;
         controlledPlayer = player;
+        humanPlayer = TurnManager.Instance.players.Find(p => !p.isAI);
         _scorer.Configure(profile, TurnManager.Instance.players, WorldPopulationManager.Instance.allCities);
         _candidates.Configure(GridManager.Instance, _scorer);
     }

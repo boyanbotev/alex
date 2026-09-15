@@ -52,7 +52,7 @@ public class GridManager : MonoBehaviour
         moveVisited.Clear();
         if (start == null || range <= 0) return;
 
-        BoardSettings settings = GridGenerator.Instance != null ? GridGenerator.Instance.boardSettings : null;
+        Level settings = GridGenerator.Instance != null ? GridGenerator.Instance.level : null;
         bool blockCorners = settings == null || settings.blockDiagonalsBetweenEnemies;
         moveQueue.Add((start, 0));
         moveVisited.Add(start);

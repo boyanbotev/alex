@@ -5,15 +5,15 @@ public class MovementTests : TacticsTestFixture
 {
     private readonly List<Tile> reachable = new();
     private GridGenerator previousGenerator;
-    private BoardSettings settings;
+    private Level settings;
 
     [SetUp]
     public void SetUpMovement()
     {
         previousGenerator = GridGenerator.Instance;
         var gridGenerator = Component<GridGenerator>();
-        settings = Asset<BoardSettings>();
-        gridGenerator.boardSettings = settings;
+        settings = Asset<Level>();
+        gridGenerator.level = settings;
         GridGenerator.Instance = gridGenerator;
     }
 

@@ -145,12 +145,12 @@ public class CameraController : MonoBehaviour
     private Vector3 ClampCameraPosition(Vector3 position)
     {
         float gridWidth =
-            gridGenerator.boardSettings.width *
-            gridGenerator.tileSize;
+            gridGenerator.level.width *
+            gridGenerator.level.tileSize;
 
         float gridHeight =
-            gridGenerator.boardSettings.height *
-            gridGenerator.tileSize;
+            gridGenerator.level.height *
+            gridGenerator.level.tileSize;
 
         position.x = Mathf.Clamp(position.x, -gridWidth, 0);
         position.z = Mathf.Clamp(position.z, -gridHeight, 0);

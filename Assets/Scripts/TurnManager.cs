@@ -7,7 +7,7 @@ public class TurnManager : MonoBehaviour
 {
     public static TurnManager Instance;
 
-    public List<Player> players = new List<Player>();
+    [System.NonSerialized] public List<Player> players = new List<Player>();
     public int activePlayerIndex = 0;
     public int turnNumber = 1;
 
@@ -66,6 +66,24 @@ public class TurnManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+    }
+
+    public void InitializePlayers(Level level)
+    {
+        if (players.Count != 0 || diplomacy != null)
+            throw new System.InvalidOperationException("The match roster is already initialized.");
+        foreach (LevelFaction entry in level.factions)
+        {
+            Player player = new GameObject(entry.faction.name).AddComponent<Player>();
+            player.transform.SetParent(transform, false);
+            player.faction = entry.faction;
+            player.factionName = entry.faction.name;
+            player.factionColor = entry.color;
+            player.isAI = entry.isAI;
+            player.stars = entry.startingStars;
+            players.Add(player);
+        }
+        activePlayerIndex = 0;
     }
 
     private IEnumerator Start()

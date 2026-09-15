@@ -228,7 +228,6 @@ public class City : MonoBehaviour
 
         owner = claimingPlayer;
         claimingPlayer.cities.Add(this);
-        cityName = $"{claimingPlayer.factionName} Town";
 
         SetFaction(claimingPlayer.faction);
 
