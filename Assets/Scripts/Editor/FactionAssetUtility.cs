@@ -114,6 +114,10 @@ public static class FactionAssetUtility
             if (source != null) EditorUtility.CopySerialized(source, faction);
             faction.name = name;
             AssetDatabase.CreateAsset(faction, DataFolder(name) + "/" + name + ".asset");
+            faction.aiProfile = source != null && source.aiProfile != null
+                ? UnityEngine.Object.Instantiate(source.aiProfile) : ScriptableObject.CreateInstance<AIProfile>();
+            faction.aiProfile.name = name + " AI Profile";
+            AssetDatabase.CreateAsset(faction.aiProfile, DataFolder(name) + "/" + faction.aiProfile.name + ".asset");
             if (source != null)
             {
                 var map = new Dictionary<FactionUnit, FactionUnit>();

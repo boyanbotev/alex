@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5d7e3f97ca0f994d9a5eebdf84985e2, type: 3}
   m_Name: Rebellion
   m_EditorClassIdentifier: 
+  aiProfile: {fileID: 11400000, guid: 4ff0bfe5f37c44389e1291d7437cbdf7, type: 2}
   cityPrefab: {fileID: 4072920081775810972, guid: 29bfe438761d31f44858b3d1818e664c, type: 3}
   units: []
   startingUnit: {fileID: 11400000, guid: ef4ba16ffe57b3344b02414d05b69843, type: 2}

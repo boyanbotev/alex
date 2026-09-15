@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5d7e3f97ca0f994d9a5eebdf84985e2, type: 3}
   m_Name: Love
   m_EditorClassIdentifier: 
+  aiProfile: {fileID: 11400000, guid: 911958b5f94642a2acdd554289b00d66, type: 2}
   cityPrefab: {fileID: 4072920081775810972, guid: ff0273574fa17fb4cb4c207bc1c71808, type: 3}
   units: []
   startingUnit: {fileID: 11400000, guid: 71bbdc81fff981a448b87601f7ead467, type: 2}

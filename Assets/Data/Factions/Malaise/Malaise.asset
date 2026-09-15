@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5d7e3f97ca0f994d9a5eebdf84985e2, type: 3}
   m_Name: Malaise
   m_EditorClassIdentifier: 
+  aiProfile: {fileID: 11400000, guid: 0b65dc4d64614be8b0758850951410e9, type: 2}
   cityPrefab: {fileID: 4072920081775810972, guid: 2cd26fbb3ba27814fa9fa01a31387dbf, type: 3}
   units: []
   startingUnit: {fileID: 11400000, guid: f0478dc086a5a9f4f8f536e9140d64b4, type: 2}
