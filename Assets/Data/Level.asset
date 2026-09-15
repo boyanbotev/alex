@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 757080d81166d2b4e940f78d23b2f558, type: 3}
   m_Name: Level
   m_EditorClassIdentifier: 
-  width: 15
-  height: 15
+  width: 14
+  height: 14
   tileSize: 1
   is3DIsometric: 1
   noiseScale: 0.15
@@ -27,27 +27,25 @@ MonoBehaviour:
     isAI: 0
     startingStars: 5
     startingCityNames:
-    - White Capital
+    - homework
   - faction: {fileID: 11400000, guid: 3c65617266f15f74198d98636dfaa38f, type: 2}
     color: {r: 0, g: 0, b: 0, a: 1}
     isAI: 1
     startingStars: 5
     startingCityNames:
-    - Black Capital
+    - loser
   - faction: {fileID: 11400000, guid: f865075d944943a45a3acc769ddf00e7, type: 2}
     color: {r: 1, g: 0, b: 0, a: 1}
     isAI: 1
     startingStars: 5
     startingCityNames:
-    - Red Capital
+    - cool
   neutralCityNames:
-  - Village 1
-  - Village 2
-  - Village 3
-  - Village 4
-  - Village 5
-  - Village 6
-  - Village 7
-  - Village 8
-  - Village 9
+  - guitar
+  - girl
+  - friend
+  - procrastinate
+  - video
+  - addicting
+  - Sadie
   blockDiagonalsBetweenEnemies: 1

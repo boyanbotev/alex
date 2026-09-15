@@ -26,7 +26,7 @@ MonoBehaviour:
   LookaheadFrameBudgetMs: 2
   maxShortlistSize: 5
   expansionWeight: 6
-  meleeVulnerabilityWeight: 0.3
+  meleeVulnerabilityWeight: 0.15
   counterWeight: 8
   buildingBaseWeight: 3
   neuronConstructionWeight: 24
