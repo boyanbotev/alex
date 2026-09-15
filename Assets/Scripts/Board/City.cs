@@ -35,7 +35,7 @@ public class City : MonoBehaviour
     public int UnitCapacity => TotalIncome;
     public void RefreshIncomeLabel()
     {
-        if (starsUI != null) starsUI.Set(TotalIncome);
+        if (starsUI != null) starsUI.Set(cityName, TotalIncome);
     }
 
     private void Start()
