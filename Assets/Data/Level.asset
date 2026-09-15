@@ -34,12 +34,15 @@ MonoBehaviour:
     startingStars: 5
     startingCityNames:
     - loser
+    - procrastinate
+    - addicting
   - faction: {fileID: 11400000, guid: f865075d944943a45a3acc769ddf00e7, type: 2}
     color: {r: 1, g: 0, b: 0, a: 1}
     isAI: 1
     startingStars: 5
     startingCityNames:
     - cool
+    - guitar
   - faction: {fileID: 11400000, guid: 5999dffb9d250354b9adb70eb82d7bf2, type: 2}
     color: {r: 1, g: 0.60062885, b: 0.91227496, a: 1}
     isAI: 1
@@ -47,10 +50,7 @@ MonoBehaviour:
     startingCityNames:
     - Sadie
   neutralCityNames:
-  - guitar
   - girl
   - friend
-  - procrastinate
   - video
-  - addicting
   blockDiagonalsBetweenEnemies: 1
