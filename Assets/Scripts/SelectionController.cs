@@ -9,12 +9,24 @@ public class SelectionController : MonoBehaviour
     private List<Tile> highlightedTiles = new List<Tile>();
     private readonly List<Tile> moveTiles = new(64);
     private static readonly System.Func<Tile, Unit> GetLiveOccupant = tile => tile.currentUnit;
-    private Vector3 mouseDownPosition;
+    [Header("Combat Preview")]
+    [SerializeField, Min(0f)] private float previewHoldSeconds = 0.3f;
+    [SerializeField] private Texture2D previewSkull;
+    private Vector3 lastPointerPosition;
+    private float pointerDistance;
+    private float pressTime;
+    private bool trackingPress;
+    private bool previewShown;
+    private bool pressedOnEnemy;
+    private Unit pressedEnemy;
+    private CombatPreviewUI combatPreview;
+    private CameraController cameraController;
     private const float DragThreshold = 10f;
     private DiplomacyState diplomacy;
 
     private void OnDisable()
     {
+        CancelPress();
         if (diplomacy != null) diplomacy.RelationChanged -= OnRelationChanged;
         diplomacy = null;
     }
@@ -26,7 +38,11 @@ public class SelectionController : MonoBehaviour
 
     private void Update()
     {
-        if (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady) return;
+        if (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady)
+        {
+            CancelPress();
+            return;
+        }
         if (diplomacy == null)
         {
             diplomacy = TurnManager.Instance.Diplomacy;
@@ -34,33 +50,99 @@ public class SelectionController : MonoBehaviour
         }
         if (TurnManager.Instance.ActivePlayer.isAI)
         {
+            CancelPress();
             return;
         }
 
         if (Input.GetMouseButtonDown(0))
         {
+            CancelPress();
             if (UIRaycastUtility.IsPointerOverBlockingUI(Input.mousePosition))
             {
                 return;
             }
 
-            mouseDownPosition = Input.mousePosition;
+            trackingPress = true;
+            lastPointerPosition = Input.mousePosition;
+            pressTime = Time.unscaledTime;
+            if (cameraController == null && Camera.main != null)
+                cameraController = Camera.main.GetComponent<CameraController>();
+            Tile tile = GetClickedTile();
+            if (tile != null && CanPreview(tile.currentUnit))
+            {
+                pressedEnemy = tile.currentUnit;
+                pressedOnEnemy = true;
+            }
+        }
+
+        if (!trackingPress) return;
+        pointerDistance += Vector3.Distance(lastPointerPosition, Input.mousePosition);
+        lastPointerPosition = Input.mousePosition;
+        float threshold = cameraController != null ? cameraController.DragThreshold : DragThreshold;
+        if (pointerDistance > threshold || UIRaycastUtility.IsPointerOverBlockingUI(Input.mousePosition))
+        {
+            CancelPress();
+            return;
+        }
+        if (pressedOnEnemy)
+        {
+            if (!CanPreview(pressedEnemy) || GetClickedTile() != pressedEnemy.currentTile)
+            {
+                CancelPress();
+                return;
+            }
+            if (!previewShown && Time.unscaledTime - pressTime >= previewHoldSeconds)
+            {
+                previewShown = true;
+                if (combatPreview == null)
+                    combatPreview = new GameObject("Combat Preview").AddComponent<CombatPreviewUI>();
+                combatPreview.Show(selectedUnit, pressedEnemy, previewSkull);
+            }
+        }
+        else if (previewShown)
+        {
+            CancelPress();
+            return;
         }
 
         if (Input.GetMouseButtonUp(0))
         {
-            if (UIRaycastUtility.IsPointerOverBlockingUI(Input.mousePosition))
-            {
-                return;
-            }
-
-            float distance = Vector3.Distance(mouseDownPosition, Input.mousePosition);
-
-            if (distance < DragThreshold)
-            {
-                HandleClick();
-            }
+            bool click = !previewShown;
+            CancelPress();
+            if (click) HandleClick();
         }
+        else if (!Input.GetMouseButton(0)) CancelPress();
+    }
+
+    private bool CanPreview(Unit target)
+    {
+        return selectedUnit != null && selectedUnit.isAlive && selectedUnit.isActive &&
+            !selectedUnit.hasAttacked && selectedUnit.owner == TurnManager.Instance.ActivePlayer &&
+            target != null && target.isAlive && highlightedTiles.Contains(target.currentTile) &&
+            selectedUnit.owner.visibleTiles.IsVisible(target.currentTile) &&
+            InteractionRules.CanAttack(selectedUnit.owner, target.owner) &&
+            Utils.IsWithinDistance(selectedUnit.currentTile.gridPosition, target.currentTile.gridPosition,
+                selectedUnit.data.attackRange);
+    }
+
+    private void CancelPress()
+    {
+        trackingPress = false;
+        previewShown = false;
+        pressedEnemy = null;
+        pressedOnEnemy = false;
+        pointerDistance = 0f;
+        if (combatPreview != null) combatPreview.Hide();
+    }
+
+    private void OnApplicationFocus(bool focused)
+    {
+        if (!focused) CancelPress();
+    }
+
+    private void OnDestroy()
+    {
+        if (combatPreview != null) Destroy(combatPreview.gameObject);
     }
 
     private void HandleClick()
@@ -284,6 +366,7 @@ public class SelectionController : MonoBehaviour
 
     private void DeselectAll()
     {
+        CancelPress();
         selectedUnit = null;
         highlightedTiles.Clear();
         GridManager.Instance.ClearAllHighlights();

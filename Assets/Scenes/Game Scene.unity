@@ -5502,6 +5502,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackColor: {r: 1, g: 0, b: 0, a: 0.65882355}
   moveColor: {r: 0.43710685, g: 0.97870123, b: 1, a: 0.6117647}
+  previewHoldSeconds: 0.3
+  previewSkull: {fileID: 2800000, guid: 867b9a0a10ea6e94d9742aecc2e2df67, type: 3}
 --- !u!4 &1779761938
 Transform:
   m_ObjectHideFlags: 0

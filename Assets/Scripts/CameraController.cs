@@ -22,6 +22,7 @@ public class CameraController : MonoBehaviour
     private float totalDragDistance;
     private Vector3 targetPosition;
     [SerializeField] private float dragThreshold = 5f;
+    public float DragThreshold => dragThreshold;
     private Vector2 lastTouchPosition;
     Plane groundPlane;
     private int lastScreenHeight;

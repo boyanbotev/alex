@@ -62,13 +62,13 @@ public class Unit : MonoBehaviour
         if (hasAttacked || !isActive || defender == null || !defender.isAlive
             || !InteractionRules.CanAttack(owner, defender.owner)) return;
 
-        (int, int) damages = CalculateDamage(this, defender);
+        (int, int) damages = PredictAttackDamage(defender);
         int attackDamage = damages.Item1;
         int retaliationDamage = damages.Item2;
 
         defender.TakeDamage(attackDamage);
 
-        if (defender.currentHealth > 0 && Utils.IsWithinDistance(defender.currentTile.gridPosition, currentTile.gridPosition, defender.data.attackRange))
+        if (retaliationDamage > 0)
         {
             TakeDamage(retaliationDamage);
         }
@@ -128,6 +128,15 @@ public class Unit : MonoBehaviour
             attacker.data.attackPower, attacker.currentHealth, attacker.data.maxHealth,
             defender.data.defensePower, defender.currentHealth, defender.data.maxHealth
         );
+    }
+
+    public (int damage, int retaliation) PredictAttackDamage(Unit defender)
+    {
+        var (damage, retaliation) = CalculateDamage(this, defender);
+        if (damage >= defender.currentHealth || !Utils.IsWithinDistance(
+            defender.currentTile.gridPosition, currentTile.gridPosition, defender.data.attackRange))
+            retaliation = 0;
+        return (damage, retaliation);
     }
 
     private void Die()
