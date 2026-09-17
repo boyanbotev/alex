@@ -117,11 +117,9 @@ public class GridGenerator : MonoBehaviour
 
     private GameObject GetTerrainPrefabForPosition(int x, int y)
     {
-        // Generate values using noise
         float noiseValue = Mathf.PerlinNoise((x + terrainOffset) * level.noiseScale, (y + terrainOffset) * level.noiseScale);
 
-        if (noiseValue < 0.5f) return fieldTilePrefab;
-        if (noiseValue < 0.7f) return forestTilePrefab;
+        if (noiseValue < 0.63f) return fieldTilePrefab;
         return mountainTilePrefab;
     }
 }

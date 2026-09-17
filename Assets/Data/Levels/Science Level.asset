@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 757080d81166d2b4e940f78d23b2f558, type: 3}
   m_Name: Science Level
   m_EditorClassIdentifier: 
-  width: 15
-  height: 15
+  width: 16
+  height: 16
   tileSize: 1
   is3DIsometric: 1
-  noiseScale: 0.3
+  noiseScale: 0.5
   randomizeSeed: 1
   seed: 0
   minCityDistance: 3

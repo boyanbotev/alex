@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   techName: Chivalry
   description: 
-  cost: 8
+  cost: 12
   prerequisites:
   - {fileID: 11400000, guid: 0f80d8f5e80b385438c0c41566678087, type: 2}
