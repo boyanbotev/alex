@@ -55,6 +55,7 @@ public class GridManager : MonoBehaviour
 
         Level settings = GridGenerator.Instance != null ? GridGenerator.Instance.level : null;
         bool blockCorners = settings == null || settings.blockDiagonalsBetweenEnemies;
+        bool blockTerrainCorners = settings == null || settings.blockDiagonalsBetweenImpassableTiles;
         moveQueue.Add((start, 0));
         moveVisited.Add(start);
 
@@ -74,7 +75,7 @@ public class GridManager : MonoBehaviour
                     Vector2Int position = current.gridPosition;
                     Tile next = GetTileAt(position + new Vector2Int(dx, dy));
                     if (next == null || next.terrainType == TerrainType.Mountain || moveVisited.Contains(next)) continue;
-                    if (dx != 0 && dy != 0
+                    if (blockTerrainCorners && dx != 0 && dy != 0
                         && GetTileAt(position + new Vector2Int(dx, 0))?.terrainType == TerrainType.Mountain
                         && GetTileAt(position + new Vector2Int(0, dy))?.terrainType == TerrainType.Mountain)
                         continue;

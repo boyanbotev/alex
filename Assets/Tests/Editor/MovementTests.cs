@@ -89,17 +89,22 @@ public class MovementTests : TacticsTestFixture
         Assert.That(mountain.currentUnit, Is.Null);
     }
 
-    [TestCase(true)]
-    [TestCase(false)]
-    public void TwoMountainsBlockDiagonalRegardlessOfEnemyCornerSetting(bool blockEnemies)
+    [TestCase(true, true)]
+    [TestCase(true, false)]
+    [TestCase(false, true)]
+    [TestCase(false, false)]
+    public void MountainCornerSettingIsIndependentOfEnemyCornerSetting(bool blockTerrain, bool blockEnemies)
     {
+        settings.blockDiagonalsBetweenImpassableTiles = blockTerrain;
         settings.blockDiagonalsBetweenEnemies = blockEnemies;
         var unit = Unit(player, Tile(0, 0));
+        unit.data.moveRange = 3;
         Tile(1, 0).terrainType = TerrainType.Mountain;
         Tile(0, 1).terrainType = TerrainType.Mountain;
-        Tile(1, 1);
+        var destination = Tile(1, 1);
         Search(unit, 3);
-        Assert.That(reachable, Is.Empty);
+        Assert.That(reachable, Is.EquivalentTo(blockTerrain ? new Tile[0] : new[] { destination }));
+        Assert.That(Candidates(unit).Exists(c => c.moveTile == destination), Is.EqualTo(!blockTerrain));
     }
 
     [Test]

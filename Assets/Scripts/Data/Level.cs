@@ -26,6 +26,9 @@ public class Level : ScriptableObject {
     [Tooltip("Prevent diagonal movement when both adjacent orthogonal tiles contain enemy units.")]
     public bool blockDiagonalsBetweenEnemies = true;
 
+    [Tooltip("Prevent diagonal movement when both adjacent orthogonal tiles are impassable (currently mountains).")]
+    public bool blockDiagonalsBetweenImpassableTiles = true;
+
     public int CityCount {
         get {
             int count = neutralCityNames?.Length ?? 0;

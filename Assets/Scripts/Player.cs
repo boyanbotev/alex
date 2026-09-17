@@ -61,6 +61,7 @@ public class Player : MonoBehaviour
     public bool CanPlaceNeuronSite(BuildingData data, Tile tile)
     {
         if (data == null || !data.isNeuron || !techState.CanBuild(data) || tile == null ||
+            tile.terrainType == TerrainType.Mountain ||
             tile.city != null || tile.currentBuilding != null || faction == null || faction.availableBuildings == null ||
             System.Array.IndexOf(faction.availableBuildings, data) < 0) return false;
         if (visibleTiles == null || !visibleTiles.IsVisible(tile)) return false;

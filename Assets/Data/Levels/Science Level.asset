@@ -55,4 +55,5 @@ MonoBehaviour:
   - universe
   - parallel
   - neuron
-  blockDiagonalsBetweenEnemies: 1
+  blockDiagonalsBetweenEnemies: 0
+  blockDiagonalsBetweenImpassableTiles: 0

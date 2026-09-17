@@ -63,6 +63,38 @@ public class NeuronConstructionTests : TacticsTestFixture
     }
 
     [Test]
+    public void MountainBlocksPlacementAndPlanningWithoutSpendingStars()
+    {
+        Configure();
+        Endpoint(Visible(0), player);
+        var gap = Visible(1);
+        Endpoint(Visible(2), player);
+        Assert.That(player.CanPlaceNeuron(neuron, gap), Is.True);
+        gap.terrainType = TerrainType.Mountain;
+        int stars = player.stars;
+        Assert.That(player.CanPlaceNeuronSite(neuron, gap), Is.False);
+        Assert.That(player.CanPlaceNeuron(neuron, gap), Is.False);
+        Assert.That(player.PlaceNeuron(neuron, gap), Is.False);
+        Assert.That(player.stars, Is.EqualTo(stars));
+        Assert.That(gap.currentBuilding, Is.Null);
+        Assert.That(Plan(), Is.Empty);
+    }
+
+    [Test]
+    public void PlannerUsesForestDetourAroundMountain()
+    {
+        Configure();
+        Endpoint(Visible(0), player);
+        Visible(1).terrainType = TerrainType.Mountain;
+        Endpoint(Visible(2), player);
+        var detour = Visible(1, 1);
+        detour.terrainType = TerrainType.Forest;
+        Assert.That(player.CanPlaceNeuron(neuron, detour), Is.True);
+        Assert.That(Plan(), Is.Not.Empty);
+        Assert.That(candidates.TrueForAll(c => c.buildTile == detour), Is.True);
+    }
+
+    [Test]
     public void EconomyCompletesPartialRouteAcrossTurnsAndStopsOnceConnected()
     {
         Configure();
