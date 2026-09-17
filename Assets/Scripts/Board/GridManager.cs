@@ -51,6 +51,7 @@ public class GridManager : MonoBehaviour
         moveQueue.Clear();
         moveVisited.Clear();
         if (start == null || range <= 0) return;
+        if (start.terrainType == TerrainType.Forest) range = 1;
 
         Level settings = GridGenerator.Instance != null ? GridGenerator.Instance.level : null;
         bool blockCorners = settings == null || settings.blockDiagonalsBetweenEnemies;
@@ -61,6 +62,9 @@ public class GridManager : MonoBehaviour
         {
             (Tile current, int distance) = moveQueue[i];
             if (distance >= range) continue;
+            // Forest is a valid destination, but cannot be crossed in one move.
+            // This only limits movement; attack availability is handled separately.
+            if (current != start && current.terrainType == TerrainType.Forest) continue;
 
             for (int dx = -1; dx <= 1; dx++)
             {

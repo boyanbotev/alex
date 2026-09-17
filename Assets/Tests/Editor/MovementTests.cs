@@ -64,6 +64,69 @@ public class MovementTests : TacticsTestFixture
     }
 
     [Test]
+    public void ForestCanBeEnteredButNotCrossed()
+    {
+        var unit = Unit(player, Tile(0));
+        var forest = Tile(1);
+        forest.terrainType = TerrainType.Forest;
+        Tile(2);
+        Search(unit, 4);
+        Assert.That(reachable, Is.EquivalentTo(new[] { forest }));
+    }
+
+    [TestCase(0)]
+    [TestCase(1)]
+    [TestCase(4)]
+    public void StartingInForestCapsMovementAtOne(int range)
+    {
+        var unit = Unit(player, Tile(0));
+        unit.currentTile.terrainType = TerrainType.Forest;
+        var adjacent = Tile(1);
+        Tile(2);
+        Search(unit, range);
+        Assert.That(reachable, Is.EquivalentTo(range == 0 ? new Tile[0] : new[] { adjacent }));
+    }
+
+    [Test]
+    public void OpenRouteAroundForestRemainsReachable()
+    {
+        var unit = Unit(player, Tile(0));
+        Tile(1).terrainType = TerrainType.Forest;
+        var destination = Tile(2);
+        Tile(1, 1);
+        Search(unit, 2);
+        Assert.That(reachable.Contains(destination), Is.True);
+    }
+
+    [Test]
+    public void AlliedUnitInForestDoesNotAllowPassageThroughForest()
+    {
+        var unit = Unit(player, Tile(0));
+        var forest = Tile(1);
+        forest.terrainType = TerrainType.Forest;
+        Unit(player, forest);
+        Tile(2);
+        Search(unit, 4);
+        Assert.That(reachable, Is.Empty);
+    }
+
+    [Test]
+    public void ForestDestinationStillAllowsMoveAndAttackCandidate()
+    {
+        var unit = Unit(player, Tile(0));
+        unit.data.moveRange = 4;
+        unit.data.attackRange = 1;
+        var forest = Tile(1);
+        forest.terrainType = TerrainType.Forest;
+        var target = Unit(enemy, Tile(2));
+        Tile(3);
+        var candidates = Candidates(unit);
+        Assert.That(candidates.Exists(c => c.moveTile == forest && c.target == target &&
+            c.kind == ActionKind.Attack), Is.True);
+        Assert.That(candidates.Exists(c => c.moveTile.gridPosition.x > 1), Is.False);
+    }
+
+    [Test]
     public void CandidatesRespectSimulatedDeathAndRollback()
     {
         var unit = Unit(player, Tile(0));

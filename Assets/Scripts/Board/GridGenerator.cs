@@ -120,9 +120,8 @@ public class GridGenerator : MonoBehaviour
         // Generate values using noise
         float noiseValue = Mathf.PerlinNoise((x + terrainOffset) * level.noiseScale, (y + terrainOffset) * level.noiseScale);
 
-        if (noiseValue < 0.35f) return waterTilePrefab;
-        if (noiseValue < 0.65f) return fieldTilePrefab;
-        if (noiseValue < 0.82f) return forestTilePrefab;
+        if (noiseValue < 0.5f) return fieldTilePrefab;
+        if (noiseValue < 0.7f) return forestTilePrefab;
         return mountainTilePrefab;
     }
 }

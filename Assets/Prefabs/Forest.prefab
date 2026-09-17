@@ -209,7 +209,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridPosition: {x: 0, y: 0}
-  terrainType: 0
+  terrainType: 1
   movementCost: 1
   currentUnit: {fileID: 0}
   city: {fileID: 0}
