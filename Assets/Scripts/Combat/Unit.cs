@@ -35,7 +35,7 @@ public class Unit : MonoBehaviour
 
     public void MoveTo(Tile targetTile)
     {
-        if (!isActive) return;
+        if (!isActive || targetTile == null || targetTile.terrainType == TerrainType.Mountain) return;
         if (currentTile != null) currentTile.currentUnit = null;
 
         currentTile = targetTile;

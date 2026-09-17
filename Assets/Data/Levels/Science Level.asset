@@ -16,7 +16,7 @@ MonoBehaviour:
   height: 15
   tileSize: 1
   is3DIsometric: 1
-  noiseScale: 0.15
+  noiseScale: 0.3
   randomizeSeed: 1
   seed: 0
   minCityDistance: 3

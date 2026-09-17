@@ -73,7 +73,11 @@ public class GridManager : MonoBehaviour
                     if (dx == 0 && dy == 0) continue;
                     Vector2Int position = current.gridPosition;
                     Tile next = GetTileAt(position + new Vector2Int(dx, dy));
-                    if (next == null || moveVisited.Contains(next)) continue;
+                    if (next == null || next.terrainType == TerrainType.Mountain || moveVisited.Contains(next)) continue;
+                    if (dx != 0 && dy != 0
+                        && GetTileAt(position + new Vector2Int(dx, 0))?.terrainType == TerrainType.Mountain
+                        && GetTileAt(position + new Vector2Int(0, dy))?.terrainType == TerrainType.Mountain)
+                        continue;
                     Unit occupant = getOccupant(next);
                     if (occupant != null && !InteractionRules.CanPassThrough(owner, occupant.owner)) continue;
 

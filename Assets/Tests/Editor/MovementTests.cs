@@ -74,6 +74,50 @@ public class MovementTests : TacticsTestFixture
         Assert.That(reachable, Is.EquivalentTo(new[] { forest }));
     }
 
+    [Test]
+    public void MountainCannotBeEnteredOrCrossed()
+    {
+        var unit = Unit(player, Tile(0));
+        var mountain = Tile(1);
+        mountain.terrainType = TerrainType.Mountain;
+        Tile(2);
+        Search(unit, 4);
+        Assert.That(reachable, Is.Empty);
+        unit.MoveTo(mountain);
+        Assert.That(unit.currentTile.gridPosition.x, Is.Zero);
+        Assert.That(unit.hasMoved, Is.False);
+        Assert.That(mountain.currentUnit, Is.Null);
+    }
+
+    [TestCase(true)]
+    [TestCase(false)]
+    public void TwoMountainsBlockDiagonalRegardlessOfEnemyCornerSetting(bool blockEnemies)
+    {
+        settings.blockDiagonalsBetweenEnemies = blockEnemies;
+        var unit = Unit(player, Tile(0, 0));
+        Tile(1, 0).terrainType = TerrainType.Mountain;
+        Tile(0, 1).terrainType = TerrainType.Mountain;
+        Tile(1, 1);
+        Search(unit, 3);
+        Assert.That(reachable, Is.Empty);
+    }
+
+    [Test]
+    public void OpenRouteAroundMountainRemainsReachableForPlayerAndAI()
+    {
+        var unit = Unit(player, Tile(0));
+        unit.data.moveRange = 2;
+        var mountain = Tile(1);
+        mountain.terrainType = TerrainType.Mountain;
+        var destination = Tile(2);
+        Tile(1, 1);
+        Search(unit, 2);
+        Assert.That(reachable.Contains(destination), Is.True);
+        var candidates = Candidates(unit);
+        Assert.That(candidates.Exists(c => c.moveTile == destination), Is.True);
+        Assert.That(candidates.Exists(c => c.moveTile == mountain), Is.False);
+    }
+
     [TestCase(0)]
     [TestCase(1)]
     [TestCase(4)]
