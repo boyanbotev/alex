@@ -52,12 +52,36 @@ public class LevelGenerationTests : TacticsTestFixture
                 Assert.That(Mathf.Max(Mathf.Abs(d.x), Mathf.Abs(d.y)), Is.GreaterThanOrEqualTo(3));
             }
         }
-        Assert.That(Vector2Int.Distance(positions[1].gridPosition, positions[0].gridPosition),
-            Is.LessThan(Vector2Int.Distance(positions[1].gridPosition, positions[2].gridPosition)));
-        for (int i = 3; i <= 4; i++)
-            Assert.That(Vector2Int.Distance(positions[i].gridPosition, positions[2].gridPosition),
-                Is.LessThan(Vector2Int.Distance(positions[i].gridPosition, positions[0].gridPosition)));
+        // Towns use the nearest still-unassigned sites, without moving the scattered locations.
+        foreach (int i in new[] { 1, 3, 4 })
+        {
+            Tile capital = positions[i == 1 ? 0 : 2];
+            float distance = (positions[i].gridPosition - capital.gridPosition).sqrMagnitude;
+            for (int j = i + 1; j < positions.Length; j++)
+                Assert.That(distance, Is.LessThanOrEqualTo(
+                    (positions[j].gridPosition - capital.gridPosition).sqrMagnitude));
+        }
         Assert.That(Place(level).Positions, Is.EqualTo(positions), "Fixed seed should reproduce placement.");
+    }
+
+    [Test]
+    public void CityLocationsDoNotDependOnFactionOwnership()
+    {
+        var level = CreateLevel();
+        for (int x = 0; x < level.width; x++)
+            for (int y = 0; y < level.height; y++) Tile(x, y).terrainType = TerrainType.Field;
+        var originalFactions = level.factions;
+        var originalNeutrals = level.neutralCityNames;
+        for (int seed = 0; seed < 20; seed++)
+        {
+            level.factions = originalFactions;
+            level.neutralCityNames = originalNeutrals;
+            var grouped = Place(level, seed).Positions;
+            level.factions = new[] { new LevelFaction { startingCityNames = new[] { "Capital" } } };
+            level.neutralCityNames = new[] { "A", "B", "C", "D", "E", "F" };
+            Assert.That(Place(level, seed).Positions, Is.EquivalentTo(grouped),
+                $"Ownership should not affect city locations (seed {seed}).");
+        }
     }
 
     [Test]
