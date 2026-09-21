@@ -158,13 +158,20 @@ public class BoardState
     // Shared by player highlights, AI candidates, and queued raid validation.
     public int GetMoveRange(Unit unit)
     {
-        int range = unit.data.moveRange;
+        return unit.data.moveRange + GetTerritoryPerk(unit, CityPerkKind.Adrenaline);
+    }
+
+    public int GetDefensePower(Unit unit) =>
+        unit.data.defensePower + GetTerritoryPerk(unit, CityPerkKind.Fortification);
+
+    public int GetTerritoryPerk(Unit unit, CityPerkKind kind)
+    {
         Tile start = GetTile(unit);
         City city = start != null ? start.territoryCity ?? start.city : null;
-        if (city == null || TurnManager.Instance == null) return range;
+        if (city == null || TurnManager.Instance == null) return 0;
         Player owner = GetOwner(city);
-        if (IsAtWar(unit.owner, owner) || !TurnManager.Instance.Bonds.Friendly(unit.owner, owner)) return range;
-        return range + city.PerkAmount(CityPerkKind.Adrenaline);
+        if (IsAtWar(unit.owner, owner) || !TurnManager.Instance.Bonds.Friendly(unit.owner, owner)) return 0;
+        return city.PerkAmount(kind);
     }
 
     public int GetHealth(Unit unit) =>

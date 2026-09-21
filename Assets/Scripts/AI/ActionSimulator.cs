@@ -92,7 +92,7 @@ public static class ActionSimulator
     {
         return CombatMath.CalculateDamage(
             attacker.data.attackPower, board.GetHealth(attacker), attacker.data.maxHealth,
-            defender.data.defensePower, board.GetHealth(defender), defender.data.maxHealth
+            board.GetDefensePower(defender), board.GetHealth(defender), defender.data.maxHealth
         );
     }
 

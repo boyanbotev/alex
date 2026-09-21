@@ -3,6 +3,52 @@ using UnityEngine;
 
 public class CityBondTests : TacticsTestFixture
 {
+    [Test]
+    public void FortificationSharesWithoutStackingAndEndsOutsideTerritory()
+    {
+        player.stars = 20;
+        var a = City(Tile(0), player); var road = Segment(1); var b = City(Tile(2), player);
+        Perk(a, CityPerkKind.Fortification, 1);
+        var unit = Unit(player, b.centerTile);
+        int basic = unit.data.defensePower;
+        Assert.That(board.GetDefensePower(unit), Is.EqualTo(basic));
+        Assert.That(turns.Bonds.TryCreate(player, a, b), Is.True);
+        Assert.That(board.GetDefensePower(unit), Is.EqualTo(basic + 1));
+        Perk(b, CityPerkKind.Fortification, 1);
+        Assert.That(board.GetDefensePower(unit), Is.EqualTo(basic + 1));
+        b.data.perk = null;
+        int checkpoint = board.Checkpoint();
+        board.WithMove(unit, b.centerTile, Tile(3));
+        Assert.That(board.GetDefensePower(unit), Is.EqualTo(basic));
+        board.Rollback(checkpoint);
+        road.tile.currentBuilding = null; turns.Neurons.Invalidate();
+        Assert.That(board.GetDefensePower(unit), Is.EqualTo(basic));
+        Assert.That(unit.data.defensePower, Is.EqualTo(basic));
+    }
+
+    [Test]
+    public void FortificationChangesRealAndSimulatedDamageEquallyForAllies()
+    {
+        var ally = Component<Player>(); turns.players.Add(ally);
+        var city = City(Tile(0), ally);
+        var defender = Unit(player, city.centerTile);
+        var attacker = Unit(enemy, Tile(1));
+        attacker.data.attackPower = 2; defender.data.defensePower = 2;
+        turns.Diplomacy.MakePeace(player, ally);
+        Perk(city, CityPerkKind.Fortification, 1);
+        var basic = attacker.CalculateDamage(attacker, defender);
+        Assert.That(board.GetDefensePower(defender), Is.EqualTo(2));
+        turns.Diplomacy.MakeAlliance(player, ally);
+        var fortified = attacker.CalculateDamage(attacker, defender);
+        Assert.That(fortified.Item1, Is.LessThan(basic.Item1));
+        Assert.That(fortified.Item2, Is.GreaterThan(basic.Item2));
+        Assert.That(ActionSimulator.PredictDamage(attacker, defender, board), Is.EqualTo(fortified));
+        Assert.That(attacker.PredictAttackDamage(defender).damage, Is.EqualTo(fortified.Item1));
+        int checkpoint = board.Checkpoint(); board.WithWar(player, ally);
+        Assert.That(ActionSimulator.PredictDamage(attacker, defender, board), Is.EqualTo(basic));
+        board.Rollback(checkpoint);
+    }
+
     private Building Segment(int x, int y = 0)
     {
         var segment = Component<Building>();

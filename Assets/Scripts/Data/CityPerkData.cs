@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public enum CityPerkKind { Healing, Dopamine, Adrenaline }
+public enum CityPerkKind { Healing, Dopamine, Adrenaline, Fortification }
 
 [CreateAssetMenu(fileName = "City Perk", menuName = "Game/City Perk")]
 public sealed class CityPerkData : ScriptableObject

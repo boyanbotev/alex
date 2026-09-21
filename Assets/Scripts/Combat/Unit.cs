@@ -129,7 +129,7 @@ public class Unit : MonoBehaviour
     {
         return CombatMath.CalculateDamage(
             attacker.data.attackPower, attacker.currentHealth, attacker.data.maxHealth,
-            defender.data.defensePower, defender.currentHealth, defender.data.maxHealth
+            BoardState.Live.GetDefensePower(defender), defender.currentHealth, defender.data.maxHealth
         );
     }
 

@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Science Level_brain
   m_EditorClassIdentifier: 
   cityName: brain
-  perk: {fileID: 11400000, guid: 930f0344011ffdc44b7f9293e2e98df6, type: 2}
+  perk: {fileID: 11400000, guid: 8fe3fb9c1017a65449535235e43157f0, type: 2}

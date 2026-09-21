@@ -10,6 +10,7 @@ public sealed class CombatPreviewUI : MonoBehaviour
         public RectTransform root;
         public TextMeshProUGUI text;
         public RawImage skull;
+        public TextMeshProUGUI defense;
         public Unit unit;
         public Vector3 offset;
     }
@@ -47,7 +48,17 @@ public sealed class CombatPreviewUI : MonoBehaviour
         skull.transform.SetParent(root, false);
         skull.rectTransform.sizeDelta = new Vector2(36f, 36f);
         skull.raycastTarget = false;
-        return new Indicator { root = root, text = text, skull = skull };
+        var defense = new GameObject("Fortification", typeof(RectTransform)).AddComponent<TextMeshProUGUI>();
+        defense.transform.SetParent(root, false);
+        defense.rectTransform.sizeDelta = new Vector2(150f, 24f);
+        defense.rectTransform.anchoredPosition = new Vector2(0, 32f);
+        defense.fontSize = 18f;
+        defense.alignment = TextAlignmentOptions.Center;
+        defense.color = new Color(.4f, .85f, 1f);
+        defense.outlineColor = Color.black;
+        defense.outlineWidth = .25f;
+        defense.raycastTarget = false;
+        return new Indicator { root = root, text = text, skull = skull, defense = defense };
     }
 
     public void Show(Unit attacker, Unit defender, Texture2D skull)
@@ -56,6 +67,10 @@ public sealed class CombatPreviewUI : MonoBehaviour
         var (damage, retaliation) = attacker.PredictAttackDamage(defender);
         SetIndicator(attackerIndicator, attacker, retaliation, skull);
         SetIndicator(defenderIndicator, defender, damage, skull);
+        int bonus = BoardState.Live.GetTerritoryPerk(defender, CityPerkKind.Fortification);
+        attackerIndicator.defense.gameObject.SetActive(false);
+        defenderIndicator.defense.gameObject.SetActive(bonus > 0);
+        defenderIndicator.defense.text = $"+{bonus} DEF";
         gameObject.SetActive(true);
         LateUpdate();
     }

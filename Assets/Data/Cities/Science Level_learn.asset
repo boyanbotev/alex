@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Science Level_learn
   m_EditorClassIdentifier: 
   cityName: learn
-  perk: {fileID: 11400000, guid: 930f0344011ffdc44b7f9293e2e98df6, type: 2}
+  perk: {fileID: 11400000, guid: 78398eccc8f32e64699730c1239d0549, type: 2}
