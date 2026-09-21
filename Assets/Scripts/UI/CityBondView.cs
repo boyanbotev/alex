@@ -8,68 +8,53 @@ using UnityEngine.UI;
 public sealed class CityBondView : MonoBehaviour
 {
     private City source, target;
-    private RectTransform panel;
-    private TextMeshProUGUI label;
-    private Button action, cancel;
-    private RectTransform spawnPanel;
-    private Vector2 spawnSize;
+    private Player viewer;
+    private bool CanManage => source != null && source.owner == viewer;
+    [SerializeField] private RectTransform panel;
+    [SerializeField] private TextMeshProUGUI label;
+    [SerializeField] private Button action, cancel;
+    [SerializeField] private TextMeshProUGUI actionLabel;
+
+
     private readonly List<Tile> route = new();
     public bool Selecting { get; private set; }
     private CityBondManager Bonds => TurnManager.Instance.Bonds;
 
-    public void Initialize(RectTransform spawn, TMP_FontAsset font)
+    private void Awake()
     {
-        spawnPanel = spawn;
-        spawnSize = spawn.sizeDelta;
-        panel = new GameObject("City bond actions", typeof(RectTransform), typeof(Image), typeof(UIInputBlocker)).GetComponent<RectTransform>();
-        panel.SetParent(spawn, false);
-        panel.anchorMin = new Vector2(0, 1);
-        panel.anchorMax = Vector2.one;
-        panel.pivot = new Vector2(.5f, 0);
-        panel.anchoredPosition = new Vector2(0, 8);
-        panel.sizeDelta = new Vector2(0, 190);
-        panel.GetComponent<Image>().color = new Color(.08f, .12f, .17f, .97f);
-        label = MakeLabel(panel, font);
-        label.rectTransform.anchorMin = new Vector2(0, .32f);
-        label.rectTransform.anchorMax = Vector2.one;
-        label.rectTransform.offsetMin = new Vector2(16, 4);
-        label.rectTransform.offsetMax = new Vector2(-16, -10);
-        label.fontSize = 18;
-        label.enableAutoSizing = true;
-        label.fontSizeMin = 12;
-        label.fontSizeMax = 18;
-        action = MakeButton("Reinforce bond", panel, font, new Vector2(0, 0), new Vector2(.68f, .3f));
-        cancel = MakeButton("Cancel", panel, font, new Vector2(.68f, 0), new Vector2(1, .3f));
         action.onClick.AddListener(Act);
         cancel.onClick.AddListener(Cancel);
     }
     public void Show(City city)
     {
         source = city; target = null; Selecting = false;
+        viewer = TurnManager.Instance.ActivePlayer;
         panel.gameObject.SetActive(true);
-        Layout();
+
         Refresh();
     }
     public void Hide()
     {
         if (Selecting) GridManager.Instance?.ClearAllHighlights();
         Selecting = false; source = target = null;
-        if (spawnPanel != null) spawnPanel.sizeDelta = spawnSize;
+
         if (panel != null) panel.gameObject.SetActive(false);
     }
     private void Update()
     {
         if (source == null || !panel.gameObject.activeInHierarchy) return;
-        if (source.owner != TurnManager.Instance.ActivePlayer || source.owner.isAI) { Hide(); return; }
+        if (viewer != TurnManager.Instance.ActivePlayer || viewer.isAI ||
+            viewer.visibleTiles == null || !viewer.visibleTiles.IsVisible(source.centerTile)) { Hide(); return; }
         if (Selecting && Input.GetKeyDown(KeyCode.Escape)) Cancel();
     }
     private void Act()
     {
+        if (!CanManage) return;
         if (!Selecting)
         {
             Selecting = true; target = null;
             UIManager.Instance.SetRecruitmentVisible(false);
-            Layout();
+    
             Highlight(); Refresh();
         }
         else if (target != null)
@@ -91,16 +76,8 @@ public sealed class CityBondView : MonoBehaviour
         Selecting = false; target = null;
         GridManager.Instance.ClearAllHighlights();
         UIManager.Instance.SetRecruitmentVisible(true);
-        Layout();
+
         Refresh();
-    }
-    private void Layout()
-    {
-        spawnPanel.sizeDelta = Selecting ? new Vector2(spawnSize.x, 190) : spawnSize;
-        panel.anchorMin = new Vector2(0, Selecting ? 0 : 1);
-        panel.anchorMax = new Vector2(1, Selecting ? 0 : 1);
-        panel.anchoredPosition = new Vector2(0, Selecting ? 0 : 8);
-        panel.sizeDelta = new Vector2(0, Selecting ? 190 : 130);
     }
     private void Highlight()
     {
@@ -118,17 +95,21 @@ public sealed class CityBondView : MonoBehaviour
     {
         if (source == null) return;
         int cost = Mathf.Max(0, TurnManager.Instance.bondUpgradeCost);
+        action.gameObject.SetActive(CanManage);
         cancel.gameObject.SetActive(Selecting);
-        action.GetComponentInChildren<TextMeshProUGUI>().text = Selecting ? $"Confirm bond · {cost} stars" : $"Reinforce bond · {cost} stars";
+        actionLabel.text = Selecting ? $"Confirm bond · {cost} stars" : $"Reinforce bond · {cost} stars";
         var text = new StringBuilder();
-        text.AppendLine($"{source.cityName} · Bonds {Bonds.Count(source)}/{TurnManager.Instance.maxBondsPerCity}");
+        text.AppendLine($"Bonds {Bonds.Count(source)}/{TurnManager.Instance.maxBondsPerCity}");
         text.AppendLine($"Native perk: {Perk(source)}");
         if (!Selecting)
         {
             foreach (var bond in Bonds.All)
             {
                 City partner = bond.Other(source);
-                if (partner != null) text.AppendLine($"{partner.cityName}: {Perk(partner)}{(bond.Active ? "" : " (suspended)")}");
+                if (partner == null) continue;
+                string partnerName = viewer.visibleTiles != null && viewer.visibleTiles.IsVisible(partner.centerTile)
+                    ? partner.cityName : "Unrevealed city";
+                text.AppendLine($"Shared from {partnerName} ({(bond.Active ? "active" : "suspended")}): {Perk(partner)}");
             }
             action.interactable = Bonds.Count(source) < TurnManager.Instance.maxBondsPerCity && !source.HasPendingCapture;
         }
@@ -150,23 +131,18 @@ public sealed class CityBondView : MonoBehaviour
         }
         label.text = text.ToString();
     }
-    private static string Perk(City city) => city.data != null && city.data.perk != null ? city.data.perk.Summary : "None";
-    private static TextMeshProUGUI MakeLabel(Transform parent, TMP_FontAsset font)
+    private static string Perk(City city)
     {
-        var text = new GameObject("Label", typeof(RectTransform)).AddComponent<TextMeshProUGUI>();
-        text.transform.SetParent(parent, false); text.font = font; text.color = Color.white; text.raycastTarget = false;
-        return text;
-    }
-    private static Button MakeButton(string title, Transform parent, TMP_FontAsset font, Vector2 min, Vector2 max)
-    {
-        var go = new GameObject(title, typeof(RectTransform), typeof(Image), typeof(Button));
-        var rect = go.GetComponent<RectTransform>(); rect.SetParent(parent, false);
-        rect.anchorMin = min; rect.anchorMax = max; rect.offsetMin = new Vector2(8, 8); rect.offsetMax = new Vector2(-8, -4);
-        go.GetComponent<Image>().color = new Color(.16f, .4f, .46f);
-        var button = go.GetComponent<Button>(); button.targetGraphic = go.GetComponent<Image>();
-        var text = MakeLabel(rect, font); text.text = title; text.fontSize = 18; text.alignment = TextAlignmentOptions.Center;
-        text.rectTransform.anchorMin = Vector2.zero; text.rectTransform.anchorMax = Vector2.one;
-        text.rectTransform.offsetMin = Vector2.zero; text.rectTransform.offsetMax = Vector2.zero;
-        return button;
+        var perk = city.data != null ? city.data.perk : null;
+        if (perk == null) return "None";
+        string effect = perk.kind switch
+        {
+            CityPerkKind.Healing => $"+{perk.amount} healing when friendly/allied units rest here",
+            CityPerkKind.Adrenaline => $"+{perk.amount} movement for friendly/allied units starting here",
+            CityPerkKind.Fortification => $"+{perk.amount} defence for friendly/allied units here",
+            CityPerkKind.Dopamine => $"Units created here earn +{perk.amount} stars for severing enemy neurons",
+            _ => perk.description
+        };
+        return $"{(string.IsNullOrEmpty(perk.perkName) ? perk.kind.ToString() : perk.perkName)} — {effect}";
     }
 }

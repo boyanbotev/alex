@@ -166,6 +166,8 @@ public class SelectionController : MonoBehaviour
 
         DeselectAll();
 
+        if (player.visibleTiles == null || !player.visibleTiles.IsVisible(clickedTile)) return;
+
         if (clickedTile.currentUnit != null)
         {
             Unit unit = clickedTile.currentUnit;
@@ -174,10 +176,12 @@ public class SelectionController : MonoBehaviour
                 selectedUnit = unit;
                 HighlightActions(selectedUnit);
             }
+            else if (clickedTile.city != null) UIManager.Instance.ShowCityInfo(clickedTile.city);
         }
-        else if (clickedTile.city != null && clickedTile.city.owner == player)
+        else if (clickedTile.city != null)
         {
-            ShowSpawnOptions(clickedTile);
+            if (clickedTile.city.owner == player) ShowSpawnOptions(clickedTile);
+            else UIManager.Instance.ShowCityInfo(clickedTile.city);
         }
         else if (clickedTile.city == null && clickedTile.currentBuilding == null)
         {
@@ -248,13 +252,14 @@ public class SelectionController : MonoBehaviour
                 SelectTerritory(clickedTile);
             }
 
-            if (clickedTile.city != null && clickedTile.city.owner == TurnManager.Instance.ActivePlayer)
+            if (clickedTile.city != null)
             {
                 UIManager.Instance.ShowCityInfo(clickedTile.city);
             }
         } else
         {
             DeselectAll();
+            if (clickedTile.city != null) UIManager.Instance.ShowCityInfo(clickedTile.city);
         }
     }
 

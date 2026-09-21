@@ -40,23 +40,22 @@ public class UIManager : MonoBehaviour
     private TechData selectedTech;
     private Player techPlayer;
     private City displayedCity;
-    private CityBondView bondView;
+    [SerializeField] private CityBondView bondView;
     public bool SelectingBond => bondView != null && bondView.Selecting;
     public bool SelectBondTarget(Tile tile) => bondView != null && bondView.Select(tile);
     private void ShowBondActions(City city)
     {
-        if (bondView == null)
-        {
-            bondView = gameObject.AddComponent<CityBondView>();
-            bondView.Initialize(spawnPanel, cityNameAndLevelText.font);
-        }
         bondView.Show(city);
-        SetRecruitmentVisible(true);
+        SetRecruitmentVisible(city.owner == TurnManager.Instance.ActivePlayer);
     }
     public void SetRecruitmentVisible(bool visible)
     {
+        if (visible) cityNameAndLevelText.text = $"{displayedCity.cityName} · Units {displayedCity.units.Count}/{displayedCity.UnitCapacity}";
+        else cityNameAndLevelText.text = displayedCity.cityName;
+
+        visible &= displayedCity != null && displayedCity.owner == TurnManager.Instance.ActivePlayer;
+
         spawnButtonHolder.gameObject.SetActive(visible);
-        cityNameAndLevelText.gameObject.SetActive(visible);
         cantSpawnText.gameObject.SetActive(visible && displayedCity != null && displayedCity.units.Count >= displayedCity.UnitCapacity);
     }
 
@@ -118,6 +117,8 @@ public class UIManager : MonoBehaviour
 
     public void ShowCityInfo(City city)
     {
+        Player viewer = TurnManager.Instance.ActivePlayer;
+        if (city == null || viewer.isAI || viewer.visibleTiles == null || !viewer.visibleTiles.IsVisible(city.centerTile)) return;
         if (spawnPanel.gameObject.activeSelf) return;
 
         spawnPanel.gameObject.SetActive(true);
@@ -379,7 +380,8 @@ public class UIManager : MonoBehaviour
     {
         if (displayedCity == null || !spawnPanel.gameObject.activeSelf) return;
         cityNameAndLevelText.text = $"{displayedCity.cityName} · Units {displayedCity.units.Count}/{displayedCity.UnitCapacity}";
-        cantSpawnText.gameObject.SetActive(displayedCity.units.Count >= displayedCity.UnitCapacity);
+        cantSpawnText.gameObject.SetActive(displayedCity.owner == TurnManager.Instance.ActivePlayer &&
+            !SelectingBond && displayedCity.units.Count >= displayedCity.UnitCapacity);
     }
 
     public void SetStarsPerTurn(int value)
