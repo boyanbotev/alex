@@ -19,7 +19,7 @@ public class Level : ScriptableObject {
     [Min(1)] public int minCityDistance = 3;
     [Min(0)] public int minMargin = 1;
     public LevelFaction[] factions = Array.Empty<LevelFaction>();
-    public string[] neutralCityNames = Array.Empty<string>();
+    public CityData[] neutralCities = Array.Empty<CityData>();
 
     [Header("Movement")]
 
@@ -31,9 +31,9 @@ public class Level : ScriptableObject {
 
     public int CityCount {
         get {
-            int count = neutralCityNames?.Length ?? 0;
+            int count = neutralCities?.Length ?? 0;
             if (factions != null)
-                foreach (var entry in factions) count += entry?.startingCityNames?.Length ?? 0;
+                foreach (var entry in factions) count += entry?.startingCities?.Length ?? 0;
             return count;
         }
     }
@@ -50,20 +50,20 @@ public class Level : ScriptableObject {
             if (entry == null || entry.faction == null || entry.faction.cityPrefab == null ||
                 entry.faction.startingUnit == null || entry.faction.startingUnit.unitData == null || entry.faction.startingUnit.prefab == null ||
                 entry.faction.startingUnit.prefab.GetComponent<Unit>() == null ||
-                entry.startingStars < 0 || entry.startingCityNames == null || entry.startingCityNames.Length == 0)
+                entry.startingStars < 0 || entry.startingCities == null || entry.startingCities.Length == 0)
                 throw new InvalidOperationException($"Level '{name}': each faction needs its prefabs, starting cities and non-negative stars.");
             if (!entry.isAI) humanCount++;
-            ValidateNames(entry.startingCityNames, names);
+            ValidateNames(entry.startingCities, names);
         }
         if (humanCount != 1)
             throw new InvalidOperationException($"Level '{name}' needs exactly one human faction for the current UI.");
-        ValidateNames(neutralCityNames, names);
+        ValidateNames(neutralCities, names);
     }
 
-    private static void ValidateNames(string[] cities, HashSet<string> names) {
+    private static void ValidateNames(CityData[] cities, HashSet<string> names) {
         if (cities == null) return;
-        foreach (string city in cities)
-            if (string.IsNullOrWhiteSpace(city) || !names.Add(city.Trim()))
+        foreach (CityData city in cities)
+            if (city == null || string.IsNullOrWhiteSpace(city.cityName) || !names.Add(city.cityName.Trim()))
                 throw new InvalidOperationException("City names must be non-empty and unique throughout the Level.");
     }
 }
@@ -75,5 +75,5 @@ public class LevelFaction {
     public bool isAI = true;
     [Min(0)] public int startingStars = 5;
     [Tooltip("The first city is the capital and receives the faction's starting unit.")]
-    public string[] startingCityNames = { "Capital" };
+    public CityData[] startingCities = Array.Empty<CityData>();
 }

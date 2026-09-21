@@ -26,31 +26,31 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     isAI: 0
     startingStars: 5
-    startingCityNames:
-    - homework
+    startingCities:
+    - {fileID: 11400000, guid: f8ae72f0bad34e5eae7a3b9cb5ffcdbc, type: 2}
   - faction: {fileID: 11400000, guid: 3c65617266f15f74198d98636dfaa38f, type: 2}
     color: {r: 0, g: 0, b: 0, a: 1}
     isAI: 1
     startingStars: 5
-    startingCityNames:
-    - loser
-    - procrastinate
-    - addicting
+    startingCities:
+    - {fileID: 11400000, guid: 207929c906a540ceb94ba533fe1890f4, type: 2}
+    - {fileID: 11400000, guid: c7f54067b4874b39a003a5f849723bf0, type: 2}
+    - {fileID: 11400000, guid: c3314ccffdb2482eaa610134e061df11, type: 2}
   - faction: {fileID: 11400000, guid: f865075d944943a45a3acc769ddf00e7, type: 2}
     color: {r: 1, g: 0, b: 0, a: 1}
     isAI: 1
     startingStars: 5
-    startingCityNames:
-    - cool
-    - guitar
+    startingCities:
+    - {fileID: 11400000, guid: 0cd9ea0f04cd4c958dc1ef87a0a6b1a8, type: 2}
+    - {fileID: 11400000, guid: 518c8ae148c840859ee865c4c06f3c73, type: 2}
   - faction: {fileID: 11400000, guid: 5999dffb9d250354b9adb70eb82d7bf2, type: 2}
     color: {r: 1, g: 0.60062885, b: 0.91227496, a: 1}
     isAI: 1
     startingStars: 5
-    startingCityNames:
-    - Sadie
-  neutralCityNames:
-  - girl
-  - friend
-  - video
+    startingCities:
+    - {fileID: 11400000, guid: d04a42bfd24d4046a4186e13068ec557, type: 2}
+  neutralCities:
+  - {fileID: 11400000, guid: 7caf762b08534a7abd5d5ab7f5148f5b, type: 2}
+  - {fileID: 11400000, guid: e46b4189a28e4caaa7e41c5c8485d91e, type: 2}
+  - {fileID: 11400000, guid: 40707694ba404ce8b78bf39d85588f16, type: 2}
   blockDiagonalsBetweenEnemies: 1

@@ -9,6 +9,7 @@ public class Unit : MonoBehaviour
     public Player owner;
     public Tile currentTile;
     public City homeCity;
+    [Min(0)] public int dopamineBonus;
 
     [Header("Base Stats")]
     public int currentHealth;
@@ -106,6 +107,7 @@ public class Unit : MonoBehaviour
         hasMoved = true;
         TurnManager.Instance.Diplomacy.DeclareWar(owner, segment.owner);
         segment.RemoveNeuron(owner);
+        if (dopamineBonus > 0) owner.AddStars(dopamineBonus);
         Deactivate();
         return true;
     }
@@ -117,9 +119,11 @@ public class Unit : MonoBehaviour
         City city = currentTile.territoryCity ?? currentTile.city;
         bool inHomeTerritory = city?.owner == owner;
         int healthRecoup = inHomeTerritory ? 4 : 2;
+        if (city != null && TurnManager.Instance.Bonds.Friendly(owner, city.owner))
+            healthRecoup += city.PerkAmount(CityPerkKind.Healing);
 
         currentHealth = Mathf.Min(data.maxHealth, currentHealth + healthRecoup);
-        healthUI.Set(currentHealth);
+        healthUI?.Set(currentHealth);
     }
 
     public (int, int) CalculateDamage(Unit attacker, Unit defender)

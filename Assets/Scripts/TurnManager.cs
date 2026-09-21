@@ -16,6 +16,12 @@ public class TurnManager : MonoBehaviour
     [Min(0)] public int neuronStarsPerConnection = 1;
     private NeuronNetwork neurons;
     public NeuronNetwork Neurons => neurons ??= new NeuronNetwork(this);
+    [Header("City bonds")]
+    [Min(0)] public int maxBondsPerCity = 2;
+    [Min(0)] public int bondUpgradeCost = 6;
+    [Min(0)] public int cityUnitCapacity = 2;
+    private CityBondManager bonds;
+    public CityBondManager Bonds => bonds ??= new CityBondManager(this);
 
     private DiplomacyState diplomacy;
     // The roster must be populated before first access and stays fixed for the match.
@@ -99,6 +105,7 @@ public class TurnManager : MonoBehaviour
     public void EndTurn()
     {
         if (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady) return;
+        UIManager.Instance?.CloseSpawnPanel();
         List<Player> alivePlayers = players.FindAll(p => p.IsAlive());
         if (alivePlayers.Count == 1)
         {

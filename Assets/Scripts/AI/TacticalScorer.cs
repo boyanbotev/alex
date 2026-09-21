@@ -19,7 +19,7 @@ public sealed class TacticalScorer
             value = neuronRaids.Evaluate(unit.owner, segment, board, cities, profile);
             raidValues[key] = value;
         }
-        return value;
+        return value + unit.dopamineBonus * profile.neuronRaidRefundWeight;
     }
 
     public bool ShouldConsiderSever(Unit unit, Building segment, BoardState board) =>

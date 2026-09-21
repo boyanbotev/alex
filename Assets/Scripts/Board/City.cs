@@ -8,6 +8,8 @@ public class City : MonoBehaviour
     public static event Action<Player> OnUnsiege;
     public static event Action<Player> OnSiege;
     public string cityName;
+    public CityData data;
+    public int PerkAmount(CityPerkKind kind) => TurnManager.Instance.Bonds.GetAmount(this, kind);
     public Player owner;
     public Tile centerTile;
     public Transform model;
@@ -103,6 +105,7 @@ public class City : MonoBehaviour
         unit.currentTile = centerTile;
         centerTile.currentUnit = unit;
         unit.homeCity = this;
+        unit.dopamineBonus = PerkAmount(CityPerkKind.Dopamine);
         units.Add(unit);
 
         unit.hasMoved = true;
@@ -218,6 +221,7 @@ public class City : MonoBehaviour
     public void Claim(Player claimingPlayer)
     {
         if (owner == claimingPlayer) return;
+        TurnManager.Instance.Bonds.RemoveCity(this);
 
         pendingCapturer = null;
 

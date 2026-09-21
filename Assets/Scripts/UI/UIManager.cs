@@ -40,6 +40,25 @@ public class UIManager : MonoBehaviour
     private TechData selectedTech;
     private Player techPlayer;
     private City displayedCity;
+    private CityBondView bondView;
+    public bool SelectingBond => bondView != null && bondView.Selecting;
+    public bool SelectBondTarget(Tile tile) => bondView != null && bondView.Select(tile);
+    private void ShowBondActions(City city)
+    {
+        if (bondView == null)
+        {
+            bondView = gameObject.AddComponent<CityBondView>();
+            bondView.Initialize(spawnPanel, cityNameAndLevelText.font);
+        }
+        bondView.Show(city);
+        SetRecruitmentVisible(true);
+    }
+    public void SetRecruitmentVisible(bool visible)
+    {
+        spawnButtonHolder.gameObject.SetActive(visible);
+        cityNameAndLevelText.gameObject.SetActive(visible);
+        cantSpawnText.gameObject.SetActive(visible && displayedCity != null && displayedCity.units.Count >= displayedCity.UnitCapacity);
+    }
 
     private readonly Dictionary<City, GameObject> captureButtons = new Dictionary<City, GameObject>();
 
@@ -94,6 +113,7 @@ public class UIManager : MonoBehaviour
         }
         displayedCity = city;
         RefreshCityCapacity();
+        ShowBondActions(city);
     }
 
     public void ShowCityInfo(City city)
@@ -104,6 +124,7 @@ public class UIManager : MonoBehaviour
 
         displayedCity = city;
         RefreshCityCapacity();
+        ShowBondActions(city);
     }
 
     public void ShowBuildButtons(BuildingData[] availableBuildings, Tile tile, City city)
@@ -143,7 +164,7 @@ public class UIManager : MonoBehaviour
         var button = Instantiate(itemPurchaseButtonPrefab, buildButtonHolder).GetComponent<ItemPurchaseButton>();
         bool declaresWar = !demolish && !TurnManager.Instance.Diplomacy.IsAtWar(actor, segment.owner);
         button.AddText(demolish ? "Demolish neuron" : declaresWar ? "Sever neuron (declares war)" : "Sever neuron");
-        button.AddRefund(segment.DemolitionRefund);
+        button.AddRefund(segment.DemolitionRefund + (!demolish && unit != null ? unit.dopamineBonus : 0));
         button.AddListener(() =>
         {
             if (segment != null)
@@ -310,6 +331,7 @@ public class UIManager : MonoBehaviour
 
     public void CloseSpawnPanel()
     {
+        if (bondView != null) bondView.Hide();
         for (int i = 0; i < spawnButtonHolder.childCount; i++)
         {
             Destroy(spawnButtonHolder.GetChild(i).gameObject);
@@ -347,6 +369,7 @@ public class UIManager : MonoBehaviour
 
     public void SetStars(int value)
     {
+        if (bondView != null) bondView.Refresh();
         starsCounter.text = value + " stars";
         if (techTree != null) techTree.RefreshState();
         RefreshResearchState();
@@ -367,6 +390,7 @@ public class UIManager : MonoBehaviour
 
     private void RefreshNeuronIncome()
     {
+        if (bondView != null) bondView.Refresh();
         if (TurnManager.Instance == null) return;
         Player human = TurnManager.Instance.players.Find(p => !p.isAI);
         if (human != null) SetStarsPerTurn(human.CalculateTurnIncome());

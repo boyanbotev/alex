@@ -116,6 +116,7 @@ public class SelectionController : MonoBehaviour
 
     private bool CanPreview(Unit target)
     {
+        if (UIManager.Instance.SelectingBond) return false;
         return selectedUnit != null && selectedUnit.isAlive && selectedUnit.isActive &&
             !selectedUnit.hasAttacked && selectedUnit.owner == TurnManager.Instance.ActivePlayer &&
             target != null && target.isAlive && highlightedTiles.Contains(target.currentTile) &&
@@ -148,6 +149,7 @@ public class SelectionController : MonoBehaviour
     private void HandleClick()
     {
         Tile clickedTile = GetClickedTile();
+        if (UIManager.Instance.SelectBondTarget(clickedTile)) return;
         if (clickedTile == null)
         {
             DeselectAll();

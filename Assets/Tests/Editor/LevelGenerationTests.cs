@@ -6,16 +6,17 @@ using UnityEngine;
 
 public class LevelGenerationTests : TacticsTestFixture
 {
+    private CityData[] Cities(params string[] names) => names.Select(n => { var city = Asset<CityData>(); city.cityName = n; return city; }).ToArray();
     private Level CreateLevel()
     {
         var level = Asset<Level>();
         level.width = 24;
         level.height = 12;
         level.factions = new[] {
-            new LevelFaction { startingCityNames = new[] { "Capital A", "Town A" } },
-            new LevelFaction { startingCityNames = new[] { "Capital B", "Town B", "Port B" } }
+            new LevelFaction { startingCities = Cities("Capital A", "Town A") },
+            new LevelFaction { startingCities = Cities("Capital B", "Town B", "Port B") }
         };
-        level.neutralCityNames = new[] { "Neutral A", "Neutral B" };
+        level.neutralCities = Cities("Neutral A", "Neutral B");
         return level;
     }
 
@@ -71,14 +72,14 @@ public class LevelGenerationTests : TacticsTestFixture
         for (int x = 0; x < level.width; x++)
             for (int y = 0; y < level.height; y++) Tile(x, y).terrainType = TerrainType.Field;
         var originalFactions = level.factions;
-        var originalNeutrals = level.neutralCityNames;
+        var originalNeutrals = level.neutralCities;
         for (int seed = 0; seed < 20; seed++)
         {
             level.factions = originalFactions;
-            level.neutralCityNames = originalNeutrals;
+            level.neutralCities = originalNeutrals;
             var grouped = Place(level, seed).Positions;
-            level.factions = new[] { new LevelFaction { startingCityNames = new[] { "Capital" } } };
-            level.neutralCityNames = new[] { "A", "B", "C", "D", "E", "F" };
+            level.factions = new[] { new LevelFaction { startingCities = Cities("Capital") } };
+            level.neutralCities = Cities("A", "B", "C", "D", "E", "F");
             Assert.That(Place(level, seed).Positions, Is.EquivalentTo(grouped),
                 $"Ownership should not affect city locations (seed {seed}).");
         }
@@ -100,8 +101,8 @@ public class LevelGenerationTests : TacticsTestFixture
     public void SingleCapitalAndNoNeutralsWorksAndAvoidsWater()
     {
         var level = CreateLevel();
-        level.factions = new[] { new LevelFaction { startingCityNames = new[] { "Only City" } } };
-        level.neutralCityNames = Array.Empty<string>();
+        level.factions = new[] { new LevelFaction { startingCities = Cities("Only City") } };
+        level.neutralCities = Array.Empty<CityData>();
         Tile(3, 3).terrainType = TerrainType.Water;
         Tile(4, 4).terrainType = TerrainType.Mountain;
         Tile valid = Tile(5, 5);
@@ -145,9 +146,9 @@ public class LevelGenerationTests : TacticsTestFixture
         var copy = UnityEngine.Object.Instantiate(level);
         try
         {
-            copy.neutralCityNames = new[] { copy.factions[0].startingCityNames[0] };
+            copy.neutralCities = new[] { copy.factions[0].startingCities[0] };
             Assert.Throws<InvalidOperationException>(copy.Validate);
-            copy.neutralCityNames = new[] { " " };
+            copy.neutralCities = Cities(" ");
             Assert.Throws<InvalidOperationException>(copy.Validate);
         }
         finally { UnityEngine.Object.DestroyImmediate(copy); }

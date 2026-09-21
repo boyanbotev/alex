@@ -23,6 +23,7 @@ public sealed class DiplomacyState
 
     // Applies agreed peace. Negotiation/acceptance belongs to the caller.
     public bool MakePeace(Player a, Player b) => SetRelation(a, b, DiplomaticRelation.Peace);
+    public bool MakeAlliance(Player a, Player b) => SetRelation(a, b, DiplomaticRelation.Allied);
 
     private bool SetRelation(Player a, Player b, DiplomaticRelation relation)
     {

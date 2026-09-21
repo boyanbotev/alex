@@ -65,7 +65,7 @@ public sealed class CityPlacement
         for (int f = 0; f < offsets.Length; f++)
         {
             offsets[f] = neutralOffset;
-            neutralOffset += level.factions[f].startingCityNames.Length;
+            neutralOffset += level.factions[f].startingCities.Length;
         }
 
         // Assign each local group before choosing the next separated capital.

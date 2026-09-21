@@ -18,6 +18,7 @@ public sealed class NeuronNetwork
     {
         dirty = true;
         Rebuild();
+        turns.Bonds.Refresh();
         foreach (City city in neighbours.Keys) city.RefreshIncomeLabel();
         IncomeChanged?.Invoke();
     }
@@ -33,6 +34,40 @@ public sealed class NeuronNetwork
     {
         Rebuild();
         return neighbours.TryGetValue(a, out var cities) && cities.Contains(b);
+    }
+
+    // Returns only neuron tiles; city centres are endpoints, never transit nodes.
+    public bool TryGetRoute(City a, City b, List<Tile> route)
+    {
+        route.Clear();
+        if (!AreConnected(a, b)) return false;
+        var parents = new Dictionary<Tile, Tile>();
+        queue.Clear();
+        queue.Add(a.centerTile);
+        parents[a.centerTile] = null;
+        for (int i = 0; i < queue.Count; i++)
+        {
+            Tile current = queue[i];
+            for (int dx = -1; dx <= 1; dx++)
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                if (dx == 0 && dy == 0) continue;
+                Tile next = GridManager.Instance.GetTileAt(current.gridPosition + new Vector2Int(dx, dy));
+                if (next == null) continue;
+                if (next.city != null)
+                {
+                    if (next.city != b || current == a.centerTile) continue;
+                    for (Tile tile = current; tile != a.centerTile; tile = parents[tile]) route.Add(tile);
+                    route.Reverse();
+                    return true;
+                }
+                if (parents.ContainsKey(next) || next.currentBuilding == null ||
+                    !next.currentBuilding.IsPlacedNeuron || next.currentBuilding.owner == null) continue;
+                parents[next] = current;
+                queue.Add(next);
+            }
+        }
+        return false;
     }
 
     private void Rebuild()

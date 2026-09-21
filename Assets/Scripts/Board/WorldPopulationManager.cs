@@ -25,31 +25,32 @@ public class WorldPopulationManager : MonoBehaviour
         for (int f = 0; f < level.factions.Length; f++)
         {
             Player player = TurnManager.Instance.players[f];
-            foreach (string cityName in level.factions[f].startingCityNames)
+            foreach (CityData cityData in level.factions[f].startingCities)
             {
                 if (budget.ShouldYield()) { yield return null; budget.ShouldYield(); }
-                City city = SpawnCity(placement.Positions[index++], cityName, player);
+                City city = SpawnCity(placement.Positions[index++], cityData, player);
                 if (player.cities.Count == 1) SpawnStartingUnit(player, city);
             }
             TerritoryBorderManager.Instance.RebuildBorder(player);
         }
-        if (level.neutralCityNames != null)
-            foreach (string cityName in level.neutralCityNames)
+        if (level.neutralCities != null)
+            foreach (CityData cityData in level.neutralCities)
             {
                 if (budget.ShouldYield()) { yield return null; budget.ShouldYield(); }
-                SpawnCity(placement.Positions[index++], cityName, null);
+                SpawnCity(placement.Positions[index++], cityData, null);
             }
         WorldLoadingOverlay.Show("Creating fog...");
         yield return FogOfWarManager.Instance.CreateFogTiles(budget);
     }
 
-    private City SpawnCity(Tile tile, string cityName, Player owner)
+    private City SpawnCity(Tile tile, CityData cityData, Player owner)
     {
         GameObject cityObj;
         using (creationMarker.Auto())
             cityObj = Instantiate(villagePrefab, tile.transform.position, Quaternion.identity, tile.transform);
         City city = cityObj.GetComponent<City>();
-        city.cityName = cityName;
+        city.data = cityData;
+        city.cityName = cityData.cityName;
         city.centerTile = tile;
         city.owner = owner;
         tile.city = city;
@@ -72,6 +73,7 @@ public class WorldPopulationManager : MonoBehaviour
         unit.currentTile = capital.centerTile;
         capital.centerTile.currentUnit = unit;
         unit.homeCity = capital;
+        unit.dopamineBonus = capital.PerkAmount(CityPerkKind.Dopamine);
         unit.hasMoved = false;
         unit.hasAttacked = false;
         capital.units.Add(unit);

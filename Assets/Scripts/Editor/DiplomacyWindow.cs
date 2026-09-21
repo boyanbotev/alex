@@ -42,5 +42,7 @@ public sealed class DiplomacyWindow : EditorWindow
             if (GUILayout.Button("Declare war")) diplomacy.DeclareWar(a, b);
         using (new EditorGUI.DisabledScope(relation == DiplomaticRelation.Peace))
             if (GUILayout.Button("Make peace")) diplomacy.MakePeace(a, b);
+        using (new EditorGUI.DisabledScope(relation == DiplomaticRelation.Allied))
+            if (GUILayout.Button("Form alliance")) diplomacy.MakeAlliance(a, b);
     }
 }
