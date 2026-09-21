@@ -154,6 +154,19 @@ public class BoardState
             ? tile
             : unit.currentTile;
 
+    // Sample the starting territory once when calculating a move, not tiles along its path.
+    // Shared by player highlights, AI candidates, and queued raid validation.
+    public int GetMoveRange(Unit unit)
+    {
+        int range = unit.data.moveRange;
+        Tile start = GetTile(unit);
+        City city = start != null ? start.territoryCity ?? start.city : null;
+        if (city == null || TurnManager.Instance == null) return range;
+        Player owner = GetOwner(city);
+        if (IsAtWar(unit.owner, owner) || !TurnManager.Instance.Bonds.Friendly(unit.owner, owner)) return range;
+        return range + city.PerkAmount(CityPerkKind.Adrenaline);
+    }
+
     public int GetHealth(Unit unit) =>
         unitHealth.TryGetValue(unit, out int health)
             ? health
@@ -203,7 +216,7 @@ public class BoardState
             GetBuilding(position) != segment || segment.owner == null || segment.owner == unit.owner ||
             unit.owner.visibleTiles == null || !unit.owner.visibleTiles.IsVisible(position)) return false;
         if (position != GetTile(unit) && (HasMoved(unit) || HasSkill(unit, Skill.Static) ||
-            Utils.GridDistance(position.gridPosition, GetTile(unit).gridPosition) > unit.data.moveRange)) return false;
+            Utils.GridDistance(position.gridPosition, GetTile(unit).gridPosition) > GetMoveRange(unit))) return false;
         Unit occupant = GetOccupant(position);
         return (occupant == null || occupant == unit) &&
             TurnManager.Instance.Diplomacy.GetRelation(unit.owner, segment.owner) != DiplomaticRelation.Allied;

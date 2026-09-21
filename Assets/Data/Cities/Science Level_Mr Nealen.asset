@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Science Level_Mr Nealen
   m_EditorClassIdentifier: 
   cityName: Mr Nealen
-  perk: {fileID: 11400000, guid: 8fe3fb9c1017a65449535235e43157f0, type: 2}
+  perk: {fileID: 11400000, guid: db2c6c0576987ca40b5be8118128f5b7, type: 2}

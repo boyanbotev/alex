@@ -66,7 +66,7 @@ public sealed class CandidateGenerator
 
         if (!board.HasMoved(unit))
         {
-            grid.GetReachableMoveTiles(currentTile, unit.owner, unit.data.moveRange,
+            grid.GetReachableMoveTiles(currentTile, unit.owner, board.GetMoveRange(unit),
                 _getOccupant, _scratchPositions, _isAtWar);
         }
         _scratchPositions.Insert(0, currentTile);

@@ -156,7 +156,7 @@ public sealed class TacticalScorer
 
                 // melee units benefit from moving toward enemies
                 if (unit.data.attackRange == 1 &&
-                    distance <= unit.data.moveRange + 1)
+                    distance <= board.GetMoveRange(unit) + 1)
                 {
                     score += profile.positionWeight * 0.5f;
                 }
@@ -203,7 +203,7 @@ public sealed class TacticalScorer
             targetTile.gridPosition
         );
 
-        return distance <= enemy.data.moveRange + enemy.data.attackRange;
+        return distance <= board.GetMoveRange(enemy) + enemy.data.attackRange;
     }
 
     private bool CanRetaliate(Unit defender, Tile attackerPosition, BoardState board)

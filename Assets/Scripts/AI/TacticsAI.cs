@@ -156,7 +156,7 @@ public class TacticsAI : MonoBehaviour
             if (action.moveTile != action.unit.currentTile)
             {
                 GridManager.Instance.GetReachableMoveTiles(action.unit.currentTile, action.unit.owner,
-                    action.unit.data.moveRange, BoardState.Live.GetOccupant, severMoveTiles);
+                    BoardState.Live.GetMoveRange(action.unit), BoardState.Live.GetOccupant, severMoveTiles);
                 if (!severMoveTiles.Contains(action.moveTile)) yield break;
             }
         }

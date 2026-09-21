@@ -294,7 +294,7 @@ public class SelectionController : MonoBehaviour
         // Highlight Valid Movement Range
         if (!unit.hasMoved)
         {
-            GridManager.Instance.GetReachableMoveTiles(unit.currentTile, unit.owner, unit.data.moveRange,
+            GridManager.Instance.GetReachableMoveTiles(unit.currentTile, unit.owner, BoardState.Live.GetMoveRange(unit),
                 GetLiveOccupant, moveTiles);
             foreach (Tile tile in moveTiles)
 

@@ -117,8 +117,7 @@ public class Unit : MonoBehaviour
         if (hasAttacked || hasMoved || hasCaptured) return;
 
         City city = currentTile.territoryCity ?? currentTile.city;
-        bool inHomeTerritory = city?.owner == owner;
-        int healthRecoup = inHomeTerritory ? 4 : 2;
+        int healthRecoup = 2;
         if (city != null && TurnManager.Instance.Bonds.Friendly(owner, city.owner))
             healthRecoup += city.PerkAmount(CityPerkKind.Healing);
 

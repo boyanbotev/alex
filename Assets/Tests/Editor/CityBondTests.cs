@@ -114,4 +114,54 @@ public class CityBondTests : TacticsTestFixture
         }
         finally { Object.DestroyImmediate(unit.gameObject); }
     }
+
+    [Test]
+    public void HomeTerritoryOnlyAddsHealingWhenItHasThePerk()
+    {
+        var city = City(Tile(0), player);
+        var unit = Unit(player, city.centerTile);
+        unit.data.maxHealth = 20; unit.currentHealth = 1;
+        unit.Heal();
+        Assert.That(unit.currentHealth, Is.EqualTo(3));
+        Perk(city, CityPerkKind.Healing, 3);
+        unit.Heal();
+        Assert.That(unit.currentHealth, Is.EqualTo(8));
+    }
+
+    [Test]
+    public void AdrenalineIsLocalSharedAndLostWhenTheRouteBreaks()
+    {
+        player.stars = 20;
+        var a = City(Tile(0), player); var road = Segment(1); var b = City(Tile(2), player);
+        Perk(a, CityPerkKind.Adrenaline, 1);
+        var unit = Unit(player, b.centerTile); unit.data.moveRange = 1;
+        Assert.That(board.GetMoveRange(unit), Is.EqualTo(1));
+        Assert.That(turns.Bonds.TryCreate(player, a, b), Is.True);
+        Assert.That(board.GetMoveRange(unit), Is.EqualTo(2));
+        var outside = Tile(3);
+        int checkpoint = board.Checkpoint();
+        board.WithMove(unit, b.centerTile, outside);
+        Assert.That(board.GetMoveRange(unit), Is.EqualTo(1));
+        board.Rollback(checkpoint);
+        Assert.That(board.GetMoveRange(unit), Is.EqualTo(2));
+        road.tile.currentBuilding = null; turns.Neurons.Invalidate();
+        Assert.That(board.GetMoveRange(unit), Is.EqualTo(1));
+        Assert.That(unit.data.moveRange, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void AdrenalineBenefitsAlliesAndExtendsAIMovementButNotPeacefulVisitors()
+    {
+        var city = City(Tile(0), enemy); Perk(city, CityPerkKind.Adrenaline, 1);
+        var unit = Unit(player, city.centerTile); unit.data.moveRange = 1;
+        Tile(1); var destination = Tile(2);
+        turns.Diplomacy.MakePeace(player, enemy);
+        Assert.That(board.GetMoveRange(unit), Is.EqualTo(1));
+        turns.Diplomacy.MakeAlliance(player, enemy);
+        Assert.That(board.GetMoveRange(unit), Is.EqualTo(2));
+        Assert.That(Candidates(unit).Exists(x => x.moveTile == destination), Is.True);
+        int checkpoint = board.Checkpoint(); board.WithWar(player, enemy);
+        Assert.That(board.GetMoveRange(unit), Is.EqualTo(1));
+        board.Rollback(checkpoint);
+    }
 }
