@@ -94,13 +94,13 @@ public class UIManager : MonoBehaviour
 
     public void ShowSpawnButtons(FactionUnit[] availableUnits, City city)
     {
-        if (spawnPanel.gameObject.activeSelf) return;
-
+        if (bondView != null) bondView.Hide();
+        ClearSpawnButtons();
         spawnPanel.gameObject.SetActive(true);
+        displayedCity = city;
 
         foreach (FactionUnit unit in availableUnits) {
             var button = Instantiate(itemPurchaseButtonPrefab, spawnButtonHolder);
-
             ItemPurchaseButton itemPurchaseButton = button.GetComponent<ItemPurchaseButton>();
 
             itemPurchaseButton.AddText("Spawn " + unit.unitData.name);
@@ -110,7 +110,6 @@ public class UIManager : MonoBehaviour
                 CloseSpawnPanel();
             });
         }
-        displayedCity = city;
         RefreshCityCapacity();
         ShowBondActions(city);
     }
@@ -119,8 +118,8 @@ public class UIManager : MonoBehaviour
     {
         Player viewer = TurnManager.Instance.ActivePlayer;
         if (city == null || viewer.isAI || viewer.visibleTiles == null || !viewer.visibleTiles.IsVisible(city.centerTile)) return;
-        if (spawnPanel.gameObject.activeSelf) return;
-
+        if (bondView != null) bondView.Hide();
+        ClearSpawnButtons();
         spawnPanel.gameObject.SetActive(true);
 
         displayedCity = city;
@@ -333,11 +332,16 @@ public class UIManager : MonoBehaviour
     public void CloseSpawnPanel()
     {
         if (bondView != null) bondView.Hide();
+        ClearSpawnButtons();
+        spawnPanel.gameObject.SetActive(false);
+    }
+
+    private void ClearSpawnButtons()
+    {
         for (int i = 0; i < spawnButtonHolder.childCount; i++)
         {
             Destroy(spawnButtonHolder.GetChild(i).gameObject);
         }
-        spawnPanel.gameObject.SetActive(false);
     }
 
     public void CloseTechPanel()

@@ -175,13 +175,12 @@ public class SelectionController : MonoBehaviour
             {
                 selectedUnit = unit;
                 HighlightActions(selectedUnit);
+                return;
             }
-            else if (clickedTile.city != null) UIManager.Instance.ShowCityInfo(clickedTile.city);
         }
         else if (clickedTile.city != null)
         {
-            if (clickedTile.city.owner == player) ShowSpawnOptions(clickedTile);
-            else UIManager.Instance.ShowCityInfo(clickedTile.city);
+            ShowCityOrSpawnUI(clickedTile);
         }
         else if (clickedTile.city == null && clickedTile.currentBuilding == null)
         {
@@ -254,13 +253,22 @@ public class SelectionController : MonoBehaviour
 
             if (clickedTile.city != null)
             {
-                UIManager.Instance.ShowCityInfo(clickedTile.city);
+                ShowCityOrSpawnUI(clickedTile);
             }
         } else
         {
             DeselectAll();
-            if (clickedTile.city != null) UIManager.Instance.ShowCityInfo(clickedTile.city);
+            if (clickedTile.city != null)
+            {
+                ShowCityOrSpawnUI(clickedTile);
+            }
         }
+    }
+
+    private void ShowCityOrSpawnUI(Tile tile)
+    {
+        if (tile.city.owner == TurnManager.Instance.ActivePlayer) ShowSpawnOptions(tile);
+        else UIManager.Instance.ShowCityInfo(tile.city);
     }
 
     private void Attack(Unit targetUnit)
