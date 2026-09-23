@@ -74,7 +74,8 @@ public sealed class CombatPreviewUI : MonoBehaviour
         int bonus = BoardState.Live.GetTerritoryPerk(defender, CityPerkKind.Fortification);
         attackerIndicator.defense.gameObject.SetActive(false);
         defenderIndicator.defense.gameObject.SetActive(bonus > 0);
-        defenderIndicator.defense.text = $"+{bonus} DEF";
+        City territory = defender.currentTile.territoryCity ?? defender.currentTile.city;
+        defenderIndicator.defense.text = $"{CityPerkIcons.IconFor(territory, CityPerkKind.Fortification)}+{bonus} DEF";
         CombatMath.CollectSplashTargets(attacker, defender, defender.currentTile, BoardState.Live, splashTargets);
         splashCount = 0;
         foreach (Unit target in splashTargets)

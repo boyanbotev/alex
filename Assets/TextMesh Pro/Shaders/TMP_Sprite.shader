@@ -12,6 +12,7 @@ Shader "TextMeshPro/Sprite"
 		_StencilReadMask    ("Stencil Read Mask", Float) = 255
 
 		_CullMode           ("Cull Mode", Float) = 0
+        [HideInInspector] unity_GUIZTestMode ("Depth Test", Float) = 4
 		_ColorMask          ("Color Mask", Float) = 15
 		_ClipRect           ("Clip Rect", vector) = (-32767, -32767, 32767, 32767)
 

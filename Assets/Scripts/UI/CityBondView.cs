@@ -143,7 +143,7 @@ public sealed class CityBondView : MonoBehaviour
             CityPerkKind.Dopamine => $"Units created here earn +{perk.amount} stars for severing enemy neurons",
             _ => perk.description
         };
-        return $"{(string.IsNullOrEmpty(perk.perkName) ? perk.kind.ToString() : perk.perkName)} (level {city.PerkLevel}) — {effect}" +
+        return $"{perk.IconTag}{(string.IsNullOrEmpty(perk.perkName) ? perk.kind.ToString() : perk.perkName)} (level {city.PerkLevel}) — {effect}" +
             (perk.kind == CityPerkKind.Dopamine ? "" : ". Recruitment requires faction availability.");
     }
 }

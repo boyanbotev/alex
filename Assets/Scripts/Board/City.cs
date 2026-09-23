@@ -23,6 +23,9 @@ public class City : MonoBehaviour
     {
         if (!CanUpgradePerk(actor) || !actor.SpendStars(PerkUpgradeCost)) return false;
         perkLevel = 2;
+        RefreshIncomeLabel();
+        foreach (var bond in TurnManager.Instance.Bonds.All)
+            if (bond.Active) bond.Other(this)?.RefreshIncomeLabel();
         return true;
     }
     public int PerkAmount(CityPerkKind kind) => TurnManager.Instance.Bonds.GetAmount(this, kind);
@@ -53,7 +56,7 @@ public class City : MonoBehaviour
     public int UnitCapacity => TotalIncome;
     public void RefreshIncomeLabel()
     {
-        if (starsUI != null) starsUI.Set(cityName, TotalIncome);
+        if (starsUI != null) starsUI.Set(this, TotalIncome);
     }
 
     private void Start()

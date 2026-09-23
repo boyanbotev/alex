@@ -3,6 +3,26 @@ using UnityEngine;
 
 public class CityBondTests : TacticsTestFixture
 {
+    [Test]
+    public void MapPerksAreNativeFirstDeduplicatedAndRemoveSuspendedBonuses()
+    {
+        player.stars = 100;
+        var a = City(Tile(0), player); var road = Segment(1);
+        var b = City(Tile(2), player); var otherRoad = Segment(0, 1); var c = City(Tile(0, 2), player);
+        Perk(a, CityPerkKind.Healing, 3); a.data.perk.perkName = "Oxytocin";
+        Perk(b, CityPerkKind.Fortification, 3); b.data.perk.perkName = "Cortisol";
+        Perk(c, CityPerkKind.Healing, 3); c.data.perk.perkName = "Oxytocin";
+        Assert.That(turns.Bonds.TryCreate(player, a, b), Is.True);
+        Assert.That(turns.Bonds.TryCreate(player, a, c), Is.True);
+        Assert.That(CityPerkIcons.Row(a), Is.EqualTo("Oxytocin<sup>1</sup>  Cortisol<sup>1</sup>"));
+        Assert.That(c.TryUpgradePerk(player), Is.True);
+        Assert.That(CityPerkIcons.Row(a), Is.EqualTo("Oxytocin<sup>2</sup>  Cortisol<sup>1</sup>"));
+        road.tile.currentBuilding = null;
+        otherRoad.tile.currentBuilding = null;
+        turns.Neurons.Invalidate();
+        Assert.That(CityPerkIcons.Row(a), Is.EqualTo("Oxytocin<sup>1</sup>"));
+    }
+
     [TestCase(CityPerkKind.Healing)]
     [TestCase(CityPerkKind.Fortification)]
     [TestCase(CityPerkKind.Adrenaline)]

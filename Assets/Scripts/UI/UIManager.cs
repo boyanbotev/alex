@@ -135,7 +135,7 @@ public class UIManager : MonoBehaviour
         Player actor = TurnManager.Instance.ActivePlayer;
         if (city.owner != actor || !city.HasPerkUpgrade) return;
         var button = Instantiate(itemPurchaseButtonPrefab, spawnButtonHolder).GetComponent<ItemPurchaseButton>();
-        button.AddText($"Upgrade {city.data.perk.perkName} to level 2");
+        button.AddText($"{city.data.perk.IconTag}Upgrade to Lv 2");
         button.AddCost(City.PerkUpgradeCost);
         button.GetComponent<Button>().interactable = city.CanUpgradePerk(actor);
         button.AddListener(() => {

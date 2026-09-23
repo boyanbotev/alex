@@ -78,12 +78,18 @@ public sealed class CityBondManager
 
     public void RemoveCity(City city)
     {
+        var partners = new List<City>();
+        foreach (var bond in bonds)
+            if (bond.Other(city) != null) partners.Add(bond.Other(city));
         bonds.RemoveAll(x => x.a == city || x.b == city);
         Refresh();
+        foreach (City partner in partners) partner.RefreshIncomeLabel();
     }
 
     public void Refresh()
     {
+        var affectedCities = new HashSet<City>();
+        foreach (var bond in bonds) { affectedCities.Add(bond.a); affectedCities.Add(bond.b); }
         var changed = new HashSet<Tile>(reinforced);
         reinforced.Clear();
         bonds.RemoveAll(x => x.a == null || x.b == null || x.a.owner != x.ownerA || x.b.owner != x.ownerB);
@@ -101,6 +107,8 @@ public sealed class CityBondManager
             var visual = tile.currentBuilding.GetComponent<NeuronSegmentVisual>();
             if (visual != null) visual.Refresh();
         }
+        foreach (City city in affectedCities)
+            if (city != null) city.RefreshIncomeLabel();
     }
     private static bool RouteIntact(CityBond bond)
     {
