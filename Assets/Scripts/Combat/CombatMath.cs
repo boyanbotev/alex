@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
 /// Pure, state-free combat math shared between real unit combat (Unit.Attack)
@@ -7,6 +8,24 @@ using UnityEngine;
 /// </summary>
 public static class CombatMath
 {
+    // Reuse caller-owned buffers; only inspect tiles inside the splash radius.
+    public static void CollectSplashTargets(Unit attacker, Unit primary, Tile center, BoardState board, List<Unit> targets)
+    {
+        targets.Clear();
+        if (attacker.data.splashDamage <= 0 || attacker.data.splashRadius <= 0 || center == null) return;
+        int radius = attacker.data.splashRadius;
+        var origin = center.gridPosition;
+        for (int x = -radius; x <= radius; x++)
+        for (int y = -radius; y <= radius; y++)
+        {
+            if (x == 0 && y == 0) continue;
+            if (!GridManager.Instance.grid.TryGetValue(origin + new Vector2Int(x, y), out Tile tile)) continue;
+            Unit unit = board.GetOccupant(tile);
+            if (unit != null && unit != primary && unit != attacker && board.IsAlive(unit) &&
+                board.IsAtWar(attacker.owner, unit.owner)) targets.Add(unit);
+        }
+    }
+
     public static (int attackDamage, int defenseDamage) CalculateDamage(
         int attackerPower, int attackerHealth, int attackerMaxHealth,
         int defenderPower, int defenderHealth, int defenderMaxHealth)

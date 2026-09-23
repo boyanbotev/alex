@@ -25,5 +25,7 @@ public class UnitStatsPopup : MonoBehaviour
         skillsText.text = (unit.skills != null && unit.skills.Length > 0)
             ? string.Join(", ", System.Array.ConvertAll(unit.skills, s => s.ToString()))
             : "";
+        if (unit.splashDamage > 0 && unit.splashRadius > 0)
+            skillsText.text += $"\nSplash: {unit.splashDamage} damage, radius {unit.splashRadius}";
     }
 }

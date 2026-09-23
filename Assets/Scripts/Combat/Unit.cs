@@ -21,6 +21,7 @@ public class Unit : MonoBehaviour
     public bool isAlive;
     public bool isActive;
     public bool hasCaptured;
+    private readonly List<Unit> splashTargets = new();
 
     [Header("Animation")]
 
@@ -67,7 +68,10 @@ public class Unit : MonoBehaviour
         int attackDamage = damages.Item1;
         int retaliationDamage = damages.Item2;
 
+        CombatMath.CollectSplashTargets(this, defender, defender.currentTile, BoardState.Live, splashTargets);
         defender.TakeDamage(attackDamage);
+        foreach (Unit target in splashTargets) target.TakeDamage(data.splashDamage);
+        splashTargets.Clear();
 
         if (retaliationDamage > 0)
         {

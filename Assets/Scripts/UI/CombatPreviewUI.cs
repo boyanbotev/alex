@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 /// <summary>Two reusable, non-interactive indicators for a held attack preview.</summary>
 public sealed class CombatPreviewUI : MonoBehaviour
@@ -18,6 +19,9 @@ public sealed class CombatPreviewUI : MonoBehaviour
     private Indicator attackerIndicator;
     private Indicator defenderIndicator;
     private Camera worldCamera;
+    private readonly List<Unit> splashTargets = new();
+    private readonly List<Indicator> splashIndicators = new();
+    private int splashCount;
 
     private void Awake()
     {
@@ -71,6 +75,18 @@ public sealed class CombatPreviewUI : MonoBehaviour
         attackerIndicator.defense.gameObject.SetActive(false);
         defenderIndicator.defense.gameObject.SetActive(bonus > 0);
         defenderIndicator.defense.text = $"+{bonus} DEF";
+        CombatMath.CollectSplashTargets(attacker, defender, defender.currentTile, BoardState.Live, splashTargets);
+        splashCount = 0;
+        foreach (Unit target in splashTargets)
+        {
+            if (attacker.owner.visibleTiles == null || !attacker.owner.visibleTiles.IsVisible(target.currentTile)) continue;
+            if (splashCount == splashIndicators.Count) splashIndicators.Add(CreateIndicator("Splash"));
+            var indicator = splashIndicators[splashCount++];
+            SetIndicator(indicator, target, attacker.data.splashDamage, skull);
+            indicator.defense.gameObject.SetActive(false);
+        }
+        for (int i = splashCount; i < splashIndicators.Count; i++) splashIndicators[i].root.gameObject.SetActive(false);
+        splashTargets.Clear();
         gameObject.SetActive(true);
         LateUpdate();
     }
@@ -102,6 +118,7 @@ public sealed class CombatPreviewUI : MonoBehaviour
         }
         Position(attackerIndicator);
         Position(defenderIndicator);
+        for (int i = 0; i < splashCount; i++) Position(splashIndicators[i]);
     }
 
     private void Position(Indicator indicator)

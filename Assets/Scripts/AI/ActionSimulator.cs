@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+
 /// <summary>Applies hypothetical actions without changing live units, tiles, or cities.</summary>
 public static class ActionSimulator
 {
+    private static readonly List<Unit> splashTargets = new();
     public static void Apply(BoardState board, CandidateAction action)
     {
         Unit unit = action.unit;
@@ -58,7 +61,11 @@ public static class ActionSimulator
 
         bool killed = newTargetHealth <= 0;
 
+        CombatMath.CollectSplashTargets(unit, target, targetTile, board, splashTargets);
         board.WithDamage(target, newTargetHealth);
+        foreach (Unit splash in splashTargets)
+            board.WithDamage(splash, board.GetHealth(splash) - unit.data.splashDamage);
+        splashTargets.Clear();
         board.WithAttacked(unit);
 
         bool meleeAttack = unit.data.attackRange == 1;

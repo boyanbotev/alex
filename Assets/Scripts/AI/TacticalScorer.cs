@@ -8,6 +8,7 @@ public sealed class TacticalScorer
     private IReadOnlyList<City> cities;
     private readonly NeuronRaidScorer neuronRaids = new();
     private readonly Dictionary<(Player, Building), float> raidValues = new();
+    private readonly List<Unit> splashTargets = new();
 
     public void BeginGeneration() => raidValues.Clear();
 
@@ -55,6 +56,14 @@ public sealed class TacticalScorer
         float score = 0f;
 
         score += damage * profile.damageWeight;
+        CombatMath.CollectSplashTargets(unit, target, board.GetTile(target), board, splashTargets);
+        foreach (Unit splash in splashTargets)
+        {
+            int health = board.GetHealth(splash);
+            score += System.Math.Min(health, unit.data.splashDamage) * profile.damageWeight;
+            if (unit.data.splashDamage >= health) score += splash.data.cost * profile.killWeight;
+        }
+        splashTargets.Clear();
 
         if (kills)
         {

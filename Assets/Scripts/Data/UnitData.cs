@@ -17,6 +17,8 @@ public class UnitData : ScriptableObject
     public  int defensePower = 2;
     public int moveRange = 1;
     public int attackRange = 1;
+    [Min(0)] public int splashDamage;
+    [Min(0)] public int splashRadius;
     public Skill[] skills = System.Array.Empty<Skill>();
     public Counter[] counters = System.Array.Empty<Counter>();
     public TechData requiredTech;

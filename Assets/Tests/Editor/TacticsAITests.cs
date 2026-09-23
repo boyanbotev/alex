@@ -4,6 +4,83 @@ using NUnit.Framework;
 
 public class TacticsAITests : TacticsTestFixture
 {
+    [Test]
+    public void SplashMatchesLiveCombatAndSkipsPrimaryFriendlyPeacefulAndDistantUnits()
+    {
+        var attacker = Unit(player, Tile(0));
+        var primary = Unit(enemy, Tile(3));
+        var adjacent = Unit(enemy, Tile(4));
+        var diagonal = Unit(enemy, Tile(4, 1));
+        var friendly = Unit(player, Tile(3, 1));
+        var distant = Unit(enemy, Tile(5));
+        var peacefulPlayer = Component<Player>(); turns.players.Add(peacefulPlayer);
+        var ally = Component<Player>(); turns.players.Add(ally);
+        turns.Diplomacy.MakePeace(player, peacefulPlayer);
+        var peaceful = Unit(peacefulPlayer, Tile(2, 1));
+        turns.Diplomacy.MakePeace(player, ally); turns.Diplomacy.MakeAlliance(player, ally);
+        var allied = Unit(ally, Tile(2, -1));
+        attacker.data.attackRange = 3; attacker.data.splashDamage = 2; attacker.data.splashRadius = 1;
+        adjacent.data.defensePower = 100;
+        int direct = attacker.PredictAttackDamage(primary).damage;
+        int checkpoint = board.Checkpoint();
+        ActionSimulator.Apply(board, new CandidateAction {
+            unit = attacker, target = primary, moveTile = attacker.currentTile, kind = ActionKind.Attack
+        });
+        Assert.That(board.GetHealth(primary), Is.EqualTo(10 - direct));
+        Assert.That(board.GetHealth(adjacent), Is.EqualTo(8));
+        Assert.That(board.GetHealth(diagonal), Is.EqualTo(8));
+        foreach (var untouched in new[] { attacker, friendly, peaceful, allied, distant })
+            Assert.That(board.GetHealth(untouched), Is.EqualTo(10));
+        board.Rollback(checkpoint);
+        Assert.That(board.GetHealth(adjacent), Is.EqualTo(10));
+        attacker.Attack(primary);
+        Assert.That(primary.currentHealth, Is.EqualTo(10 - direct));
+        Assert.That(adjacent.currentHealth, Is.EqualTo(8));
+        Assert.That(diagonal.currentHealth, Is.EqualTo(8));
+        foreach (var untouched in new[] { attacker, friendly, peaceful, allied, distant })
+            Assert.That(untouched.currentHealth, Is.EqualTo(10));
+        attacker.Attack(primary);
+        Assert.That(adjacent.currentHealth, Is.EqualTo(8));
+    }
+
+    [Test]
+    public void SplashUsesSimulatedPositionsAndKillsEvenWhenPrimaryDiesThenRollsBack()
+    {
+        var attacker = Unit(player, Tile(0));
+        var primary = Unit(enemy, Tile(3)); primary.currentHealth = 1;
+        var splash = Unit(enemy, Tile(6)); splash.currentHealth = 2;
+        var destination = Tile(4, 1);
+        attacker.data.attackRange = 3; attacker.data.splashDamage = 2; attacker.data.splashRadius = 1;
+        int checkpoint = board.Checkpoint();
+        board.WithMove(splash, splash.currentTile, destination);
+        ActionSimulator.Apply(board, new CandidateAction {
+            unit = attacker, target = primary, moveTile = attacker.currentTile, kind = ActionKind.Attack
+        });
+        Assert.That(board.IsAlive(primary), Is.False);
+        Assert.That(board.IsAlive(splash), Is.False);
+        Assert.That(board.GetOccupant(destination), Is.Null);
+        board.Rollback(checkpoint);
+        Assert.That(board.IsAlive(primary), Is.True);
+        Assert.That(board.IsAlive(splash), Is.True);
+        Assert.That(board.GetHealth(splash), Is.EqualTo(2));
+        Assert.That(board.GetTile(splash), Is.SameAs(splash.currentTile));
+    }
+
+    [TestCase(0, 1)]
+    [TestCase(2, 0)]
+    [TestCase(0, 0)]
+    public void ZeroSplashDamageOrRadiusDisablesSplash(int damage, int radius)
+    {
+        var attacker = Unit(player, Tile(0)); var primary = Unit(enemy, Tile(3));
+        Unit(enemy, Tile(4));
+        Assert.That(attacker.data.splashDamage, Is.Zero);
+        Assert.That(attacker.data.splashRadius, Is.Zero);
+        attacker.data.splashDamage = damage; attacker.data.splashRadius = radius;
+        var targets = new List<Unit>();
+        CombatMath.CollectSplashTargets(attacker, primary, primary.currentTile, board, targets);
+        Assert.That(targets, Is.Empty);
+    }
+
     [TestCase(1)]
     [TestCase(2)]
     public void KillingAttackAdvancesOnlyMeleeAndRegistersCapture(int range)

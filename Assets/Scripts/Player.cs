@@ -48,7 +48,10 @@ public class Player : MonoBehaviour
 
     public void RemoveCity(City city)
     {
-        cities.Remove(city);
+        if (!cities.Remove(city) || !isAI || cities.Count > 0) return;
+
+        for (int i = units.Count - 1; i >= 0; i--)
+            units[i].TakeDamage(units[i].currentHealth);
     }
 
     public bool CanPlaceNeuron(BuildingData data, Tile tile)
