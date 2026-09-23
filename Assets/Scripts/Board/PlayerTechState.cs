@@ -40,8 +40,4 @@ public class PlayerTechState
             (building.requiredTech == null || IsUnlocked(building.requiredTech));
     }
 
-    public bool CanSpawn(UnitData unit)
-    {
-        return unit.requiredTech == null || IsUnlocked(unit.requiredTech);
-    }
 }

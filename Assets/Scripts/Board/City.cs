@@ -72,6 +72,15 @@ public class City : MonoBehaviour
         }
     }
 
+    public bool CanRecruit(FactionUnit unit)
+    {
+        if (unit == null || unit.unitData == null || owner == null || owner.faction == null ||
+            owner.faction.availableUnits == null || Array.IndexOf(owner.faction.availableUnits, unit) < 0)
+            return false;
+        var perk = unit.unitData.requiredPerk;
+        return perk == CityPerkKind.None || TurnManager.Instance.Bonds.HasPerk(this, perk);
+    }
+
     public bool SpawnUnit(FactionUnit factionUnit, int cost)
     {
         if (factionUnit == null || factionUnit.unitData == null || factionUnit.prefab == null ||
@@ -86,7 +95,7 @@ public class City : MonoBehaviour
             return false;
         }
 
-        if (!owner.techState.CanSpawn(factionUnit.unitData))
+        if (!CanRecruit(factionUnit))
         {
             return false;
         }

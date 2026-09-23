@@ -36,3 +36,4 @@ MonoBehaviour:
   - unit: {fileID: 11400000, guid: 83aec6b143f04104a99b4df5b0068c96, type: 2}
     strength: 0
   requiredTech: {fileID: 0}
+  requiredPerk: -1

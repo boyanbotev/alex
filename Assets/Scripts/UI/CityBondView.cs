@@ -137,9 +137,9 @@ public sealed class CityBondView : MonoBehaviour
         if (perk == null) return "None";
         string effect = perk.kind switch
         {
-            CityPerkKind.Healing => $"+{perk.amount} healing when friendly/allied units rest here",
-            CityPerkKind.Adrenaline => $"+{perk.amount} movement for friendly/allied units starting here",
-            CityPerkKind.Fortification => $"+{perk.amount} defence for friendly/allied units here",
+            CityPerkKind.Healing => $"+{perk.amount} healing when friendly/allied units rest here; recruit archers and catapults from your faction roster",
+            CityPerkKind.Adrenaline => $"+{perk.amount} movement for friendly/allied units starting here; recruit cavalry and knights from your faction roster",
+            CityPerkKind.Fortification => $"+{perk.amount} defence for friendly/allied units here; recruit defenders from your faction roster",
             CityPerkKind.Dopamine => $"Units created here earn +{perk.amount} stars for severing enemy neurons",
             _ => perk.description
         };

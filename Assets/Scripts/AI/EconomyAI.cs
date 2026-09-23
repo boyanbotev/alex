@@ -99,7 +99,7 @@ public class EconomyAI : MonoBehaviour
             for (int j = 0; j < controlledPlayer.faction.availableUnits.Length; j++)
             {
                 FactionUnit unit = controlledPlayer.faction.availableUnits[j];
-                if (!controlledPlayer.techState.CanSpawn(unit.unitData)) continue;
+                if (!city.CanRecruit(unit)) continue;
 
                 buffer.Add(new EconomyCandidateAction
                 {
@@ -227,14 +227,6 @@ public class EconomyAI : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < controlledPlayer.faction.availableUnits.Length; i++)
-        {
-            if (controlledPlayer.faction.availableUnits[i].unitData.requiredTech == tech)
-            {
-                score += ScoreUnitUnlock(controlledPlayer.faction.availableUnits[i]);
-            }
-        }
-
         for (int i = 0; i < controlledPlayer.faction.availableTech.Length; i++)
         {
             TechData other = controlledPlayer.faction.availableTech[i];
@@ -245,28 +237,6 @@ public class EconomyAI : MonoBehaviour
         }
 
         return score;
-    }
-
-    // should be more sophisticated and more like the standard scoring
-    private float ScoreUnitUnlock(FactionUnit unit)
-    {
-        float counterScore = 0f;
-        int enemyCount = 0;
-
-        for (int i = 0; i < TurnManager.Instance.players.Count; i++)
-        {
-            Player player = TurnManager.Instance.players[i];
-            if (!InteractionRules.CanAttack(controlledPlayer, player)) continue;
-
-            List<Unit> units = player.units;
-            for (int j = 0; j < units.Count; j++)
-            {
-                counterScore += CalculateCounterStrength(unit, units[j]);
-                enemyCount++;
-            }
-        }
-
-        return enemyCount > 0 ? counterScore / enemyCount : 0f;
     }
 
     private bool ExecuteEconomyAction(EconomyCandidateAction c)

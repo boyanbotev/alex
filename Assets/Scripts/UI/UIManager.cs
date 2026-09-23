@@ -215,13 +215,6 @@ public class UIManager : MonoBehaviour
             CreateUnlockCard(b.buildingName, b.cost, () => ShowBuildingInfoPopup(b));
         }
 
-        foreach (FactionUnit unit in player.faction.availableUnits)
-        {
-            if (unit.unitData.requiredTech != tech) continue;
-            UnitData u = unit.unitData;
-            CreateUnlockCard(u.name, u.cost, () => ShowUnitStatsPopup(u));
-        }
-
         researchButton.onClick.RemoveAllListeners();
         researchButton.onClick.AddListener(() => {
             player.techState.TryResearch(tech, player);

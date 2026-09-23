@@ -3,6 +3,57 @@ using UnityEngine;
 
 public class CityBondTests : TacticsTestFixture
 {
+    [TestCase(CityPerkKind.Healing)]
+    [TestCase(CityPerkKind.Fortification)]
+    [TestCase(CityPerkKind.Adrenaline)]
+    public void RecruitmentRequiresRosterAndPerkRegardlessOfTechOrPassiveAmount(CityPerkKind kind)
+    {
+        player.faction = Asset<Faction>();
+        player.stars = 20;
+        var city = City(Tile(0), player);
+        var entry = Asset<FactionUnit>();
+        entry.unitData = Asset<UnitData>();
+        entry.unitData.requiredPerk = kind;
+        entry.unitData.requiredTech = Asset<TechData>();
+        entry.prefab = Component<Unit>().gameObject;
+        player.faction.availableUnits = new[] { entry };
+        Assert.That(city.CanRecruit(entry), Is.False);
+        player.techState.InitializeStartingTech(new[] { entry.unitData.requiredTech });
+        Assert.That(city.CanRecruit(entry), Is.False);
+        Assert.That(city.SpawnUnit(entry, 2), Is.False);
+        Assert.That(player.stars, Is.EqualTo(20));
+        player.techState.InitializeStartingTech(null);
+        Perk(city, kind, 0);
+        Assert.That(city.CanRecruit(entry), Is.True);
+        player.faction.availableUnits = System.Array.Empty<FactionUnit>();
+        Assert.That(city.CanRecruit(entry), Is.False);
+        Assert.That(city.SpawnUnit(entry, 2), Is.False);
+        Assert.That(player.stars, Is.EqualTo(20));
+        entry.unitData.requiredPerk = CityPerkKind.None;
+        player.faction.availableUnits = new[] { entry };
+        city.data.perk = null;
+        Assert.That(city.CanRecruit(entry), Is.True);
+    }
+
+    [Test]
+    public void RecruitmentSharesOnlyDirectActiveBondsAndEndsWhenSevered()
+    {
+        player.faction = Asset<Faction>(); player.stars = 30;
+        var a = City(Tile(0), player); var road = Segment(1);
+        var b = City(Tile(2), player); Segment(3); var c = City(Tile(4), player);
+        Perk(a, CityPerkKind.Healing, 0);
+        var entry = Asset<FactionUnit>(); entry.unitData = Asset<UnitData>();
+        entry.unitData.requiredPerk = CityPerkKind.Healing;
+        player.faction.availableUnits = new[] { entry };
+        Assert.That(turns.Bonds.TryCreate(player, a, b), Is.True);
+        Assert.That(turns.Bonds.TryCreate(player, b, c), Is.True);
+        Assert.That(b.CanRecruit(entry), Is.True);
+        Assert.That(c.CanRecruit(entry), Is.False);
+        road.tile.currentBuilding = null; turns.Neurons.Invalidate();
+        Assert.That(b.CanRecruit(entry), Is.False);
+        Assert.That(a.CanRecruit(entry), Is.True);
+    }
+
     [Test]
     public void FortificationSharesWithoutStackingAndEndsOutsideTerritory()
     {
@@ -150,6 +201,7 @@ public class CityBondTests : TacticsTestFixture
         turns.Bonds.TryCreate(player, a, b);
         var recruit = Asset<FactionUnit>(); recruit.unitData = Asset<UnitData>();
         recruit.prefab = Component<Unit>().gameObject;
+        player.faction.availableUnits = new[] { recruit };
         Assert.That(a.SpawnUnit(recruit, 2), Is.True);
         var unit = a.centerTile.currentUnit;
         try

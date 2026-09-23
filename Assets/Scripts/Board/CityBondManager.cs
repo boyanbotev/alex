@@ -52,6 +52,16 @@ public sealed class CityBondManager
         return true;
     }
 
+    public bool HasPerk(City city, CityPerkKind kind)
+    {
+        if (NativePerk(city, kind)) return true;
+        foreach (var bond in bonds)
+            if (bond.Active && NativePerk(bond.Other(city), kind)) return true;
+        return false;
+    }
+    private static bool NativePerk(City city, CityPerkKind kind) =>
+        city != null && city.data != null && city.data.perk != null && city.data.perk.kind == kind;
+
     public int GetAmount(City city, CityPerkKind kind)
     {
         int amount = NativeAmount(city, kind);

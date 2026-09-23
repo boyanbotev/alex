@@ -197,7 +197,7 @@ public class SelectionController : MonoBehaviour
         Player player = TurnManager.Instance.ActivePlayer;
 
         var availableUnits = player.faction.availableUnits
-            .Where(u => !u.unitData.requiredTech || player.techState.IsUnlocked(u.unitData.requiredTech)).ToArray();
+            .Where(tile.city.CanRecruit).ToArray();
 
         UIManager.Instance.ShowSpawnButtons(availableUnits, tile.city);
     }

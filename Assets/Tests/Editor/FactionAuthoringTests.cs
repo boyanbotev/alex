@@ -4,7 +4,7 @@ using NUnit.Framework;
 public class FactionAuthoringTests : TacticsTestFixture
 {
     [Test]
-    public void StartingTechIsFactionSpecificFreeAndUnlocksRecruitmentAndBuildings()
+    public void StartingTechIsFactionSpecificFreeAndUnlocksBuildings()
     {
         var first = Asset<Faction>();
         var second = Asset<Faction>();
@@ -33,12 +33,8 @@ public class FactionAuthoringTests : TacticsTestFixture
         Assert.That(a.techState.CanResearch(archery), Is.False);
         Assert.That(a.stars, Is.EqualTo(5));
         Assert.That(b.stars, Is.EqualTo(7));
-        var unit = Asset<UnitData>();
-        unit.requiredTech = archery;
         var building = Asset<BuildingData>();
         building.requiredTech = archery;
-        Assert.That(a.techState.CanSpawn(unit), Is.True);
-        Assert.That(b.techState.CanSpawn(unit), Is.False);
         Assert.That(a.techState.CanBuild(building), Is.True);
         Assert.That(b.techState.CanBuild(building), Is.False);
         var laterTech = Asset<TechData>();
@@ -72,6 +68,7 @@ public class FactionAuthoringTests : TacticsTestFixture
         entry.prefab = prefab.gameObject;
         entry.unitData = Asset<UnitData>();
         entry.unitData.maxHealth = 30;
+        player.faction.availableUnits = new[] { entry };
         Assert.That(city.SpawnUnit(entry, 0), Is.True);
         try
         {

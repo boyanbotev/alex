@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e23c4cd3d41d124787a342d945e7f9f, type: 3}
   m_Name: Fortification
   m_EditorClassIdentifier:
-  perkName: Fortification
-  description: Friendly and allied units gain 1 defence while in this city's territory.
+  perkName: Cortisol
+  description: Friendly and allied units gain 1 defence while in this city's territory. Allows recruitment of defenders from the faction roster.
   icon: {fileID: 0}
   kind: 3
   amount: 1
