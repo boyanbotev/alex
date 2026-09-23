@@ -156,7 +156,10 @@ public class SelectionController : MonoBehaviour
             return;
         }
 
-        if (selectedUnit != null) HandleSelectedUnitActions(clickedTile);
+        if (selectedUnit != null && !(clickedTile.currentUnit?.owner == TurnManager.Instance.ActivePlayer && clickedTile.currentUnit != selectedUnit))
+        {
+            HandleSelectedUnitActions(clickedTile);
+        }
         else SelectTileItem(clickedTile);
     }
 
