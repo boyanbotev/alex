@@ -18,7 +18,6 @@ MonoBehaviour:
   startingUnit: {fileID: 11400000, guid: ef4ba16ffe57b3344b02414d05b69843, type: 2}
   availableUnits:
   - {fileID: 11400000, guid: ef4ba16ffe57b3344b02414d05b69843, type: 2}
-  - {fileID: 11400000, guid: 8fd7088d03deeab44be0f9f113317312, type: 2}
   - {fileID: 11400000, guid: a192616d9158d3b4dbb17878f491aa61, type: 2}
   - {fileID: 11400000, guid: cb683d5c4c5fd0449b6ca494acf52b0a, type: 2}
   - {fileID: 11400000, guid: 64d080705ad1c734bb4314e9386234c8, type: 2}
