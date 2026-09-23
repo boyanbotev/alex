@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Adrenaline
   m_EditorClassIdentifier:
   perkName: Adrenaline
-  description: Friendly and allied units gain 1 extra movement when starting a move in this city's territory. Allows recruitment of cavalry and knights from the faction roster.
+  description: Friendly and allied units gain 1 extra movement when starting a move in this city's territory. Unlocks cavalry at level 1 and knights at level 2, subject to faction availability.
   icon: {fileID: 0}
   kind: 2
   amount: 1

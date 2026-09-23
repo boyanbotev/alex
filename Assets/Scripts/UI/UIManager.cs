@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -110,6 +111,7 @@ public class UIManager : MonoBehaviour
                 CloseSpawnPanel();
             });
         }
+        ShowPerkUpgrade(city);
         RefreshCityCapacity();
         ShowBondActions(city);
     }
@@ -123,8 +125,23 @@ public class UIManager : MonoBehaviour
         spawnPanel.gameObject.SetActive(true);
 
         displayedCity = city;
+        ShowPerkUpgrade(city);
         RefreshCityCapacity();
         ShowBondActions(city);
+    }
+
+    private void ShowPerkUpgrade(City city)
+    {
+        Player actor = TurnManager.Instance.ActivePlayer;
+        if (city.owner != actor || !city.HasPerkUpgrade) return;
+        var button = Instantiate(itemPurchaseButtonPrefab, spawnButtonHolder).GetComponent<ItemPurchaseButton>();
+        button.AddText($"Upgrade {city.data.perk.perkName} to level 2");
+        button.AddCost(City.PerkUpgradeCost);
+        button.GetComponent<Button>().interactable = city.CanUpgradePerk(actor);
+        button.AddListener(() => {
+            if (city.TryUpgradePerk(actor))
+                ShowSpawnButtons(actor.faction.availableUnits.Where(city.CanRecruit).ToArray(), city);
+        });
     }
 
     public void ShowBuildButtons(BuildingData[] availableBuildings, Tile tile, City city)

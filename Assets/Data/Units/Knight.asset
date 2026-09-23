@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Knight
   m_EditorClassIdentifier: 
   counterType: {fileID: 0}
-  cost: 8
-  maxHealth: 10
+  cost: 10
+  maxHealth: 15
   attackPower: 3
-  defensePower: 1
-  moveRange: 3
+  defensePower: 2
+  moveRange: 2
   attackRange: 1
   skills: 
   counters:
@@ -37,3 +37,4 @@ MonoBehaviour:
     strength: -2
   requiredTech: {fileID: 11400000, guid: 4f6243906ed07f241a08269cdab5f87f, type: 2}
   requiredPerk: 2
+  requiredPerkLevel: 2

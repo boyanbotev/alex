@@ -179,7 +179,7 @@ public sealed class FactionUnitWindow : EditorWindow
         var users = entries.Where(e => e.unitData == data).Select(e => e.name).ToArray();
         EditorGUILayout.LabelField("Stats: " + data.name, EditorStyles.boldLabel);
         EditorGUILayout.HelpBox("Used by: " + (users.Length == 0 ? "no faction units" : string.Join(", ", users)), MessageType.Info);
-        DrawProperties(data, "cost", "maxHealth", "attackPower", "defensePower", "moveRange", "attackRange", "skills", "counters", "requiredPerk");
+        DrawProperties(data, "cost", "maxHealth", "attackPower", "defensePower", "moveRange", "attackRange", "skills", "counters", "requiredPerk", "requiredPerkLevel");
     }
 
     private static void DrawProperties(UnityEngine.Object asset, params string[] names)

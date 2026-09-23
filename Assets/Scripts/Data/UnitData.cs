@@ -21,4 +21,5 @@ public class UnitData : ScriptableObject
     public Counter[] counters = System.Array.Empty<Counter>();
     public TechData requiredTech;
     public CityPerkKind requiredPerk = CityPerkKind.None;
+    [Range(1, 2)] public int requiredPerkLevel = 1;
 }

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   perkName: Oxytocin
   description: Friendly and allied units heal extra health when resting in this city's
-    territory. Allows recruitment of archers and catapults from the faction roster.
+    territory. Unlocks archers at level 1 and catapults at level 2, subject to faction availability.
   icon: {fileID: 0}
   kind: 0
   amount: 3

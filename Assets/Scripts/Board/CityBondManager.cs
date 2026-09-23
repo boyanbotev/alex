@@ -52,12 +52,15 @@ public sealed class CityBondManager
         return true;
     }
 
-    public bool HasPerk(City city, CityPerkKind kind)
+    public int GetLevel(City city, CityPerkKind kind)
     {
-        if (NativePerk(city, kind)) return true;
+        int level = NativePerk(city, kind) ? city.PerkLevel : 0;
         foreach (var bond in bonds)
-            if (bond.Active && NativePerk(bond.Other(city), kind)) return true;
-        return false;
+        {
+            City partner = bond.Other(city);
+            if (bond.Active && NativePerk(partner, kind)) level = Mathf.Max(level, partner.PerkLevel);
+        }
+        return level;
     }
     private static bool NativePerk(City city, CityPerkKind kind) =>
         city != null && city.data != null && city.data.perk != null && city.data.perk.kind == kind;

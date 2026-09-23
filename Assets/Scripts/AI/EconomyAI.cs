@@ -44,6 +44,7 @@ public class EconomyAI : MonoBehaviour
         GenerateBuildingCandidates(buffer);
         neuronPlanner.GenerateCandidates(controlledPlayer, profile, buffer);
         GenerateSpawnCandidates(buffer);
+        GeneratePerkUpgradeCandidates(buffer);
         GenerateResearchCandidates(buffer);
     }
 
@@ -110,6 +111,25 @@ public class EconomyAI : MonoBehaviour
                     score = ScoreUnitForCity(unit, city)
                 });
             }
+        }
+    }
+
+    private void GeneratePerkUpgradeCandidates(List<EconomyCandidateAction> buffer)
+    {
+        foreach (City city in controlledPlayer.cities)
+        {
+            if (!city.CanUpgradePerk(controlledPlayer)) continue;
+            float score = 0f;
+            foreach (FactionUnit unit in controlledPlayer.faction.availableUnits)
+            {
+                if (unit == null || unit.unitData == null || unit.unitData.requiredPerk != city.data.perk.kind ||
+                    unit.unitData.requiredPerkLevel != 2 || city.CanRecruit(unit)) continue;
+                score = Mathf.Max(score, ScoreUnitForCity(unit, city));
+            }
+            if (score > 0f) buffer.Add(new EconomyCandidateAction {
+                kind = EconomyActionKind.UpgradePerk, city = city,
+                cost = City.PerkUpgradeCost, score = score * .5f
+            });
         }
     }
 
@@ -243,6 +263,8 @@ public class EconomyAI : MonoBehaviour
     {
         switch (c.kind)
         {
+            case EconomyActionKind.UpgradePerk:
+                return c.city.TryUpgradePerk(controlledPlayer);
             case EconomyActionKind.ResearchTech:
                 return controlledPlayer.techState.TryResearch(c.tech, controlledPlayer);
             case EconomyActionKind.PlaceBuilding:

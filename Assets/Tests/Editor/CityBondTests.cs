@@ -6,6 +6,58 @@ public class CityBondTests : TacticsTestFixture
     [TestCase(CityPerkKind.Healing)]
     [TestCase(CityPerkKind.Fortification)]
     [TestCase(CityPerkKind.Adrenaline)]
+    public void PerkUpgradeCostsTenIsLocalAndPreservesPassive(CityPerkKind kind)
+    {
+        player.faction = Asset<Faction>();
+        var a = City(Tile(0), player); var b = City(Tile(2), player);
+        Perk(a, kind, 3); b.data = a.data;
+        var unit = Asset<FactionUnit>(); unit.unitData = Asset<UnitData>();
+        unit.unitData.requiredPerk = kind; unit.unitData.requiredPerkLevel = 2;
+        player.faction.availableUnits = new[] { unit };
+        Assert.That(a.CanRecruit(unit), Is.False);
+        player.stars = 9;
+        Assert.That(a.TryUpgradePerk(player), Is.False);
+        Assert.That(player.stars, Is.EqualTo(9));
+        player.stars = 20;
+        Assert.That(a.TryUpgradePerk(enemy), Is.False);
+        Assert.That(a.TryUpgradePerk(player), Is.True);
+        Assert.That(player.stars, Is.EqualTo(10));
+        Assert.That(a.TryUpgradePerk(player), Is.False);
+        Assert.That(player.stars, Is.EqualTo(10));
+        Assert.That(a.PerkLevel, Is.EqualTo(2));
+        Assert.That(b.PerkLevel, Is.EqualTo(1));
+        Assert.That(a.PerkAmount(kind), Is.EqualTo(3));
+        Assert.That(a.CanRecruit(unit), Is.True);
+        Assert.That(b.CanRecruit(unit), Is.False);
+        player.faction.availableUnits = System.Array.Empty<FactionUnit>();
+        Assert.That(a.CanRecruit(unit), Is.False);
+    }
+
+    [Test]
+    public void UpgradedPerkSharesDirectlyAndRevertsOnBondLoss()
+    {
+        player.faction = Asset<Faction>(); player.stars = 100;
+        var a = City(Tile(0), player); var road = Segment(1);
+        var b = City(Tile(2), player); Segment(3); var c = City(Tile(4), player);
+        Perk(a, CityPerkKind.Healing, 0); Perk(b, CityPerkKind.Healing, 0);
+        var unit = Asset<FactionUnit>(); unit.unitData = Asset<UnitData>();
+        unit.unitData.requiredPerk = CityPerkKind.Healing; unit.unitData.requiredPerkLevel = 2;
+        player.faction.availableUnits = new[] { unit };
+        Assert.That(turns.Bonds.TryCreate(player, a, b), Is.True);
+        Assert.That(turns.Bonds.TryCreate(player, b, c), Is.True);
+        Assert.That(a.TryUpgradePerk(player), Is.True);
+        Assert.That(b.CanRecruit(unit), Is.True);
+        Assert.That(c.CanRecruit(unit), Is.False);
+        Assert.That(c.CanUpgradePerk(player), Is.False);
+        road.tile.currentBuilding = null; turns.Neurons.Invalidate();
+        Assert.That(b.CanRecruit(unit), Is.False);
+        Assert.That(turns.Bonds.GetLevel(b, CityPerkKind.Healing), Is.EqualTo(1));
+        Assert.That(a.CanRecruit(unit), Is.True);
+    }
+
+    [TestCase(CityPerkKind.Healing)]
+    [TestCase(CityPerkKind.Fortification)]
+    [TestCase(CityPerkKind.Adrenaline)]
     public void RecruitmentRequiresRosterAndPerkRegardlessOfTechOrPassiveAmount(CityPerkKind kind)
     {
         player.faction = Asset<Faction>();

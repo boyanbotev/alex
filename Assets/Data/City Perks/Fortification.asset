@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Fortification
   m_EditorClassIdentifier:
   perkName: Cortisol
-  description: Friendly and allied units gain 1 defence while in this city's territory. Allows recruitment of defenders from the faction roster.
+  description: Friendly and allied units gain 1 defence while in this city's territory. Unlocks defenders at level 1 and Colossus at level 2, subject to faction availability.
   icon: {fileID: 0}
   kind: 3
   amount: 1

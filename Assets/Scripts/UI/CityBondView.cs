@@ -137,12 +137,13 @@ public sealed class CityBondView : MonoBehaviour
         if (perk == null) return "None";
         string effect = perk.kind switch
         {
-            CityPerkKind.Healing => $"+{perk.amount} healing when friendly/allied units rest here; recruit archers and catapults from your faction roster",
-            CityPerkKind.Adrenaline => $"+{perk.amount} movement for friendly/allied units starting here; recruit cavalry and knights from your faction roster",
-            CityPerkKind.Fortification => $"+{perk.amount} defence for friendly/allied units here; recruit defenders from your faction roster",
+            CityPerkKind.Healing => $"+{perk.amount} healing when friendly/allied units rest here; archers" + (city.PerkLevel >= 2 ? " and catapults" : "; level 2 adds catapults"),
+            CityPerkKind.Adrenaline => $"+{perk.amount} movement for friendly/allied units starting here; cavalry" + (city.PerkLevel >= 2 ? " and knights" : "; level 2 adds knights"),
+            CityPerkKind.Fortification => $"+{perk.amount} defence for friendly/allied units here; defenders" + (city.PerkLevel >= 2 ? " and Colossus" : "; level 2 adds Colossus"),
             CityPerkKind.Dopamine => $"Units created here earn +{perk.amount} stars for severing enemy neurons",
             _ => perk.description
         };
-        return $"{(string.IsNullOrEmpty(perk.perkName) ? perk.kind.ToString() : perk.perkName)} — {effect}";
+        return $"{(string.IsNullOrEmpty(perk.perkName) ? perk.kind.ToString() : perk.perkName)} (level {city.PerkLevel}) — {effect}" +
+            (perk.kind == CityPerkKind.Dopamine ? "" : ". Recruitment requires faction availability.");
     }
 }

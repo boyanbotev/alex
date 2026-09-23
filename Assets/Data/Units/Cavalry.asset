@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Cavalry
   m_EditorClassIdentifier: 
   counterType: {fileID: 0}
-  cost: 3
+  cost: 5
   maxHealth: 10
   attackPower: 2
-  defensePower: 1
-  moveRange: 2
+  defensePower: 0
+  moveRange: 3
   attackRange: 1
   skills: 
   counters:
@@ -37,3 +37,4 @@ MonoBehaviour:
     strength: -1
   requiredTech: {fileID: 11400000, guid: 0f80d8f5e80b385438c0c41566678087, type: 2}
   requiredPerk: 2
+  requiredPerkLevel: 1

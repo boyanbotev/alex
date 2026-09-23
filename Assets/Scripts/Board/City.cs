@@ -9,6 +9,22 @@ public class City : MonoBehaviour
     public static event Action<Player> OnSiege;
     public string cityName;
     public CityData data;
+    public const int PerkUpgradeCost = 10;
+    [SerializeField, Range(1, 2)] private int perkLevel = 1;
+    public int PerkLevel => perkLevel;
+    public bool HasPerkUpgrade => perkLevel < 2 && data != null && data.perk != null &&
+        (data.perk.kind == CityPerkKind.Fortification || data.perk.kind == CityPerkKind.Healing ||
+         data.perk.kind == CityPerkKind.Adrenaline);
+    public bool CanUpgradePerk(Player actor) => actor != null && actor == owner &&
+        actor == TurnManager.Instance.ActivePlayer && HasPerkUpgrade && !HasPendingCapture &&
+        actor.stars >= PerkUpgradeCost;
+
+    public bool TryUpgradePerk(Player actor)
+    {
+        if (!CanUpgradePerk(actor) || !actor.SpendStars(PerkUpgradeCost)) return false;
+        perkLevel = 2;
+        return true;
+    }
     public int PerkAmount(CityPerkKind kind) => TurnManager.Instance.Bonds.GetAmount(this, kind);
     public Player owner;
     public Tile centerTile;
@@ -78,7 +94,8 @@ public class City : MonoBehaviour
             owner.faction.availableUnits == null || Array.IndexOf(owner.faction.availableUnits, unit) < 0)
             return false;
         var perk = unit.unitData.requiredPerk;
-        return perk == CityPerkKind.None || TurnManager.Instance.Bonds.HasPerk(this, perk);
+        return perk == CityPerkKind.None ||
+            TurnManager.Instance.Bonds.GetLevel(this, perk) >= unit.unitData.requiredPerkLevel;
     }
 
     public bool SpawnUnit(FactionUnit factionUnit, int cost)

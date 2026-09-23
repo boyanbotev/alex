@@ -37,3 +37,4 @@ MonoBehaviour:
     strength: 4
   requiredTech: {fileID: 11400000, guid: e41b17a24b55aa049b927448172b00e6, type: 2}
   requiredPerk: 0
+  requiredPerkLevel: 2

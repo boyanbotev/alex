@@ -5327,7 +5327,7 @@ MonoBehaviour:
   ai: {fileID: 750415854}
   neuronStarsPerConnection: 1
   maxBondsPerCity: 2
-  bondUpgradeCost: 3
+  bondUpgradeCost: 5
   cityUnitCapacity: 2
 --- !u!4 &1461332122
 Transform:
