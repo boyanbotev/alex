@@ -150,13 +150,14 @@ public class SelectionController : MonoBehaviour
     {
         Tile clickedTile = GetClickedTile();
         if (UIManager.Instance.SelectBondTarget(clickedTile)) return;
-        if (clickedTile == null)
+        Player player = TurnManager.Instance.ActivePlayer;
+        if (clickedTile == null || player.visibleTiles == null || !player.visibleTiles.IsVisible(clickedTile))
         {
             DeselectAll();
             return;
         }
 
-        if (selectedUnit != null && !(clickedTile.currentUnit?.owner == TurnManager.Instance.ActivePlayer && clickedTile.currentUnit != selectedUnit))
+        if (selectedUnit != null)
         {
             HandleSelectedUnitActions(clickedTile);
         }
@@ -173,13 +174,9 @@ public class SelectionController : MonoBehaviour
 
         if (clickedTile.currentUnit != null)
         {
-            Unit unit = clickedTile.currentUnit;
-            if (unit.owner == player)
-            {
-                selectedUnit = unit;
-                HighlightActions(selectedUnit);
-                return;
-            }
+            selectedUnit = clickedTile.currentUnit;
+            HighlightActions(selectedUnit);
+            return;
         }
         else if (clickedTile.city != null)
         {
@@ -226,13 +223,14 @@ public class SelectionController : MonoBehaviour
 
     private void HandleSelectedUnitActions(Tile clickedTile)
     {
-        if (highlightedTiles.Contains(clickedTile) && clickedTile.currentUnit == null && !selectedUnit.hasMoved)
+        bool canAct = selectedUnit.owner == TurnManager.Instance.ActivePlayer && selectedUnit.isAlive && selectedUnit.isActive;
+        if (canAct && highlightedTiles.Contains(clickedTile) && clickedTile.currentUnit == null && !selectedUnit.hasMoved)
         {
             MoveTo(clickedTile);
             return;
         }
 
-        if (highlightedTiles.Contains(clickedTile) && clickedTile.currentUnit != null)
+        if (canAct && highlightedTiles.Contains(clickedTile) && clickedTile.currentUnit != null)
         {
             Unit targetUnit = clickedTile.currentUnit;
             if (InteractionRules.CanAttack(selectedUnit.owner, targetUnit.owner) && !selectedUnit.hasAttacked)
@@ -260,11 +258,7 @@ public class SelectionController : MonoBehaviour
             }
         } else
         {
-            DeselectAll();
-            if (clickedTile.city != null)
-            {
-                ShowCityOrSpawnUI(clickedTile);
-            }
+            SelectTileItem(clickedTile);
         }
     }
 
@@ -303,6 +297,12 @@ public class SelectionController : MonoBehaviour
     {
         GridManager.Instance.ClearAllHighlights();
         highlightedTiles.Clear();
+        if (unit.owner != TurnManager.Instance.ActivePlayer)
+        {
+            UIManager.Instance.CloseBuildPanel();
+            unit.currentTile.SetHighlight(true, moveColor);
+            return;
+        }
         UIManager.Instance.ShowNeuronActions(unit.currentTile.currentBuilding, unit, DeselectAll);
 
         if (!unit.isActive) return;
