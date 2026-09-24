@@ -24,10 +24,9 @@ public sealed class GarrisonReplacementPlanner
                 board.GetOccupant, retreats, board.IsAtWar, board.GetUnitOwner);
             foreach (Tile retreat in retreats)
             {
-                // Do not replace a garrison by sacrificing the wounded unit or
-                // tying up another city center needed for recruitment.
-                if (retreat.city != null || CityDefense.RemainingHealth(defender.data, defender.currentHealth,
-                    retreat, player, board) <= 0) continue;
+                // Keep other city centres free for recruitment. A risky retreat can
+                // still save this city; ScoreMove and lookahead account for the danger.
+                if (retreat.city != null) continue;
                 float score = profile.cityCaptureWeight + improvement * profile.cityCaptureWeight - recruit.unitData.cost +
                     scorer.ScoreMove(defender, defender.currentTile, retreat, board);
                 if (score <= bestScore) continue;

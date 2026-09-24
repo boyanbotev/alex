@@ -56,7 +56,7 @@ public class GarrisonReplacementTests : TacticsTestFixture
     [TestCase("capacity")]
     [TestCase("moved")]
     [TestCase("inactive")]
-    [TestCase("unsafe")]
+    [TestCase("blocked")]
     [TestCase("weaker")]
     [TestCase("healthy")]
     [TestCase("peace")]
@@ -71,7 +71,7 @@ public class GarrisonReplacementTests : TacticsTestFixture
             case "capacity": city.units.Add(Unit(player, Tile(10, 3))); break;
             case "moved": wounded.hasMoved = true; break;
             case "inactive": wounded.isActive = false; break;
-            case "unsafe": wounded.data.moveRange = 1; break;
+            case "blocked": grid.GetTileAt(new Vector2Int(2, 3)).terrainType = TerrainType.Mountain; break;
             case "weaker": recruit.unitData.defensePower = 0; recruit.unitData.maxHealth = 1; break;
             case "healthy": wounded.currentHealth = wounded.data.maxHealth; break;
             case "peace": turns.Diplomacy.MakePeace(player, enemy); break;
@@ -169,9 +169,12 @@ public class GarrisonReplacementTests : TacticsTestFixture
     }
 
     [Test]
-    public void PlayTurnSelectsReplacementWithOneCandidateAndRechecksRemainingBudget()
+    public void PlayTurnSavesCityWithRiskyRetreatAndRechecksRemainingBudget()
     {
         SetupDefense();
+        wounded.data.moveRange = 1;
+        Tile retreat = grid.GetTileAt(new Vector2Int(2, 3));
+        Assert.That(CityDefense.RemainingHealth(wounded.data, wounded.currentHealth, retreat, player, board), Is.Zero);
         profile.perUnitLookaheadCandidates = profile.maxShortlistSize = 1;
         profile.LookaheadFrameBudgetMs = 10000;
         FogOfWarManager previous = FogOfWarManager.Instance;
@@ -186,6 +189,7 @@ public class GarrisonReplacementTests : TacticsTestFixture
             Assert.That(execution.MoveNext(), Is.True);
             spawned = city.centerTile.currentUnit;
             Assert.That(spawned, Is.Not.Null.And.Not.SameAs(wounded));
+            Assert.That(wounded.currentTile, Is.SameAs(retreat));
             var secondCity = City(Tile(3, 10), player);
             player.cities.Add(secondCity);
             var secondDefender = Unit(player, secondCity.centerTile);
