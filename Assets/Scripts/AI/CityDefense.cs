@@ -2,18 +2,26 @@ using UnityEngine;
 
 // Conservative next-turn estimates shared by tactics and recruitment. These ignore
 // spent action flags (which refresh), but respect static attackers and city perks.
+// Distance estimates intentionally ignore path obstacles and occupancy.
 public static class CityDefense
 {
-    public static bool CanThreaten(Unit attacker, Tile tile, BoardState board)
+    public static bool CanAttackNextTurn(Unit attacker, Tile tile, BoardState board)
     {
         if (attacker == null || !board.IsAlive(attacker)) return false;
         UnitData data = board.GetData(attacker);
+        if (data.attackPower <= 0) return false;
         int distance = Utils.GridDistance(board.GetTile(attacker).gridPosition, tile.gridPosition);
-        int move = board.GetMoveRange(attacker);
         bool staticUnit = data.skills != null && System.Array.IndexOf(data.skills, Skill.Static) >= 0;
-        return distance <= move || (data.attackPower > 0 &&
-            distance <= data.attackRange + (staticUnit ? 0 : move));
+        return distance <= data.attackRange + (staticUnit ? 0 : board.GetMoveRange(attacker));
     }
+
+    // Reaching an undefended city does not require attacking, even for static units.
+    public static bool CanReachCityNextTurn(Unit unit, Tile tile, BoardState board) =>
+        unit != null && board.IsAlive(unit) &&
+        Utils.GridDistance(board.GetTile(unit).gridPosition, tile.gridPosition) <= board.GetMoveRange(unit);
+
+    public static bool CanThreaten(Unit attacker, Tile tile, BoardState board) =>
+        CanAttackNextTurn(attacker, tile, board) || CanReachCityNextTurn(attacker, tile, board);
 
     public static bool IsThreatened(Tile tile, Player owner, BoardState board)
     {
@@ -39,10 +47,8 @@ public static class CityDefense
             for (int i = 0; i < board.UnitCount(enemy); i++)
             {
                 Unit attacker = board.UnitAt(enemy, i);
-                if (!CanThreaten(attacker, tile, board) || board.GetData(attacker).attackPower <= 0) continue;
+                if (!CanAttackNextTurn(attacker, tile, board)) continue;
                 UnitData data = board.GetData(attacker);
-                if (data.skills != null && System.Array.IndexOf(data.skills, Skill.Static) >= 0 &&
-                    Utils.GridDistance(board.GetTile(attacker).gridPosition, tile.gridPosition) > data.attackRange) continue;
                 var damage = CombatMath.CalculateDamage(data.attackPower, board.GetHealth(attacker), data.maxHealth,
                     defense, health, defender.maxHealth);
                 health -= damage.attackDamage;

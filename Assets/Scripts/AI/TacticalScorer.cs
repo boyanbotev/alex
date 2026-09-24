@@ -220,7 +220,7 @@ public sealed class TacticalScorer
                     continue;
                 }
 
-                if (!CanReachAndAttack(enemyUnit, destination, board))
+                if (!CityDefense.CanAttackNextTurn(enemyUnit, destination, board))
                     continue;
 
                 (int damage, int _) = ActionSimulator.PredictDamage(enemyUnit, unit, board);
@@ -231,16 +231,6 @@ public sealed class TacticalScorer
         }
 
         return false;
-    }
-
-    private bool CanReachAndAttack(Unit enemy, Tile targetTile, BoardState board)
-    {
-        int distance = Utils.GridDistance(
-            board.GetTile(enemy).gridPosition,
-            targetTile.gridPosition
-        );
-
-        return distance <= board.GetMoveRange(enemy) + board.GetData(enemy).attackRange;
     }
 
     private bool CanRetaliate(Unit defender, Tile attackerPosition, BoardState board)
