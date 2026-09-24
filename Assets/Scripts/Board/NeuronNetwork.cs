@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// Match-owned cache. Search once per source city and destination owner, not per city pair.
+// Match-owned cache. Search once per source city; filter endpoints by diplomacy.
 public sealed class NeuronNetwork
 {
     public static event Action IncomeChanged;
@@ -81,9 +81,8 @@ public sealed class NeuronNetwork
                 neighbours[tile.city] = new HashSet<City>();
 
         foreach (City source in neighbours.Keys)
-        foreach (Player destinationOwner in turns.players)
         {
-            if (turns.Diplomacy.IsAtWar(source.owner, destinationOwner)) continue;
+            HashSet<City> connected = neighbours[source];
             visited.Clear();
             queue.Clear();
             visited.Add(source.centerTile);
@@ -100,8 +99,10 @@ public sealed class NeuronNetwork
                     if (next.city != null)
                     {
                         // Require at least one segment; all city centres stop traversal, including neutral cities.
-                        if (next.city != source && current != source.centerTile && next.city.owner == destinationOwner)
-                            neighbours[source].Add(next.city);
+                        Player destinationOwner = next.city.owner;
+                        if (next.city != source && current != source.centerTile && destinationOwner != null &&
+                            turns.players.Contains(destinationOwner) && !turns.Diplomacy.IsAtWar(source.owner, destinationOwner))
+                            connected.Add(next.city);
                         continue;
                     }
                     if (!visited.Add(next)) continue;

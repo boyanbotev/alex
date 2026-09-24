@@ -107,15 +107,20 @@ public class NeuronNetworkTests : TacticsTestFixture
     {
         var a = City(Tile(0, 2), player);
         var b = City(Tile(4, 2), player);
-        var c = City(Tile(2, 4), player);
+        var c = City(Tile(2, 4), enemy);
         Segment(1, 2, player);
         Segment(2, 2, player);
         Segment(3, 2, player);
         Segment(2, 3, player);
+        turns.Diplomacy.MakePeace(player, enemy);
         Assert.That(a.NeuronIncome, Is.EqualTo(2));
         Assert.That(b.NeuronIncome, Is.EqualTo(2));
         Assert.That(c.NeuronIncome, Is.EqualTo(2));
         Assert.That(turns.Neurons.AreConnected(a, a), Is.False);
+        turns.Diplomacy.DeclareWar(player, enemy);
+        Assert.That(a.NeuronIncome, Is.EqualTo(1));
+        Assert.That(b.NeuronIncome, Is.EqualTo(1));
+        Assert.That(c.NeuronIncome, Is.Zero);
     }
 
     [Test]
