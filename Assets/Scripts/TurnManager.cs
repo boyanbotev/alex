@@ -12,6 +12,7 @@ public class TurnManager : MonoBehaviour
     public int turnNumber = 1;
 
     public Player ActivePlayer => players[activePlayerIndex];
+    public event System.Action TurnChanged;
     public TurnAI ai;
     [Min(0)] public int neuronStarsPerConnection = 1;
     private NeuronNetwork neurons;
@@ -122,6 +123,7 @@ public class TurnManager : MonoBehaviour
             turnNumber++;
         }
 
+        TurnChanged?.Invoke();
         StartTurn(ActivePlayer);
     }
 

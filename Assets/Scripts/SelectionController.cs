@@ -23,10 +23,13 @@ public class SelectionController : MonoBehaviour
     private CameraController cameraController;
     private const float DragThreshold = 10f;
     private DiplomacyState diplomacy;
+    private TurnManager turnManager;
 
     private void OnDisable()
     {
         CancelPress();
+        if (turnManager != null) turnManager.TurnChanged -= DeselectAll;
+        turnManager = null;
         if (diplomacy != null) diplomacy.RelationChanged -= OnRelationChanged;
         diplomacy = null;
     }
@@ -45,7 +48,9 @@ public class SelectionController : MonoBehaviour
         }
         if (diplomacy == null)
         {
-            diplomacy = TurnManager.Instance.Diplomacy;
+            turnManager = TurnManager.Instance;
+            turnManager.TurnChanged += DeselectAll;
+            diplomacy = turnManager.Diplomacy;
             diplomacy.RelationChanged += OnRelationChanged;
         }
         if (TurnManager.Instance.ActivePlayer.isAI)
