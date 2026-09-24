@@ -101,25 +101,18 @@ public class City : MonoBehaviour
             TurnManager.Instance.Bonds.GetLevel(this, perk) >= unit.unitData.requiredPerkLevel;
     }
 
-    public bool SpawnUnit(FactionUnit factionUnit, int cost)
+    public bool CanSpawnUnit(FactionUnit factionUnit, int cost, Unit vacating = null)
     {
         if (factionUnit == null || factionUnit.unitData == null || factionUnit.prefab == null ||
             factionUnit.prefab.GetComponent<Unit>() == null) return false;
-        if (centerTile.currentUnit != null)
-        {
-            return false;
-        }
+        return owner != null && centerTile != null && cost >= 0 && owner.stars >= cost &&
+            (centerTile.currentUnit == null || centerTile.currentUnit == vacating) &&
+            units.Count < UnitCapacity && CanRecruit(factionUnit);
+    }
 
-        if (units.Count >= UnitCapacity)
-        {
-            return false;
-        }
-
-        if (!CanRecruit(factionUnit))
-        {
-            return false;
-        }
-
+    public bool SpawnUnit(FactionUnit factionUnit, int cost)
+    {
+        if (!CanSpawnUnit(factionUnit, cost)) return false;
         if (!owner.SpendStars(cost))
         {
             return false;

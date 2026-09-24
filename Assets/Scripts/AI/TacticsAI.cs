@@ -10,6 +10,7 @@ public class TacticsAI : MonoBehaviour
 
     private readonly TacticalScorer _scorer = new();
     private readonly CandidateGenerator _candidates = new();
+    private readonly GarrisonReplacementPlanner replacements = new();
     private readonly List<CandidateAction> _shortlist = new List<CandidateAction>(32);
     private readonly List<Tile> severMoveTiles = new();
     private readonly System.Diagnostics.Stopwatch _frameBudgetTimer = new System.Diagnostics.Stopwatch();
@@ -29,6 +30,9 @@ public class TacticsAI : MonoBehaviour
 
             int perUnitCount = Mathf.Max(1, profile.perUnitLookaheadCandidates);
             _candidates.SelectShortlist(perUnitCount, _shortlist);
+            // A coordinated purchase must compete with ordinary actions even when
+            // the profile keeps only one immediate candidate per unit.
+            bool hasReplacement = replacements.TryPlan(player, profile, _scorer, out CandidateAction replacement);
 
             CandidateAction best = default;
             float bestScore = float.NegativeInfinity;
@@ -36,6 +40,12 @@ public class TacticsAI : MonoBehaviour
             _frameBudgetTimer.Restart();
 
             int len = Mathf.Min(_shortlist.Count, Mathf.Max(1, profile.maxShortlistSize));
+            if (hasReplacement)
+            {
+                if (_shortlist.Count > len) _shortlist.RemoveRange(len, _shortlist.Count - len);
+                _shortlist.Add(replacement);
+                len++;
+            }
 
             if (len == 1)
             {
@@ -149,6 +159,24 @@ public class TacticsAI : MonoBehaviour
     private IEnumerator Execute(CandidateAction action, int diplomacyRevision)
     {
         if (TurnManager.Instance.Diplomacy.Revision != diplomacyRevision) yield break;
+        if (action.kind == ActionKind.ReplaceGarrison)
+        {
+            if (!replacements.CanExecute(action)) yield break;
+            // No coroutine yield between validation, vacating and purchasing.
+            action.unit.MoveTo(action.moveTile);
+            if (action.unit.currentTile == action.moveTile && action.recruitCity.centerTile.currentUnit == null)
+            {
+                if (!action.recruitCity.SpawnUnit(action.recruit, action.recruit.unitData.cost))
+                {
+                    // Unexpected validation failure: restore the garrison even if
+                    // moving a Static unit deactivated it.
+                    action.unit.isActive = true;
+                    action.unit.MoveTo(action.recruitCity.centerTile);
+                }
+            }
+            yield return ActionAnimationWait;
+            yield break;
+        }
         if (action.kind == ActionKind.SeverNeuron &&
             !BoardState.Live.CanSeverNeuron(action.unit, action.moveTile, action.neuron)) yield break;
         if (action.kind == ActionKind.SeverNeuron)

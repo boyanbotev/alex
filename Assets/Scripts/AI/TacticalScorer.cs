@@ -19,28 +19,28 @@ public sealed class TacticalScorer
 
     private float RaidValue(Unit unit, Building segment, BoardState board)
     {
-        var key = (unit.owner, segment);
+        var key = (board.GetUnitOwner(unit), segment);
         if (!raidValues.TryGetValue(key, out float value))
         {
-            value = neuronRaids.Evaluate(unit.owner, segment, board, cities, profile);
+            value = neuronRaids.Evaluate(board.GetUnitOwner(unit), segment, board, cities, profile);
             raidValues[key] = value;
         }
         return value + unit.dopamineBonus * profile.neuronRaidRefundWeight;
     }
 
     public bool ShouldConsiderSever(Unit unit, Building segment, BoardState board) =>
-        (board.IsAtWar(unit.owner, segment.owner) || profile.neuronRaidMayDeclareWar) &&
+        (board.IsAtWar(board.GetUnitOwner(unit), segment.owner) || profile.neuronRaidMayDeclareWar) &&
         RaidValue(unit, segment, board) > 0f;
 
     public float ScoreSever(Unit unit, Tile position, Building segment, BoardState board)
     {
         float value = RaidValue(unit, segment, board);
         int checkpoint = board.Checkpoint();
-        bool changesWar = !board.IsAtWar(unit.owner, segment.owner);
+        bool changesWar = !board.IsAtWar(board.GetUnitOwner(unit), segment.owner);
         try
         {
             // Include danger from the faction that this action would turn hostile.
-            board.WithWar(unit.owner, segment.owner);
+            board.WithWar(board.GetUnitOwner(unit), segment.owner);
             if (changesWar) threatenedCities.Clear();
             return value + ScoreMove(unit, board.GetTile(unit), position, board);
         }
@@ -71,14 +71,14 @@ public sealed class TacticalScorer
         foreach (Unit splash in splashTargets)
         {
             int health = board.GetHealth(splash);
-            score += System.Math.Min(health, unit.data.splashDamage) * profile.damageWeight;
-            if (unit.data.splashDamage >= health) score += splash.data.cost * profile.killWeight;
+            score += System.Math.Min(health, board.GetData(unit).splashDamage) * profile.damageWeight;
+            if (board.GetData(unit).splashDamage >= health) score += board.GetData(splash).cost * profile.killWeight;
         }
         splashTargets.Clear();
 
         if (kills)
         {
-            score += target.data.cost * profile.killWeight;
+            score += board.GetData(target).cost * profile.killWeight;
         }
 
         bool canRetaliate = !kills && CanRetaliate(target, from, board);
@@ -88,26 +88,26 @@ public sealed class TacticalScorer
             score -= retaliation * profile.retaliationWeight;
         }
 
-        Tile finalPosition = kills && unit.data.attackRange == 1 ? board.GetTile(target) : from;
+        Tile finalPosition = kills && board.GetData(unit).attackRange == 1 ? board.GetTile(target) : from;
         score += ScorePosition(unit, finalPosition, board);
 
         Tile targetTile = board.GetTile(target);
 
         if (kills &&
-            unit.data.attackRange == 1 &&
+            board.GetData(unit).attackRange == 1 &&
             targetTile != null &&
             targetTile.city != null &&
-            board.CanCapture(unit.owner, board.GetOwner(targetTile.city)))
+            board.CanCapture(board.GetUnitOwner(unit), board.GetOwner(targetTile.city)))
         {
             score += profile.cityCaptureWeight;
         }
 
         if (ExposesToLethalCounter(unit, from, kills ? target : null, board))
         {
-            score -= unit.data.cost * profile.survivalWeight;
+            score -= board.GetData(unit).cost * profile.survivalWeight;
         }
 
-        score += ScoreCityProgress(board.GetTile(unit), from, unit.owner, board);
+        score += ScoreCityProgress(board.GetTile(unit), from, board.GetUnitOwner(unit), board);
 
         return score;
     }
@@ -116,9 +116,9 @@ public sealed class TacticalScorer
     {
         float score = 0f;
 
-        score += ScoreCityProgress(from, to, unit.owner, board);
+        score += ScoreCityProgress(from, to, board.GetUnitOwner(unit), board);
 
-        if (to.city != null && board.CanCapture(unit.owner, board.GetOwner(to.city)))
+        if (to.city != null && board.CanCapture(board.GetUnitOwner(unit), board.GetOwner(to.city)))
         {
             score += profile.cityCaptureWeight;
         }
@@ -127,7 +127,7 @@ public sealed class TacticalScorer
 
         if (ExposesToLethalCounter(unit, to, null, board))
         {
-            score -= unit.data.cost * profile.survivalWeight;
+            score -= board.GetData(unit).cost * profile.survivalWeight;
         }
 
         return score;
@@ -155,18 +155,19 @@ public sealed class TacticalScorer
 
         // Give urgent garrison moves/staying put a chance to survive immediate
         // pruning, even with one candidate per unit. Lookahead still judges combat.
-        if (tile.city != null && board.GetOwner(tile.city) == unit.owner &&
+        if (tile.city != null && board.GetOwner(tile.city) == board.GetUnitOwner(unit) &&
             IsCityThreatened(tile.city, board))
             score += profile.cityCaptureWeight;
 
         for (int p = 0; p < players.Count; p++)
         {
             Player enemy = players[p];
-            if (!board.IsAtWar(unit.owner, enemy))
+            if (!board.IsAtWar(board.GetUnitOwner(unit), enemy))
                 continue;
 
-            foreach (Unit enemyUnit in enemy.units)
+            for (int i = 0; i < board.UnitCount(enemy); i++)
             {
+                Unit enemyUnit = board.UnitAt(enemy, i);
                 if (enemyUnit == null || !board.IsAlive(enemyUnit))
                     continue;
 
@@ -176,13 +177,13 @@ public sealed class TacticalScorer
                 );
 
                 // being within attack range next turn is good
-                if (distance <= unit.data.attackRange)
+                if (distance <= board.GetData(unit).attackRange)
                 {
                     score += profile.positionWeight;
                 }
 
                 // melee units benefit from moving toward enemies
-                if (unit.data.attackRange == 1 &&
+                if (board.GetData(unit).attackRange == 1 &&
                     distance <= board.GetMoveRange(unit) + 1)
                 {
                     score += profile.positionWeight * 0.5f;
@@ -196,26 +197,9 @@ public sealed class TacticalScorer
     private bool IsCityThreatened(City city, BoardState board)
     {
         if (threatenedCities.TryGetValue(city, out bool threatened)) return threatened;
-        Player owner = board.GetOwner(city);
-        for (int p = 0; p < players.Count; p++)
-        {
-            Player enemy = players[p];
-            if (!board.IsAtWar(owner, enemy)) continue;
-            foreach (Unit unit in enemy.units)
-            {
-                if (unit == null || !board.IsAlive(unit)) continue;
-                // Deliberately conservative range estimate; spent actions refresh
-                // next turn and must not hide an approaching attacker.
-                int distance = Utils.GridDistance(board.GetTile(unit).gridPosition, city.centerTile.gridPosition);
-                if (distance <= board.GetMoveRange(unit) + unit.data.attackRange)
-                {
-                    threatenedCities[city] = true;
-                    return true;
-                }
-            }
-        }
-        threatenedCities[city] = false;
-        return false;
+        threatened = CityDefense.IsThreatened(city.centerTile, board.GetOwner(city), board);
+        threatenedCities[city] = threatened;
+        return threatened;
     }
 
     private bool ExposesToLethalCounter(Unit unit, Tile destination, Unit justKilled, BoardState board)
@@ -223,11 +207,12 @@ public sealed class TacticalScorer
         for (int p = 0; p < players.Count; p++)
         {
             Player enemy = players[p];
-            if (!board.IsAtWar(unit.owner, enemy))
+            if (!board.IsAtWar(board.GetUnitOwner(unit), enemy))
                 continue;
 
-            foreach (Unit enemyUnit in enemy.units)
+            for (int i = 0; i < board.UnitCount(enemy); i++)
             {
+                Unit enemyUnit = board.UnitAt(enemy, i);
                 if (enemyUnit == null ||
                     !board.IsAlive(enemyUnit) ||
                     enemyUnit == justKilled)
@@ -255,7 +240,7 @@ public sealed class TacticalScorer
             targetTile.gridPosition
         );
 
-        return distance <= board.GetMoveRange(enemy) + enemy.data.attackRange;
+        return distance <= board.GetMoveRange(enemy) + board.GetData(enemy).attackRange;
     }
 
     private bool CanRetaliate(Unit defender, Tile attackerPosition, BoardState board)
@@ -265,7 +250,7 @@ public sealed class TacticalScorer
             attackerPosition.gridPosition
         );
 
-        return distance <= defender.data.attackRange;
+        return distance <= board.GetData(defender).attackRange;
     }
 
     private int DistanceToNearestUncapturedCity(Tile from, Player owner, BoardState board)

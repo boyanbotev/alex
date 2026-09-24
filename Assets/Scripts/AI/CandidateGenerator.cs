@@ -13,6 +13,7 @@ public sealed class CandidateGenerator
     private BoardState _occupancyBoard;
     private System.Func<Tile, Unit> _getOccupant;
     private System.Func<Player, Player, bool> _isAtWar;
+    private System.Func<Unit, Player> _getOwner;
 
     // Valid until the next Generate call. A shortlist is copied into the caller's buffer.
     public IReadOnlyList<CandidateAction> Candidates => _allCandidates;
@@ -31,6 +32,7 @@ public sealed class CandidateGenerator
             _occupancyBoard = board;
             _getOccupant = board.GetOccupant;
             _isAtWar = board.IsAtWar;
+            _getOwner = board.GetUnitOwner;
         }
         _allCandidates.Clear();
         _unitRanges.Clear();
@@ -67,7 +69,7 @@ public sealed class CandidateGenerator
         if (!board.HasMoved(unit))
         {
             grid.GetReachableMoveTiles(currentTile, unit.owner, board.GetMoveRange(unit),
-                _getOccupant, _scratchPositions, _isAtWar);
+                _getOccupant, _scratchPositions, _isAtWar, _getOwner);
         }
         _scratchPositions.Insert(0, currentTile);
 
@@ -119,7 +121,7 @@ public sealed class CandidateGenerator
             {
                 Unit target = board.GetOccupant(attackTile);
 
-                if (target == null || !board.IsAtWar(unit.owner, target.owner) || !board.IsAlive(target))
+                if (target == null || !board.IsAtWar(unit.owner, board.GetUnitOwner(target)) || !board.IsAlive(target))
                     continue;
 
                 output.Add(new CandidateAction

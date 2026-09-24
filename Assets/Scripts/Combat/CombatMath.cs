@@ -22,7 +22,7 @@ public static class CombatMath
             if (!GridManager.Instance.grid.TryGetValue(origin + new Vector2Int(x, y), out Tile tile)) continue;
             Unit unit = board.GetOccupant(tile);
             if (unit != null && unit != primary && unit != attacker && board.IsAlive(unit) &&
-                board.IsAtWar(attacker.owner, unit.owner)) targets.Add(unit);
+                board.IsAtWar(board.GetUnitOwner(attacker), board.GetUnitOwner(unit))) targets.Add(unit);
         }
     }
 

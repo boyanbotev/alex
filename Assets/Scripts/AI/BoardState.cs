@@ -31,6 +31,16 @@ public class BoardState
 
     public static readonly BoardState Live = new();
 
+    // A root replacement candidate can introduce one recruit. Its prefab component
+    // is only an identity key: no GameObject is created or prefab state mutated.
+    public Unit Recruit { get; private set; }
+    private UnitData recruitData;
+    private Player recruitOwner;
+    public UnitData GetData(Unit unit) => unit == Recruit ? recruitData : unit.data;
+    public Player GetUnitOwner(Unit unit) => unit == Recruit ? recruitOwner : unit.owner;
+    public int UnitCount(Player player) => player.units.Count + (Recruit != null && recruitOwner == player ? 1 : 0);
+    public Unit UnitAt(Player player, int index) => index < player.units.Count ? player.units[index] : Recruit;
+
     private enum UndoType
     {
         UnitTile,
@@ -43,7 +53,8 @@ public class BoardState
         CityOwner,
         PendingCapture,
         RemovedNeuron,
-        DeclaredWar
+        DeclaredWar,
+        Recruit
     }
 
     private struct Undo
@@ -83,6 +94,11 @@ public class BoardState
 
             switch (u.type)
             {
+                case UndoType.Recruit:
+                    Recruit = null;
+                    recruitData = null;
+                    recruitOwner = null;
+                    break;
                 case UndoType.UnitTile:
                     Restore(unitTile, u.unit, u.oldTile, u.wasPresent);
                     break;
@@ -158,11 +174,11 @@ public class BoardState
     // Shared by player highlights, AI candidates, and queued raid validation.
     public int GetMoveRange(Unit unit)
     {
-        return unit.data.moveRange + GetTerritoryPerk(unit, CityPerkKind.Adrenaline);
+        return GetData(unit).moveRange + GetTerritoryPerk(unit, CityPerkKind.Adrenaline);
     }
 
     public int GetDefensePower(Unit unit) =>
-        unit.data.defensePower + GetTerritoryPerk(unit, CityPerkKind.Fortification);
+        GetData(unit).defensePower + GetTerritoryPerk(unit, CityPerkKind.Fortification);
 
     public int GetTerritoryPerk(Unit unit, CityPerkKind kind)
     {
@@ -170,7 +186,7 @@ public class BoardState
         City city = start != null ? start.territoryCity ?? start.city : null;
         if (city == null || TurnManager.Instance == null) return 0;
         Player owner = GetOwner(city);
-        if (IsAtWar(unit.owner, owner) || !TurnManager.Instance.Bonds.Friendly(unit.owner, owner)) return 0;
+        if (IsAtWar(GetUnitOwner(unit), owner) || !TurnManager.Instance.Bonds.Friendly(GetUnitOwner(unit), owner)) return 0;
         return city.PerkAmount(kind);
     }
 
@@ -195,7 +211,7 @@ public class BoardState
             : unit.isActive;
 
     public bool IsAlive(Unit unit) =>
-        !unitDead.Contains(unit) && unit.isAlive;
+        unit != null && !unitDead.Contains(unit) && (unit == Recruit || unit.isAlive);
 
     public Player GetOwner(City city) =>
         cityOwner.TryGetValue(city, out Player owner)
@@ -547,5 +563,19 @@ public class BoardState
         }
 
         return false;
+    }
+    public void WithRecruit(City city, FactionUnit recruit)
+    {
+        if (Recruit != null) throw new System.InvalidOperationException("Only one root recruit is supported per simulation.");
+        Recruit = recruit.prefab.GetComponent<Unit>();
+        recruitData = recruit.unitData;
+        recruitOwner = GetOwner(city);
+        undoLog.Add(new Undo { type = UndoType.Recruit });
+        SetUnitTile(Recruit, city.centerTile);
+        SetTileOccupant(city.centerTile, Recruit);
+        SetUnitHealth(Recruit, recruitData.maxHealth);
+        SetUnitMoved(Recruit, true);
+        SetUnitAttacked(Recruit, true);
+        SetUnitActive(Recruit, false);
     }
 }

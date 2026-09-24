@@ -7,10 +7,16 @@ public static class ActionSimulator
     public static void Apply(BoardState board, CandidateAction action)
     {
         Unit unit = action.unit;
+        if (action.kind == ActionKind.ReplaceGarrison)
+        {
+            board.WithMove(unit, board.GetTile(unit), action.moveTile);
+            board.WithRecruit(action.recruitCity, action.recruit);
+            return;
+        }
         // Revalidate before applying any part of a queued attack, including movement.
         if (action.kind == ActionKind.Attack &&
             (action.target == null || !board.IsAlive(action.target) ||
-             !board.IsAtWar(unit.owner, action.target.owner)))
+             !board.IsAtWar(board.GetUnitOwner(unit), board.GetUnitOwner(action.target))))
             return;
         if (action.kind == ActionKind.SeverNeuron && !board.CanSeverNeuron(unit, action.moveTile, action.neuron)) return;
 
@@ -28,7 +34,7 @@ public static class ActionSimulator
             board.WithMove(unit, from, to);
 
             if (to.city != null &&
-                board.CanCapture(unit.owner, board.GetOwner(to.city)))
+                board.CanCapture(board.GetUnitOwner(unit), board.GetOwner(to.city)))
             {
                 board.WithPendingCityCapture(to.city, unit);
             }
@@ -36,7 +42,7 @@ public static class ActionSimulator
 
         if (action.kind == ActionKind.SeverNeuron)
         {
-            board.WithWar(unit.owner, action.neuron.owner);
+            board.WithWar(board.GetUnitOwner(unit), action.neuron.owner);
             board.WithRemovedNeuron(action.neuron);
             board.WithAttacked(unit);
             board.WithDeactivated(unit);
@@ -64,11 +70,11 @@ public static class ActionSimulator
         CombatMath.CollectSplashTargets(unit, target, targetTile, board, splashTargets);
         board.WithDamage(target, newTargetHealth);
         foreach (Unit splash in splashTargets)
-            board.WithDamage(splash, board.GetHealth(splash) - unit.data.splashDamage);
+            board.WithDamage(splash, board.GetHealth(splash) - board.GetData(unit).splashDamage);
         splashTargets.Clear();
         board.WithAttacked(unit);
 
-        bool meleeAttack = unit.data.attackRange == 1;
+        bool meleeAttack = board.GetData(unit).attackRange == 1;
 
         if (killed)
         {
@@ -77,7 +83,7 @@ public static class ActionSimulator
                 board.WithMove(unit, to, targetTile);
 
                 if (targetTile.city != null &&
-                    board.CanCapture(unit.owner, board.GetOwner(targetTile.city)))
+                    board.CanCapture(board.GetUnitOwner(unit), board.GetOwner(targetTile.city)))
                 {
                     board.WithPendingCityCapture(targetTile.city, unit);
                 }
@@ -86,7 +92,7 @@ public static class ActionSimulator
         else if (Utils.IsWithinDistance(
                      targetTile.gridPosition,
                      to.gridPosition,
-                     target.data.attackRange))
+                     board.GetData(target).attackRange))
         {
             int newAttackerHealth =
                 board.GetHealth(unit) - retaliation;
@@ -98,8 +104,8 @@ public static class ActionSimulator
     public static (int, int) PredictDamage(Unit attacker, Unit defender, BoardState board)
     {
         return CombatMath.CalculateDamage(
-            attacker.data.attackPower, board.GetHealth(attacker), attacker.data.maxHealth,
-            board.GetDefensePower(defender), board.GetHealth(defender), defender.data.maxHealth
+            board.GetData(attacker).attackPower, board.GetHealth(attacker), board.GetData(attacker).maxHealth,
+            board.GetDefensePower(defender), board.GetHealth(defender), board.GetData(defender).maxHealth
         );
     }
 

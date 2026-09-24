@@ -1,4 +1,4 @@
-public enum ActionKind { MoveOnly, Attack, DoNothing, SeverNeuron }
+public enum ActionKind { MoveOnly, Attack, DoNothing, SeverNeuron, ReplaceGarrison }
 
 public struct CandidateAction
 {
@@ -8,4 +8,6 @@ public struct CandidateAction
     public Building neuron;
     public ActionKind kind;
     public float score;
+    public City recruitCity;
+    public FactionUnit recruit;
 }
