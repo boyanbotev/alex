@@ -322,6 +322,18 @@ public class BoardState
         SetUnitActive(unit, false);
     }
 
+    // Refresh only the hypothetical turn; rollback restores the live action flags.
+    public void WithFreshTurn(Player player)
+    {
+        foreach (Unit unit in player.units)
+        {
+            if (unit == null || !IsAlive(unit)) continue;
+            SetUnitMoved(unit, false);
+            SetUnitAttacked(unit, false);
+            SetUnitActive(unit, true);
+        }
+    }
+
     // ---------------------------------------------------------------------
     // Setters + undo recording
     // ---------------------------------------------------------------------

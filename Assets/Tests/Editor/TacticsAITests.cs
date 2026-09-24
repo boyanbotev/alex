@@ -5,6 +5,88 @@ using NUnit.Framework;
 public class TacticsAITests : TacticsTestFixture
 {
     [Test]
+    public void FreshSimulatedTurnRestoresFlagsWithoutRevivingDeadUnitsOrChangingLiveUnits()
+    {
+        var unit = Unit(enemy, Tile(0));
+        unit.hasMoved = unit.hasAttacked = true;
+        unit.isActive = false;
+        var dead = Unit(enemy, Tile(1));
+        board.WithDamage(dead, 0);
+        enemy.units.Add(null);
+        int checkpoint = board.Checkpoint();
+        board.WithFreshTurn(enemy);
+        Assert.That(board.HasMoved(unit), Is.False);
+        Assert.That(board.HasAttacked(unit), Is.False);
+        Assert.That(board.IsActive(unit), Is.True);
+        Assert.That(board.IsAlive(dead), Is.False);
+        Assert.That(unit.hasMoved && unit.hasAttacked && !unit.isActive, Is.True);
+        board.Rollback(checkpoint);
+        Assert.That(board.HasMoved(unit) && board.HasAttacked(unit) && !board.IsActive(unit), Is.True);
+    }
+
+    [Test]
+    public void LookaheadSeesCityCaptureByAnOpponentWhoSpentTheirPreviousTurn()
+    {
+        var idle = Unit(player, Tile(10));
+        var threat = Unit(enemy, Tile(0));
+        City(Tile(1), player);
+        threat.hasMoved = threat.hasAttacked = true;
+        threat.isActive = false;
+        profile.ownRolloutSteps = 0;
+        profile.enemyRolloutSteps = 1;
+        var action = new CandidateAction { unit = idle, moveTile = idle.currentTile, kind = ActionKind.DoNothing };
+        float score = (float)Call(ai, "EvaluateWithLookahead", action, board);
+        Assert.That(score, Is.LessThanOrEqualTo(-profile.cityCaptureWeight));
+        Assert.That(board.Checkpoint(), Is.Zero);
+        Assert.That(board.HasMoved(threat) && board.HasAttacked(threat) && !board.IsActive(threat), Is.True);
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void ThreatenedCityDefenseSurvivesSingleCandidatePruningAndGlobalCap(bool alreadyOnCity)
+    {
+        // Five earlier units used to exclude this defender from the evaluation cap.
+        for (int i = 0; i < 5; i++) Unit(player, Tile(10 + i * 3));
+        var city = City(Tile(0), player);
+        var defender = Unit(player, alreadyOnCity ? city.centerTile : Tile(-1));
+        defender.data.defensePower = 100;
+        defender.data.attackPower = 0;
+        var threat = Unit(enemy, Tile(1));
+        threat.hasMoved = threat.hasAttacked = true;
+        threat.isActive = false;
+        profile.perUnitLookaheadCandidates = 1;
+        profile.ownRolloutSteps = 1;
+        profile.enemyRolloutSteps = 1;
+        generator.Generate(player, board);
+        var shortlist = new List<CandidateAction>();
+        generator.SelectShortlist(1, shortlist);
+        Assert.That(shortlist[0].unit, Is.SameAs(defender));
+        Assert.That(shortlist[0].moveTile, Is.SameAs(city.centerTile));
+        float defenseScore = (float)Call(ai, "EvaluateWithLookahead", shortlist[0], board);
+        var abandon = new CandidateAction {
+            unit = defender, moveTile = defender.currentTile, kind = ActionKind.DoNothing
+        };
+        if (!alreadyOnCity)
+            Assert.That(defenseScore, Is.GreaterThan((float)Call(ai, "EvaluateWithLookahead", abandon, board)));
+    }
+
+    [Test]
+    public void SafeOrPeacefulCityDoesNotReceiveDefenseBonus()
+    {
+        var unit = Unit(player, Tile(0));
+        var city = City(Tile(1), player);
+        var threat = Unit(enemy, Tile(2));
+        turns.Diplomacy.MakePeace(player, enemy);
+        Assert.That(scorer.ScoreMove(unit, unit.currentTile, city.centerTile, board), Is.Zero);
+        turns.Diplomacy.DeclareWar(player, enemy);
+        scorer.BeginGeneration();
+        Assert.That(scorer.ScoreMove(unit, unit.currentTile, city.centerTile, board), Is.GreaterThanOrEqualTo(profile.cityCaptureWeight));
+        board.WithDamage(threat, 0);
+        scorer.BeginGeneration();
+        Assert.That(scorer.ScoreMove(unit, unit.currentTile, city.centerTile, board), Is.Zero);
+    }
+
+    [Test]
     public void SplashMatchesLiveCombatAndSkipsPrimaryFriendlyPeacefulAndDistantUnits()
     {
         var attacker = Unit(player, Tile(0));

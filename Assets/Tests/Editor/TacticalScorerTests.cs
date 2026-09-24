@@ -9,6 +9,22 @@ public class TacticalScorerTests : TacticsTestFixture
     }
 
     [Test]
+    public void KillingMeleeAttackOffCityDoesNotKeepGarrisonBonus()
+    {
+        ClearWeights();
+        profile.cityCaptureWeight = 40;
+        var defender = Unit(player, Tile(0));
+        City(defender.currentTile, player);
+        var target = Unit(enemy, Tile(1));
+        target.currentHealth = 1;
+        Unit(enemy, Tile(-1));
+        Assert.That(scorer.ScoreMove(defender, defender.currentTile, defender.currentTile, board), Is.EqualTo(40));
+        Assert.That(scorer.ScoreAttack(defender, defender.currentTile, target, board), Is.Zero);
+        defender.data.attackRange = 2;
+        Assert.That(scorer.ScoreAttack(defender, defender.currentTile, target, board), Is.EqualTo(40));
+    }
+
+    [Test]
     public void AttackScoresDamageRetaliationAndKillBonus()
     {
         ClearWeights();

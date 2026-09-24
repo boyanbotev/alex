@@ -35,7 +35,7 @@ public class TacticsAI : MonoBehaviour
 
             _frameBudgetTimer.Restart();
 
-            int len = Mathf.Min(_shortlist.Count, profile.maxShortlistSize);
+            int len = Mathf.Min(_shortlist.Count, Mathf.Max(1, profile.maxShortlistSize));
 
             if (len == 1)
             {
@@ -100,6 +100,7 @@ public class TacticsAI : MonoBehaviour
                 if (!board.IsAtWar(controlledPlayer, enemy))
                     continue;
 
+                board.WithFreshTurn(enemy);
                 enemyThreat += RolloutGreedyTurn(
                     enemy,
                     board,

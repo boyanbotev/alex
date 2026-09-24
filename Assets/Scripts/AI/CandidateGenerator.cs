@@ -168,6 +168,20 @@ public sealed class CandidateGenerator
             for (int i = 0; i < kept; i++)
                 shortlistOut.Add(_topKScratch[i]);
         }
+
+        // Stable global ranking before the caller applies its evaluation cap.
+        // Preserve generation order for ties without allocating a comparer/buffer.
+        for (int i = 1; i < shortlistOut.Count; i++)
+        {
+            CandidateAction candidate = shortlistOut[i];
+            int j = i;
+            while (j > 0 && shortlistOut[j - 1].score < candidate.score)
+            {
+                shortlistOut[j] = shortlistOut[j - 1];
+                j--;
+            }
+            shortlistOut[j] = candidate;
+        }
     }
 
     private int SelectTopKForRange(int start, int count, int k)
