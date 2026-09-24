@@ -17,9 +17,12 @@ public sealed class CityBondManager
     private readonly TurnManager turns;
     private readonly List<CityBond> bonds = new();
     private readonly HashSet<Tile> reinforced = new();
+    private readonly HashSet<(Tile, Tile)> reinforcedLinks = new();
     public IReadOnlyList<CityBond> All => bonds;
     public CityBondManager(TurnManager turns) { this.turns = turns; }
     public bool IsReinforced(Tile tile) => reinforced.Contains(tile);
+    public bool IsReinforced(Tile from, Tile to) =>
+        reinforcedLinks.Contains((from, to)) || reinforcedLinks.Contains((to, from));
     public int Count(City city)
     {
         int count = 0;
@@ -92,13 +95,22 @@ public sealed class CityBondManager
         foreach (var bond in bonds) { affectedCities.Add(bond.a); affectedCities.Add(bond.b); }
         var changed = new HashSet<Tile>(reinforced);
         reinforced.Clear();
+        reinforcedLinks.Clear();
         bonds.RemoveAll(x => x.a == null || x.b == null || x.a.owner != x.ownerA || x.b.owner != x.ownerB);
         foreach (var bond in bonds)
         {
             bond.Active = Friendly(bond.a.owner, bond.b.owner);
             if (bond.Active && !RouteIntact(bond))
                 bond.Active = turns.Neurons.TryGetRoute(bond.a, bond.b, bond.route);
-            if (bond.Active) foreach (var tile in bond.route) reinforced.Add(tile);
+            if (!bond.Active) continue;
+            Tile previous = bond.a.centerTile;
+            foreach (var tile in bond.route)
+            {
+                reinforced.Add(tile);
+                reinforcedLinks.Add((previous, tile));
+                previous = tile;
+            }
+            reinforcedLinks.Add((previous, bond.b.centerTile));
         }
         changed.UnionWith(reinforced);
         foreach (var tile in changed)

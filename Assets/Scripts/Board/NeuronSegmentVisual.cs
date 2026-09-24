@@ -56,7 +56,6 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
         triangles.Clear();
         Vector3 centre = SurfacePosition(building.tile, building.data.neuronHeight);
         float radius = Mathf.Max(0.01f, building.data.neuronWidth) * 0.5f;
-        if (TurnManager.Instance.Bonds.IsReinforced(building.tile)) radius *= 1.8f;
         AddQuad(centre + new Vector3(-radius, 0, -radius), centre + new Vector3(-radius, 0, radius),
             centre + new Vector3(radius, 0, radius), centre + new Vector3(radius, 0, -radius));
 
@@ -70,7 +69,8 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
             if (next.city == null && (other == null || !other.IsPlacedNeuron)) continue;
             Vector3 end = SurfacePosition(next, next.city == null ? other.data.neuronHeight : building.data.neuronHeight);
             if (next.city == null) end = (centre + end) * 0.5f;
-            Vector3 side = Vector3.Cross(Vector3.up, end - centre).normalized * radius;
+            float armRadius = TurnManager.Instance.Bonds.IsReinforced(building.tile, next) ? radius * 1.8f : radius;
+            Vector3 side = Vector3.Cross(Vector3.up, end - centre).normalized * armRadius;
             AddQuad(centre - side, end - side, end + side, centre + side);
         }
         mesh.Clear();

@@ -246,6 +246,35 @@ public class CityBondTests : TacticsTestFixture
         Assert.That(turns.Bonds.IsReinforced(first.tile), Is.False);
     }
     [Test]
+    public void ReinforcementFollowsLinksAndPreservesSharedRoute()
+    {
+        player.stars = 30;
+        var a = City(Tile(0), player);
+        var first = Segment(1).tile;
+        var junction = Segment(2).tile;
+        var b = City(Tile(3), player);
+        var c = City(Tile(3, 1), player);
+        var branch = Segment(2, 1).tile;
+        Assert.That(turns.Bonds.TryCreate(player, a, b), Is.True);
+        Assert.That(turns.Bonds.IsReinforced(a.centerTile, first), Is.True);
+        Assert.That(turns.Bonds.IsReinforced(first, junction), Is.True);
+        Assert.That(turns.Bonds.IsReinforced(junction, first), Is.True);
+        Assert.That(turns.Bonds.IsReinforced(junction, b.centerTile), Is.True);
+        Assert.That(turns.Bonds.IsReinforced(junction, c.centerTile), Is.False);
+        Assert.That(turns.Bonds.IsReinforced(junction, branch), Is.False);
+
+        Assert.That(turns.Bonds.TryCreate(player, a, c), Is.True);
+        turns.Bonds.RemoveCity(b);
+        Assert.That(turns.Bonds.IsReinforced(first, junction), Is.True);
+        Assert.That(turns.Bonds.IsReinforced(junction, c.centerTile), Is.True);
+        Assert.That(turns.Bonds.IsReinforced(junction, b.centerTile), Is.False);
+        Assert.That(turns.Bonds.IsReinforced(junction, branch), Is.False);
+        turns.Bonds.RemoveCity(c);
+        Assert.That(turns.Bonds.IsReinforced(first, junction), Is.False);
+        Assert.That(turns.Bonds.IsReinforced(a.centerTile, first), Is.False);
+    }
+
+    [Test]
     public void UnaffordablePurchaseDoesNotReserveSlots()
     {
         player.stars = 5;
