@@ -20,7 +20,7 @@ public class Player : MonoBehaviour
     public void AddStars(int amount)
     {
         stars += amount;
-        OnUpdateStars?.Invoke(stars);
+        if (!isAI) OnUpdateStars?.Invoke(stars);
     }
 
     public bool SpendStars(int amount)
@@ -28,7 +28,7 @@ public class Player : MonoBehaviour
         if (stars >= amount)
         {
             stars -= amount;
-            OnUpdateStars?.Invoke(stars);
+            if (!isAI) OnUpdateStars?.Invoke(stars);
             return true;
         }
         return false;
