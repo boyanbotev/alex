@@ -18,6 +18,7 @@ public sealed class CityBondView : MonoBehaviour
 
     private readonly List<Tile> route = new();
     public bool Selecting { get; private set; }
+    public event System.Action SelectionChanged;
     private CityBondManager Bonds => TurnManager.Instance.Bonds;
 
     private void Awake()
@@ -35,10 +36,12 @@ public sealed class CityBondView : MonoBehaviour
     }
     public void Hide()
     {
-        if (Selecting) GridManager.Instance?.ClearAllHighlights();
+        bool wasSelecting = Selecting;
+        if (wasSelecting) GridManager.Instance?.ClearAllHighlights();
         Selecting = false; source = target = null;
 
         if (panel != null) panel.gameObject.SetActive(false);
+        if (wasSelecting) SelectionChanged?.Invoke();
     }
     private void Update()
     {
@@ -53,7 +56,7 @@ public sealed class CityBondView : MonoBehaviour
         if (!Selecting)
         {
             Selecting = true; target = null;
-            UIManager.Instance.SetRecruitmentVisible(false);
+            SelectionChanged?.Invoke();
     
             Highlight(); Refresh();
         }
@@ -75,7 +78,7 @@ public sealed class CityBondView : MonoBehaviour
     {
         Selecting = false; target = null;
         GridManager.Instance.ClearAllHighlights();
-        UIManager.Instance.SetRecruitmentVisible(true);
+        SelectionChanged?.Invoke();
 
         Refresh();
     }

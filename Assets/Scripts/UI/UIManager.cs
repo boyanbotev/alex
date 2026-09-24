@@ -44,21 +44,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private CityBondView bondView;
     public bool SelectingBond => bondView != null && bondView.Selecting;
     public bool SelectBondTarget(Tile tile) => bondView != null && bondView.Select(tile);
-    private void ShowBondActions(City city)
-    {
-        bondView.Show(city);
-        SetRecruitmentVisible(city.owner == TurnManager.Instance.ActivePlayer);
-    }
-    public void SetRecruitmentVisible(bool visible)
-    {
-        if (visible) cityNameAndLevelText.text = $"{displayedCity.cityName} · Units {displayedCity.units.Count}/{displayedCity.UnitCapacity}";
-        else cityNameAndLevelText.text = displayedCity.cityName;
-
-        visible &= displayedCity != null && displayedCity.owner == TurnManager.Instance.ActivePlayer;
-
-        spawnButtonHolder.gameObject.SetActive(visible);
-        cantSpawnText.gameObject.SetActive(visible && displayedCity != null && displayedCity.units.Count >= displayedCity.UnitCapacity);
-    }
 
     private readonly Dictionary<City, GameObject> captureButtons = new Dictionary<City, GameObject>();
 
@@ -77,6 +62,7 @@ public class UIManager : MonoBehaviour
 
     private void OnEnable()
     {
+        if (bondView != null) bondView.SelectionChanged += RefreshCityPanel;
         Player.OnUpdateStars += SetStars;
         City.OnPlayerChange += OnClaim;
         City.OnSiege += OnSiege;
@@ -86,6 +72,7 @@ public class UIManager : MonoBehaviour
 
     private void OnDisable()
     {
+        if (bondView != null) bondView.SelectionChanged -= RefreshCityPanel;
         Player.OnUpdateStars -= SetStars;
         City.OnPlayerChange -= OnClaim;
         City.OnSiege -= OnSiege;
@@ -93,10 +80,11 @@ public class UIManager : MonoBehaviour
         NeuronNetwork.IncomeChanged -= RefreshNeuronIncome;
     }
 
-    public void ShowSpawnButtons(FactionUnit[] availableUnits, City city)
+    public void ShowSpawnButtons(FactionUnit[] availableUnits, City city) => ShowCityPanel(city, availableUnits);
+
+    private void ShowCityPanel(City city, FactionUnit[] availableUnits)
     {
-        if (bondView != null) bondView.Hide();
-        ClearSpawnButtons();
+        CloseSpawnPanel();
         spawnPanel.gameObject.SetActive(true);
         displayedCity = city;
 
@@ -112,22 +100,15 @@ public class UIManager : MonoBehaviour
             });
         }
         ShowPerkUpgrade(city);
-        RefreshCityCapacity();
-        ShowBondActions(city);
+        if (bondView != null) bondView.Show(city);
+        RefreshCityPanel();
     }
 
     public void ShowCityInfo(City city)
     {
         Player viewer = TurnManager.Instance.ActivePlayer;
         if (city == null || viewer.isAI || viewer.visibleTiles == null || !viewer.visibleTiles.IsVisible(city.centerTile)) return;
-        if (bondView != null) bondView.Hide();
-        ClearSpawnButtons();
-        spawnPanel.gameObject.SetActive(true);
-
-        displayedCity = city;
-        ShowPerkUpgrade(city);
-        RefreshCityCapacity();
-        ShowBondActions(city);
+        ShowCityPanel(city, System.Array.Empty<FactionUnit>());
     }
 
     private void ShowPerkUpgrade(City city)
@@ -341,6 +322,7 @@ public class UIManager : MonoBehaviour
 
     public void CloseSpawnPanel()
     {
+        displayedCity = null;
         if (bondView != null) bondView.Hide();
         ClearSpawnButtons();
         spawnPanel.gameObject.SetActive(false);
@@ -384,29 +366,32 @@ public class UIManager : MonoBehaviour
 
     public void SetStars(int value)
     {
-        if (bondView != null) bondView.Refresh();
+        RefreshCityPanel();
         starsCounter.text = value + " stars";
         if (techTree != null) techTree.RefreshState();
         RefreshResearchState();
     }
 
-    private void RefreshCityCapacity()
+    private void RefreshCityPanel()
     {
         if (displayedCity == null || !spawnPanel.gameObject.activeSelf) return;
-        cityNameAndLevelText.text = $"{displayedCity.cityName} · Units {displayedCity.units.Count}/{displayedCity.UnitCapacity}";
-        cantSpawnText.gameObject.SetActive(displayedCity.owner == TurnManager.Instance.ActivePlayer &&
-            !SelectingBond && displayedCity.units.Count >= displayedCity.UnitCapacity);
+        bool recruiting = displayedCity.owner == TurnManager.Instance.ActivePlayer && !SelectingBond;
+        cityNameAndLevelText.text = recruiting
+            ? $"{displayedCity.cityName} · Units {displayedCity.units.Count}/{displayedCity.UnitCapacity}"
+            : displayedCity.cityName;
+        spawnButtonHolder.gameObject.SetActive(recruiting);
+        cantSpawnText.gameObject.SetActive(recruiting && displayedCity.units.Count >= displayedCity.UnitCapacity);
+        if (bondView != null) bondView.Refresh();
     }
 
     public void SetStarsPerTurn(int value)
     {
         starsPerTurnCounter.text = $"(+{value})";
-        RefreshCityCapacity();
+        RefreshCityPanel();
     }
 
     private void RefreshNeuronIncome()
     {
-        if (bondView != null) bondView.Refresh();
         if (TurnManager.Instance == null) return;
         Player human = TurnManager.Instance.players.Find(p => !p.isAI);
         if (human != null) SetStarsPerTurn(human.CalculateTurnIncome());
