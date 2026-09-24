@@ -59,13 +59,10 @@ public static class ActionSimulator
         Unit target = action.target;
         Tile targetTile = board.GetTile(target);
 
-        (int damage, int retaliation) =
-            PredictDamage(unit, target, board);
+        var (damage, retaliation, advance) = CombatMath.PredictAttack(unit, target, board);
 
         int newTargetHealth =
             board.GetHealth(target) - damage;
-
-        bool killed = newTargetHealth <= 0;
 
         CombatMath.CollectSplashTargets(unit, target, targetTile, board, splashTargets);
         board.WithDamage(target, newTargetHealth);
@@ -74,25 +71,17 @@ public static class ActionSimulator
         splashTargets.Clear();
         board.WithAttacked(unit);
 
-        bool meleeAttack = board.GetData(unit).attackRange == 1;
-
-        if (killed)
+        if (advance)
         {
-            if (meleeAttack)
-            {
-                board.WithMove(unit, to, targetTile);
+            board.WithMove(unit, to, targetTile);
 
-                if (targetTile.city != null &&
-                    board.CanCapture(board.GetUnitOwner(unit), board.GetOwner(targetTile.city)))
-                {
-                    board.WithPendingCityCapture(targetTile.city, unit);
-                }
+            if (targetTile.city != null &&
+                board.CanCapture(board.GetUnitOwner(unit), board.GetOwner(targetTile.city)))
+            {
+                board.WithPendingCityCapture(targetTile.city, unit);
             }
         }
-        else if (Utils.IsWithinDistance(
-                     targetTile.gridPosition,
-                     to.gridPosition,
-                     board.GetData(target).attackRange))
+        if (retaliation > 0)
         {
             int newAttackerHealth =
                 board.GetHealth(unit) - retaliation;
@@ -103,10 +92,7 @@ public static class ActionSimulator
 
     public static (int, int) PredictDamage(Unit attacker, Unit defender, BoardState board)
     {
-        return CombatMath.CalculateDamage(
-            board.GetData(attacker).attackPower, board.GetHealth(attacker), board.GetData(attacker).maxHealth,
-            board.GetDefensePower(defender), board.GetHealth(defender), board.GetData(defender).maxHealth
-        );
+        return CombatMath.PredictDamage(attacker, defender, board);
     }
 
 }

@@ -39,18 +39,4 @@ public sealed class GarrisonReplacementPlanner
         return best.unit != null;
     }
 
-    public bool CanExecute(CandidateAction action)
-    {
-        Unit unit = action.unit;
-        City city = action.recruitCity;
-        if (unit == null || city == null || action.recruit == null || action.recruit.unitData == null ||
-            city.owner != unit.owner || TurnManager.Instance.ActivePlayer != unit.owner ||
-            !unit.isAlive || !unit.isActive || unit.hasMoved || unit.currentTile != city.centerTile ||
-            city.centerTile.currentUnit != unit || action.moveTile == null || action.moveTile == city.centerTile ||
-            !city.CanSpawnUnit(action.recruit, action.recruit.unitData.cost, unit)) return false;
-        BoardState board = BoardState.Live;
-        GridManager.Instance.GetReachableMoveTiles(unit.currentTile, unit.owner, board.GetMoveRange(unit),
-            board.GetOccupant, retreats, board.IsAtWar, board.GetUnitOwner);
-        return retreats.Contains(action.moveTile);
-    }
 }

@@ -12,7 +12,6 @@ public class TacticsAI : MonoBehaviour
     private readonly CandidateGenerator _candidates = new();
     private readonly GarrisonReplacementPlanner replacements = new();
     private readonly List<CandidateAction> _shortlist = new List<CandidateAction>(32);
-    private readonly List<Tile> severMoveTiles = new();
     private readonly System.Diagnostics.Stopwatch _frameBudgetTimer = new System.Diagnostics.Stopwatch();
     private static readonly WaitForSeconds ActionAnimationWait = new WaitForSeconds(0.3f);
 
@@ -158,81 +157,29 @@ public class TacticsAI : MonoBehaviour
 
     private IEnumerator Execute(CandidateAction action, int diplomacyRevision)
     {
-        if (TurnManager.Instance.Diplomacy.Revision != diplomacyRevision) yield break;
+        if (TurnManager.Instance.Diplomacy.Revision != diplomacyRevision || action.unit == null) yield break;
         if (action.kind == ActionKind.ReplaceGarrison)
         {
-            if (!replacements.CanExecute(action)) yield break;
-            // No coroutine yield between validation, vacating and purchasing.
-            action.unit.MoveTo(action.moveTile);
-            if (action.unit.currentTile == action.moveTile && action.recruitCity.centerTile.currentUnit == null)
-            {
-                if (!action.recruitCity.SpawnUnit(action.recruit, action.recruit.unitData.cost))
-                {
-                    // Unexpected validation failure: restore the garrison even if
-                    // moving a Static unit deactivated it.
-                    action.unit.isActive = true;
-                    action.unit.MoveTo(action.recruitCity.centerTile);
-                }
-            }
+            if (!action.unit.TryReplaceGarrison(action.recruitCity, action.recruit, action.moveTile)) yield break;
             yield return ActionAnimationWait;
             yield break;
         }
-        if (action.kind == ActionKind.SeverNeuron &&
-            !BoardState.Live.CanSeverNeuron(action.unit, action.moveTile, action.neuron)) yield break;
-        if (action.kind == ActionKind.SeverNeuron)
-        {
-            if (TurnManager.Instance.ActivePlayer != action.unit.owner) yield break;
-            if (action.moveTile != action.unit.currentTile)
-            {
-                GridManager.Instance.GetReachableMoveTiles(action.unit.currentTile, action.unit.owner,
-                    BoardState.Live.GetMoveRange(action.unit), BoardState.Live.GetOccupant, severMoveTiles);
-                if (!severMoveTiles.Contains(action.moveTile)) yield break;
-            }
-        }
-        if (action.kind == ActionKind.Attack &&
-            (action.target == null || !action.target.isAlive ||
-             !InteractionRules.CanAttack(action.unit.owner, action.target.owner)))
-            yield break;
-
-        bool visible = IsVisibleToLocalPlayer(action);
-
-        Tile targetTile = action.target != null
-            ? action.target.currentTile
-            : null;
-
-        bool meleeAttack =
-            action.kind == ActionKind.Attack &&
-            action.unit.data.attackRange == 1;
-
         if (action.kind == ActionKind.DoNothing)
         {
             action.unit.Deactivate();
-
             yield return null;
+            yield break;
         }
 
-        // move first
-        if (action.moveTile != action.unit.currentTile)
+        bool visible = IsVisibleToLocalPlayer(action);
+        bool executed = action.kind switch
         {
-            action.unit.MoveTo(action.moveTile);
-        }
-
-        // then attack
-        if (action.kind == ActionKind.SeverNeuron)
-            action.unit.TrySeverNeuron(action.neuron);
-        if (action.kind == ActionKind.Attack &&
-            action.target != null &&
-            action.target.isAlive)
-        {
-            action.unit.Attack(action.target);
-
-            if (meleeAttack &&
-                !action.target.isAlive &&
-                targetTile != null)
-            {
-                action.unit.MoveTo(targetTile);
-            }
-        }
+            ActionKind.MoveOnly => action.unit.MoveTo(action.moveTile),
+            ActionKind.Attack => action.unit.Attack(action.target, action.moveTile),
+            ActionKind.SeverNeuron => action.unit.TrySeverNeuron(action.neuron, action.moveTile),
+            _ => false
+        };
+        if (!executed) yield break;
 
         if (visible) yield return ActionAnimationWait;
         else yield return new WaitForSeconds(0.2f);

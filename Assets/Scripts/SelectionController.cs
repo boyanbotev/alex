@@ -122,13 +122,9 @@ public class SelectionController : MonoBehaviour
     private bool CanPreview(Unit target)
     {
         if (UIManager.Instance.SelectingBond) return false;
-        return selectedUnit != null && selectedUnit.isAlive && selectedUnit.isActive &&
-            !selectedUnit.hasAttacked && selectedUnit.owner == TurnManager.Instance.ActivePlayer &&
-            target != null && target.isAlive && highlightedTiles.Contains(target.currentTile) &&
-            selectedUnit.owner.visibleTiles.IsVisible(target.currentTile) &&
-            InteractionRules.CanAttack(selectedUnit.owner, target.owner) &&
-            Utils.IsWithinDistance(selectedUnit.currentTile.gridPosition, target.currentTile.gridPosition,
-                selectedUnit.data.attackRange);
+        return selectedUnit != null && selectedUnit.CanAttack(target) &&
+            highlightedTiles.Contains(target.currentTile) &&
+            selectedUnit.owner.visibleTiles.IsVisible(target.currentTile);
     }
 
     private void CancelPress()
@@ -275,23 +271,15 @@ public class SelectionController : MonoBehaviour
 
     private void Attack(Unit targetUnit)
     {
-        selectedUnit.Attack(targetUnit);
-
-        Tile targetTile = targetUnit.currentTile;
-        bool isMeleeAttack = selectedUnit.data.attackRange == 1;
-
-        if (isMeleeAttack && (targetUnit.gameObject == null || !targetUnit.isAlive))
-        {
-            selectedUnit.MoveTo(targetTile);
-        }
-
-        DeactivateUsedUnits(selectedUnit.owner.units);
+        Player owner = selectedUnit.owner;
+        if (!selectedUnit.Attack(targetUnit)) return;
+        DeactivateUsedUnits(owner.units);
         DeselectAll();
     }
 
     private void MoveTo(Tile tile)
     {
-        selectedUnit.MoveTo(tile);
+        if (!selectedUnit.MoveTo(tile)) return;
 
         HighlightActions(selectedUnit);
         DeactivateUsedUnits(selectedUnit.owner.units);

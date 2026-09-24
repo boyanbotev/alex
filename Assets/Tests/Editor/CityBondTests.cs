@@ -159,10 +159,10 @@ public class CityBondTests : TacticsTestFixture
         attacker.data.attackPower = 2; defender.data.defensePower = 2;
         turns.Diplomacy.MakePeace(player, ally);
         Perk(city, CityPerkKind.Fortification, 1);
-        var basic = attacker.CalculateDamage(attacker, defender);
+        var basic = CombatMath.PredictDamage(attacker, defender, BoardState.Live);
         Assert.That(board.GetDefensePower(defender), Is.EqualTo(2));
         turns.Diplomacy.MakeAlliance(player, ally);
-        var fortified = attacker.CalculateDamage(attacker, defender);
+        var fortified = CombatMath.PredictDamage(attacker, defender, BoardState.Live);
         Assert.That(fortified.Item1, Is.LessThan(basic.Item1));
         Assert.That(fortified.Item2, Is.GreaterThan(basic.Item2));
         Assert.That(ActionSimulator.PredictDamage(attacker, defender, board), Is.EqualTo(fortified));

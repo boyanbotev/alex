@@ -8,6 +8,27 @@ using System.Collections.Generic;
 /// </summary>
 public static class CombatMath
 {
+    public static (int damage, int retaliation) PredictDamage(Unit attacker, Unit defender, BoardState board)
+    {
+        UnitData attackData = board.GetData(attacker);
+        UnitData defenseData = board.GetData(defender);
+        return CalculateDamage(
+            attackData.attackPower, board.GetHealth(attacker), attackData.maxHealth,
+            board.GetDefensePower(defender), board.GetHealth(defender), defenseData.maxHealth);
+    }
+
+    public static (int damage, int retaliation, bool advance) PredictAttack(Unit attacker, Unit defender, BoardState board)
+    {
+        UnitData attackData = board.GetData(attacker);
+        UnitData defenseData = board.GetData(defender);
+        var (damage, retaliation) = PredictDamage(attacker, defender, board);
+        bool killed = damage >= board.GetHealth(defender);
+        Tile target = board.GetTile(defender);
+        if (killed || !Utils.IsWithinDistance(target.gridPosition,
+            board.GetTile(attacker).gridPosition, defenseData.attackRange)) retaliation = 0;
+        return (damage, retaliation, killed && attackData.attackRange == 1 && target.terrainType != TerrainType.Mountain);
+    }
+
     // Reuse caller-owned buffers; only inspect tiles inside the splash radius.
     public static void CollectSplashTargets(Unit attacker, Unit primary, Tile center, BoardState board, List<Unit> targets)
     {
