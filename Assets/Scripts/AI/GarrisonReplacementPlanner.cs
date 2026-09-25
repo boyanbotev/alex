@@ -16,7 +16,7 @@ public sealed class GarrisonReplacementPlanner
         {
             Unit defender = city.centerTile.currentUnit;
             if (defender == null || defender.owner != player || !defender.isAlive || !defender.isActive ||
-                defender.hasMoved || defender.currentHealth >= defender.data.maxHealth ||
+                defender.hasMoved ||
                 !CityDefense.IsThreatened(city.centerTile, player, board)) continue;
             FactionUnit recruit = EconomyAI.FindReplacement(city, defender, profile, out float improvement);
             if (recruit == null) continue;

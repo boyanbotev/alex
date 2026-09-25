@@ -58,7 +58,6 @@ public class GarrisonReplacementTests : TacticsTestFixture
     [TestCase("inactive")]
     [TestCase("blocked")]
     [TestCase("weaker")]
-    [TestCase("healthy")]
     [TestCase("peace")]
     [TestCase("perk")]
     [TestCase("prefab")]
@@ -73,7 +72,6 @@ public class GarrisonReplacementTests : TacticsTestFixture
             case "inactive": wounded.isActive = false; break;
             case "blocked": grid.GetTileAt(new Vector2Int(2, 3)).terrainType = TerrainType.Mountain; break;
             case "weaker": recruit.unitData.defensePower = 0; recruit.unitData.maxHealth = 1; break;
-            case "healthy": wounded.currentHealth = wounded.data.maxHealth; break;
             case "peace": turns.Diplomacy.MakePeace(player, enemy); break;
             case "perk": recruit.unitData.requiredPerk = CityPerkKind.Fortification; break;
             case "prefab": recruit.prefab = null; break;
@@ -159,13 +157,16 @@ public class GarrisonReplacementTests : TacticsTestFixture
         board.Rollback(0);
     }
 
-    [Test]
-    public void HealingCanMakeReplacementUnnecessary()
+    [TestCase(8)]
+    [TestCase(10)]
+    public void EquivalentGuardCanReplaceHealedOrHealthyDefender(int health)
     {
         SetupDefense();
         wounded.data.defensePower = recruit.unitData.defensePower;
-        wounded.currentHealth = 8;
-        Assert.That(EconomyAI.FindReplacement(city, wounded, profile, out _), Is.Null);
+        wounded.currentHealth = health;
+        Assert.That(EconomyAI.FindReplacement(city, wounded, profile, out float improvement), Is.SameAs(recruit));
+        Assert.That(improvement, Is.Zero);
+        Assert.That(planner.TryPlan(player, profile, scorer, out _), Is.True);
     }
 
     [Test]

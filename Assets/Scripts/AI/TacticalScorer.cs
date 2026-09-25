@@ -156,7 +156,7 @@ public sealed class TacticalScorer
         // Give urgent garrison moves/staying put a chance to survive immediate
         // pruning, even with one candidate per unit. Lookahead still judges combat.
         if (tile.city != null && board.GetOwner(tile.city) == board.GetUnitOwner(unit) &&
-            IsCityThreatened(tile.city, board))
+            IsCityThreatened(tile.city, board) && tile.city.units.Count >= tile.city.UnitCapacity) // is this ok??????
             score += profile.cityCaptureWeight;
 
         for (int p = 0; p < players.Count; p++)

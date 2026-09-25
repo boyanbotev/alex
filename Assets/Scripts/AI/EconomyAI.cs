@@ -14,7 +14,7 @@ public class EconomyAI : MonoBehaviour
         float current = (float)CityDefense.RemainingHealth(defender.data, health, city.centerTile,
             city.owner, BoardState.Live) / defender.data.maxHealth;
         FactionUnit best = null;
-        float bestValue = 0f;
+        float bestValue = float.NegativeInfinity;
         foreach (FactionUnit recruit in city.owner.faction.availableUnits)
         {
             if (recruit == null || recruit.unitData == null || !city.CanSpawnUnit(recruit, recruit.unitData.cost, defender)) continue;
@@ -22,7 +22,9 @@ public class EconomyAI : MonoBehaviour
             int remaining = CityDefense.RemainingHealth(data, data.maxHealth, city.centerTile, city.owner, BoardState.Live);
             float gain = (float)remaining / data.maxHealth - current;
             float value = gain * profile.cityCaptureWeight - data.cost;
-            if (remaining <= 0 || gain < .25f || value <= bestValue) continue;
+            // Equivalent guards can free the defender to advance. The planner
+            // weighs that movement against the purchase cost.
+            if (remaining <= 0 || gain < 0f || value <= bestValue) continue;
             best = recruit;
             bestValue = value;
             improvement = gain;

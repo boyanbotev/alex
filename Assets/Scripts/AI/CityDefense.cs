@@ -21,7 +21,7 @@ public static class CityDefense
         Utils.GridDistance(board.GetTile(unit).gridPosition, tile.gridPosition) <= board.GetMoveRange(unit);
 
     public static bool CanThreaten(Unit attacker, Tile tile, BoardState board) =>
-        CanAttackNextTurn(attacker, tile, board) || CanReachCityNextTurn(attacker, tile, board);
+        CanReachCityNextTurn(attacker, tile, board); // experimental - just to stop them walking in
 
     public static bool IsThreatened(Tile tile, Player owner, BoardState board)
     {
