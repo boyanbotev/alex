@@ -2,7 +2,9 @@ using UnityEngine;
 
 public enum Skill
 {
-    Static
+    Static = 0,
+    CavalryKiller = 1,
+    SpearWall = 2
 }
 
 [CreateAssetMenu(fileName = "UnitData", menuName = "UnitData")]

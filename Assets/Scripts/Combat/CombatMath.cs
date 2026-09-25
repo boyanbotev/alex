@@ -13,8 +13,22 @@ public static class CombatMath
         UnitData attackData = board.GetData(attacker);
         UnitData defenseData = board.GetData(defender);
         return CalculateDamage(
-            attackData.attackPower, board.GetHealth(attacker), attackData.maxHealth,
-            board.GetDefensePower(defender), board.GetHealth(defender), defenseData.maxHealth);
+            attackData, board.GetHealth(attacker), defenseData, board.GetHealth(defender),
+            board.GetDefensePower(defender));
+    }
+
+    // Matchup bonuses also apply to hypothetical recruits used by the AI.
+    public static (int attackDamage, int defenseDamage) CalculateDamage(
+        UnitData attacker, int attackerHealth, UnitData defender, int defenderHealth, int defenderPower)
+    {
+        int attackerPower = attacker.attackPower;
+        if (defender.moveRange > 1 && attacker.skills != null &&
+            System.Array.IndexOf(attacker.skills, Skill.CavalryKiller) >= 0) attackerPower++;
+        if (attacker.attackRange == 1 && defender.skills != null &&
+            System.Array.IndexOf(defender.skills, Skill.SpearWall) >= 0) defenderPower++;
+
+        return CalculateDamage(attackerPower, attackerHealth, attacker.maxHealth,
+            defenderPower, defenderHealth, defender.maxHealth);
     }
 
     public static (int damage, int retaliation, bool advance) PredictAttack(Unit attacker, Unit defender, BoardState board)

@@ -19,6 +19,8 @@ MonoBehaviour:
   defensePower: 1
   moveRange: 1
   attackRange: 2
+  splashDamage: 0
+  splashRadius: 0
   skills: 
   counters:
   - unit: {fileID: 11400000, guid: b3fdb3d1aafce3c46b0d909f04baa13a, type: 2}
@@ -35,5 +37,8 @@ MonoBehaviour:
     strength: -1
   - unit: {fileID: 11400000, guid: 83aec6b143f04104a99b4df5b0068c96, type: 2}
     strength: 2
+  - unit: {fileID: 11400000, guid: ee5534c0eb66f8f4e915841a38426a8c, type: 2}
+    strength: 2
   requiredTech: {fileID: 11400000, guid: 39596448097723c449b9118be84a5424, type: 2}
   requiredPerk: 0
+  requiredPerkLevel: 1

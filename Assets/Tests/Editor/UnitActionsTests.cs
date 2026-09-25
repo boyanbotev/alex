@@ -16,6 +16,61 @@ public class UnitActionsTests : TacticsTestFixture
     [TearDown]
     public void TearDownActions() => FogOfWarManager.Instance = previousFog;
 
+    [TestCase(1, 1, 4, 8)]
+    [TestCase(2, 1, 7, 7)]
+    [TestCase(1, 2, 5, 5)]
+    [TestCase(2, 2, 8, 4)]
+    public void MatchupSkillsAffectPreviewCombatAndCityDefense(int speed, int range, int damage, int retaliation)
+    {
+        var attacker = Unit(player, Tile(0));
+        var defender = Unit(enemy, Tile(1));
+        attacker.data.skills = new[] { Skill.CavalryKiller };
+        attacker.data.attackRange = range;
+        defender.data.skills = new[] { Skill.SpearWall };
+        defender.data.moveRange = speed;
+        turns.Diplomacy.DeclareWar(player, enemy);
+
+        Assert.That(attacker.PredictAttackDamage(defender), Is.EqualTo((damage, retaliation)));
+        Assert.That(CombatMath.PredictDamage(attacker, defender, board), Is.EqualTo((damage, retaliation)));
+        Assert.That(CityDefense.RemainingHealth(defender.data, 10, defender.currentTile, enemy, board),
+            Is.EqualTo(10 - damage));
+        Assert.That(attacker.Attack(defender), Is.True);
+        Assert.That(defender.currentHealth, Is.EqualTo(10 - damage));
+        Assert.That(attacker.currentHealth, Is.EqualTo(10 - retaliation));
+        Assert.That(attacker.data.attackPower, Is.EqualTo(2));
+        Assert.That(defender.data.defensePower, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void CavalryKillerIgnoresTerritoryMovementBonus()
+    {
+        var attacker = Unit(player, Tile(0));
+        var defender = Unit(enemy, Tile(1));
+        attacker.data.skills = new[] { Skill.CavalryKiller };
+        var city = City(defender.currentTile, enemy);
+        city.data = Asset<CityData>();
+        city.data.perk = Asset<CityPerkData>();
+        city.data.perk.kind = CityPerkKind.Adrenaline;
+        city.data.perk.amount = 1;
+
+        Assert.That(board.GetMoveRange(defender), Is.EqualTo(2));
+        Assert.That(CombatMath.PredictDamage(attacker, defender, board), Is.EqualTo((5, 5)));
+    }
+
+    [Test]
+    public void MatchupSkillsStackWithDefenseBonusesButDoNotApplyInReverseRoles()
+    {
+        var attacker = Asset<UnitData>();
+        var defender = Asset<UnitData>();
+        attacker.skills = new[] { Skill.SpearWall };
+        defender.skills = new[] { Skill.CavalryKiller };
+        attacker.moveRange = 2;
+        Assert.That(CombatMath.CalculateDamage(attacker, 10, defender, 10, 2), Is.EqualTo((5, 5)));
+
+        defender.skills = new[] { Skill.SpearWall };
+        Assert.That(CombatMath.CalculateDamage(attacker, 10, defender, 10, 3), Is.EqualTo((3, 12)));
+    }
+
     [TestCase("occupied")]
     [TestCase("range")]
     [TestCase("moved")]
