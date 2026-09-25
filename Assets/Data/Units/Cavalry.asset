@@ -19,12 +19,14 @@ MonoBehaviour:
   defensePower: 0
   moveRange: 3
   attackRange: 1
+  splashDamage: 0
+  splashRadius: 0
   skills: 
   counters:
   - unit: {fileID: 11400000, guid: 69b1f1849c019a346969058b5c2df1fe, type: 2}
     strength: 2
   - unit: {fileID: 11400000, guid: b3fdb3d1aafce3c46b0d909f04baa13a, type: 2}
-    strength: 2
+    strength: 3
   - unit: {fileID: 11400000, guid: 1b4d97fd2d7b5314fadb11f1a30f2101, type: 2}
     strength: -1
   - unit: {fileID: 11400000}

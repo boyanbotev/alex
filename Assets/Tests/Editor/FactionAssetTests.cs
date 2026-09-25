@@ -13,7 +13,7 @@ public class FactionAssetTests
         names.Add(name);
         return name;
     }
-    private Faction Source => AssetDatabase.LoadAssetAtPath<Faction>("Assets/Data/Factions/Red/Red.asset");
+    private Faction Source => AssetDatabase.LoadAssetAtPath<Faction>("Assets/Data/Factions/Rebellion/Rebellion.asset");
 
     [TearDown]
     public void Cleanup()

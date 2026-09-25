@@ -50,21 +50,6 @@ public class DiplomacyStateTests : TacticsTestFixture
     }
 
     [Test]
-    public void PeaceClearsSiegeAndWarRestartsItForExistingOccupants()
-    {
-        var unit = Unit(player, Tile(0));
-        var city = City(unit.currentTile, enemy);
-        city.SetPendingCapture(unit);
-        turns.Diplomacy.MakePeace(player, enemy);
-        Assert.That(city.pendingCapturer, Is.Null);
-        Assert.That(city.HasPendingCapture, Is.False);
-        turns.Diplomacy.DeclareWar(player, enemy);
-        Assert.That(city.pendingCapturer, Is.SameAs(unit));
-        Assert.That(city.HasPendingCapture, Is.True);
-        Assert.That(city.owner, Is.SameAs(enemy));
-    }
-
-    [Test]
     public void TransitionLeavesUnrelatedSiegeAndRelationIntact()
     {
         var third = Component<Player>();

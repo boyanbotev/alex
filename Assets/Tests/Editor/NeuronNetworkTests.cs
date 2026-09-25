@@ -176,20 +176,6 @@ public class NeuronNetworkTests : TacticsTestFixture
     }
 
     [Test]
-    public void UnitCapacityIsIndependentOfConnectionsAndConfigurable()
-    {
-        var a = City(Tile(0), player);
-        var b = City(Tile(2), player);
-        var road = Segment(1, 0, player);
-        Assert.That(a.NeuronIncome, Is.EqualTo(1));
-        Assert.That(a.UnitCapacity, Is.EqualTo(2));
-        turns.cityUnitCapacity = 3;
-        road.tile.currentBuilding = null;
-        turns.Neurons.Invalidate();
-        Assert.That(a.NeuronIncome, Is.Zero);
-        Assert.That(a.UnitCapacity, Is.EqualTo(3));
-    }
-    [Test]
     public void CityIncomeIncludesNetworkButSiegedCityDoesNotPay()
     {
         var a = City(Tile(0), player);

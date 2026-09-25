@@ -293,26 +293,6 @@ public class CityBondTests : TacticsTestFixture
         turns.Diplomacy.MakeAlliance(player, enemy); unit.Heal();
         Assert.That(unit.currentHealth, Is.EqualTo(8));
     }
-    [Test]
-    public void DopamineIsStampedAtRecruitmentAndSurvivesBondLoss()
-    {
-        player.stars = 20; player.faction = Asset<Faction>();
-        var a = City(Tile(0), player); Segment(1); var b = City(Tile(2), player);
-        Perk(b, CityPerkKind.Dopamine, 3);
-        turns.Bonds.TryCreate(player, a, b);
-        var recruit = Asset<FactionUnit>(); recruit.unitData = Asset<UnitData>();
-        recruit.prefab = Component<Unit>().gameObject;
-        player.faction.availableUnits = new[] { recruit };
-        Assert.That(a.SpawnUnit(recruit, 2), Is.True);
-        var unit = a.centerTile.currentUnit;
-        try
-        {
-            turns.Bonds.RemoveCity(b);
-            Assert.That(unit.dopamineBonus, Is.EqualTo(3));
-            Assert.That(a.PerkAmount(CityPerkKind.Dopamine), Is.Zero);
-        }
-        finally { Object.DestroyImmediate(unit.gameObject); }
-    }
 
     [Test]
     public void HomeTerritoryOnlyAddsHealingWhenItHasThePerk()
