@@ -30,6 +30,9 @@ public abstract class TacticsTestFixture
         liveCheckpoint = BoardState.Live.Checkpoint();
         grid = Component<GridManager>();
         turns = Component<TurnManager>();
+        turns.combatSettings = Asset<CombatSettings>();
+        turns.combatSettings.cavalryKillerBonus = 1;
+        turns.combatSettings.spearWallBonus = 1;
         population = Component<WorldPopulationManager>();
         GridManager.Instance = grid;
         TurnManager.Instance = turns;

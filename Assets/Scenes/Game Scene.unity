@@ -5325,6 +5325,7 @@ MonoBehaviour:
   activePlayerIndex: 0
   turnNumber: 1
   ai: {fileID: 750415854}
+  combatSettings: {fileID: 11400000, guid: 6e035c1779224cb59b430d62e734aef1, type: 2}
   neuronStarsPerConnection: 1
   maxBondsPerCity: 2
   bondUpgradeCost: 5

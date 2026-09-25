@@ -65,10 +65,10 @@ public class UnitActionsTests : TacticsTestFixture
         attacker.skills = new[] { Skill.SpearWall };
         defender.skills = new[] { Skill.CavalryKiller };
         attacker.moveRange = 2;
-        Assert.That(CombatMath.CalculateDamage(attacker, 10, defender, 10, 2), Is.EqualTo((5, 5)));
+        Assert.That(CombatMath.CalculateDamage(attacker, 10, defender, 10, 2, turns.combatSettings), Is.EqualTo((5, 5)));
 
         defender.skills = new[] { Skill.SpearWall };
-        Assert.That(CombatMath.CalculateDamage(attacker, 10, defender, 10, 3), Is.EqualTo((3, 12)));
+        Assert.That(CombatMath.CalculateDamage(attacker, 10, defender, 10, 3, turns.combatSettings), Is.EqualTo((3, 12)));
     }
 
     [TestCase("occupied")]

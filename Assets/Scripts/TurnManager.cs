@@ -14,6 +14,7 @@ public class TurnManager : MonoBehaviour
     public Player ActivePlayer => players[activePlayerIndex];
     public event System.Action TurnChanged;
     public TurnAI ai;
+    public CombatSettings combatSettings;
     [Min(0)] public int neuronStarsPerConnection = 1;
     private NeuronNetwork neurons;
     public NeuronNetwork Neurons => neurons ??= new NeuronNetwork(this);

@@ -49,7 +49,8 @@ public static class CityDefense
                 Unit attacker = board.UnitAt(enemy, i);
                 if (!CanAttackNextTurn(attacker, tile, board)) continue;
                 UnitData data = board.GetData(attacker);
-                var damage = CombatMath.CalculateDamage(data, board.GetHealth(attacker), defender, health, defense);
+                var damage = CombatMath.CalculateDamage(data, board.GetHealth(attacker), defender, health, defense,
+                    TurnManager.Instance.combatSettings);
                 health -= damage.attackDamage;
                 if (health <= 0) return 0;
             }

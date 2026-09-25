@@ -14,18 +14,19 @@ public static class CombatMath
         UnitData defenseData = board.GetData(defender);
         return CalculateDamage(
             attackData, board.GetHealth(attacker), defenseData, board.GetHealth(defender),
-            board.GetDefensePower(defender));
+            board.GetDefensePower(defender), TurnManager.Instance.combatSettings);
     }
 
     // Matchup bonuses also apply to hypothetical recruits used by the AI.
     public static (int attackDamage, int defenseDamage) CalculateDamage(
-        UnitData attacker, int attackerHealth, UnitData defender, int defenderHealth, int defenderPower)
+        UnitData attacker, int attackerHealth, UnitData defender, int defenderHealth, int defenderPower,
+        CombatSettings settings)
     {
         int attackerPower = attacker.attackPower;
         if (defender.moveRange > 1 && attacker.skills != null &&
-            System.Array.IndexOf(attacker.skills, Skill.CavalryKiller) >= 0) attackerPower++;
+            System.Array.IndexOf(attacker.skills, Skill.CavalryKiller) >= 0) attackerPower += settings.cavalryKillerBonus;
         if (attacker.attackRange == 1 && defender.skills != null &&
-            System.Array.IndexOf(defender.skills, Skill.SpearWall) >= 0) defenderPower++;
+            System.Array.IndexOf(defender.skills, Skill.SpearWall) >= 0) defenderPower += settings.spearWallBonus;
 
         return CalculateDamage(attackerPower, attackerHealth, attacker.maxHealth,
             defenderPower, defenderHealth, defender.maxHealth);

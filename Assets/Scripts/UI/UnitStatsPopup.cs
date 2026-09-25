@@ -31,8 +31,8 @@ public class UnitStatsPopup : MonoBehaviour
 
     private static string SkillDescription(Skill skill) => skill switch
     {
-        Skill.CavalryKiller => "Cavalry Killer: +1 attack against units with base speed > 1",
-        Skill.SpearWall => "Spear Wall: +1 defense against units with attack range 1",
+        Skill.CavalryKiller => $"Cavalry Killer: +{TurnManager.Instance.combatSettings.cavalryKillerBonus} attack against units with base speed > 1",
+        Skill.SpearWall => $"Spear Wall: +{TurnManager.Instance.combatSettings.spearWallBonus} defense against units with attack range 1",
         _ => skill.ToString()
     };
 }

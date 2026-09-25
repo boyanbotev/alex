@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   counterType: {fileID: 0}
   cost: 4
-  maxHealth: 12
+  maxHealth: 10
   attackPower: 2
   defensePower: 2
   moveRange: 1
