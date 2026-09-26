@@ -45,6 +45,12 @@ public sealed class CandidateGenerator
             int start = _allCandidates.Count;
             AppendCandidatesForUnit(unit, board, _allCandidates);
             int count = _allCandidates.Count - start;
+            for (int i = start; i < start + count; i++)
+            {
+                CandidateAction action = _allCandidates[i];
+                action.score += scorer.ScoreCitySafety(action, board);
+                _allCandidates[i] = action;
+            }
 
             if (count > 0)
                 _unitRanges.Add((start, count));

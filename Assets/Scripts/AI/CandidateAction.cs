@@ -7,6 +7,7 @@ public struct CandidateAction
     public Unit target;
     public Building neuron;
     public ActionKind kind;
+    public ActionKind outgoingKind;
     public float score;
     public City recruitCity;
     public FactionUnit recruit;

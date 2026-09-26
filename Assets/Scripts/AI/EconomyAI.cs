@@ -4,34 +4,6 @@ using UnityEngine;
 
 public class EconomyAI : MonoBehaviour
 {
-    public static FactionUnit FindReplacement(City city, Unit defender, AIProfile profile, out float improvement)
-    {
-        improvement = 0f;
-        if (city.owner?.faction?.availableUnits == null) return null;
-        int health = defender.currentHealth;
-        if (!defender.hasMoved && !defender.hasAttacked && !defender.hasCaptured)
-            health = Mathf.Min(defender.data.maxHealth, health + 2 + city.PerkAmount(CityPerkKind.Healing));
-        float current = (float)CityDefense.RemainingHealth(defender.data, health, city.centerTile,
-            city.owner, BoardState.Live) / defender.data.maxHealth;
-        FactionUnit best = null;
-        float bestValue = float.NegativeInfinity;
-        foreach (FactionUnit recruit in city.owner.faction.availableUnits)
-        {
-            if (recruit == null || recruit.unitData == null || !city.CanSpawnUnit(recruit, recruit.unitData.cost, defender)) continue;
-            UnitData data = recruit.unitData;
-            int remaining = CityDefense.RemainingHealth(data, data.maxHealth, city.centerTile, city.owner, BoardState.Live);
-            float gain = (float)remaining / data.maxHealth - current;
-            float value = gain * profile.cityCaptureWeight - data.cost;
-            // Equivalent guards can free the defender to advance. The planner
-            // weighs that movement against the purchase cost.
-            if (remaining <= 0 || gain < 0f || value <= bestValue) continue;
-            best = recruit;
-            bestValue = value;
-            improvement = gain;
-        }
-        return best;
-    }
-
     private AIProfile profile;
     private Player controlledPlayer;
 

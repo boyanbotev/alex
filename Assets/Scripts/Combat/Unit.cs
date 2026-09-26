@@ -118,11 +118,30 @@ public class Unit : MonoBehaviour
         return true;
     }
 
-    public bool TryReplaceGarrison(City city, FactionUnit recruit, Tile destination)
+    public bool TryReplaceGarrison(City city, FactionUnit recruit, Tile destination, Unit target = null)
     {
         if (city == null || city.owner != owner || currentTile != city.centerTile ||
-            recruit == null || recruit.unitData == null || destination == null || destination.city != null ||
-            !city.CanSpawnUnit(recruit, recruit.unitData.cost, this) || !CanMoveTo(destination)) return false;
+            recruit == null || recruit.unitData == null || destination == null ||
+            !city.CanSpawnUnit(recruit, recruit.unitData.cost, this)) return false;
+
+        if (target != null)
+        {
+            if (!CanAttack(target, destination)) return false;
+            // Recheck the exact combat outcome before committing an irreversible attack.
+            BoardState board = BoardState.Live;
+            int checkpoint = board.Checkpoint();
+            bool vacates;
+            try
+            {
+                ActionSimulator.Apply(board, new CandidateAction { unit = this, kind = ActionKind.Attack,
+                    moveTile = destination, target = target });
+                vacates = board.GetOccupant(city.centerTile) == null && board.IsAlive(this);
+            }
+            finally { board.Rollback(checkpoint); }
+            if (!vacates || !Attack(target, destination)) return false;
+            return city.SpawnUnit(recruit, recruit.unitData.cost);
+        }
+        if (!CanMoveTo(destination)) return false;
 
         ApplyMove(destination);
         if (city.SpawnUnit(recruit, recruit.unitData.cost)) return true;

@@ -76,11 +76,12 @@ public class TacticsAITests : TacticsTestFixture
         var unit = Unit(player, Tile(0));
         var city = City(Tile(1), player);
         var threat = Unit(enemy, Tile(2));
+        var move = new CandidateAction { unit = unit, kind = ActionKind.MoveOnly, moveTile = city.centerTile };
         turns.Diplomacy.MakePeace(player, enemy);
         Assert.That(scorer.ScoreMove(unit, unit.currentTile, city.centerTile, board), Is.Zero);
         turns.Diplomacy.DeclareWar(player, enemy);
         scorer.BeginGeneration();
-        Assert.That(scorer.ScoreMove(unit, unit.currentTile, city.centerTile, board), Is.GreaterThanOrEqualTo(profile.cityCaptureWeight));
+        Assert.That(scorer.ScoreCitySafety(move, board), Is.EqualTo(profile.cityCaptureWeight));
         board.WithDamage(threat, 0);
         scorer.BeginGeneration();
         Assert.That(scorer.ScoreMove(unit, unit.currentTile, city.centerTile, board), Is.Zero);

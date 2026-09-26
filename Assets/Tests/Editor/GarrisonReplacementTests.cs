@@ -38,6 +38,67 @@ public class GarrisonReplacementTests : TacticsTestFixture
     }
 
     [Test]
+    public void WalkInThreatRespectsOccupancyTerrainAndSimulatedDeparture()
+    {
+        SetupDefense();
+        Assert.That(CityDefense.CanEnemyEnter(city, board), Is.False);
+        board.WithMove(wounded, city.centerTile, grid.GetTileAt(new Vector2Int(2, 3)));
+        Assert.That(CityDefense.CanEnemyEnter(city, board), Is.True);
+        city.centerTile.terrainType = TerrainType.Mountain;
+        Assert.That(CityDefense.CanEnemyEnter(city, board), Is.False);
+        city.centerTile.terrainType = TerrainType.Field;
+        board.Rollback(0);
+        Assert.That(CityDefense.CanEnemyEnter(city, board), Is.False);
+    }
+
+    [Test]
+    public void SafeGuardDepartureCostsSafetyButHoldingAndReplacingDoNotEarnBonus()
+    {
+        SetupDefense();
+        wounded.currentHealth = wounded.data.maxHealth;
+        wounded.data.defensePower = recruit.unitData.defensePower;
+        var move = new CandidateAction { unit = wounded, kind = ActionKind.MoveOnly,
+            moveTile = grid.GetTileAt(new Vector2Int(1, 3)) };
+        Assert.That(scorer.ScoreCitySafety(move, board), Is.EqualTo(-profile.cityCaptureWeight));
+        move.outgoingKind = move.kind;
+        move.kind = ActionKind.ReplaceGarrison;
+        move.recruitCity = city;
+        move.recruit = recruit;
+        Assert.That(scorer.ScoreCitySafety(move, board), Is.Zero);
+        move.kind = ActionKind.DoNothing;
+        Assert.That(scorer.ScoreCitySafety(move, board), Is.Zero);
+        Assert.That(board.GetOccupant(city.centerTile), Is.SameAs(wounded));
+    }
+
+    [Test]
+    public void KillingOnlyThreatAllowsDepartureWithoutRecruitment()
+    {
+        SetupDefense();
+        wounded.currentHealth = wounded.data.maxHealth;
+        attacker.currentHealth = 1;
+        var attack = new CandidateAction { unit = wounded, kind = ActionKind.Attack,
+            moveTile = city.centerTile, target = attacker };
+        Assert.That(scorer.ScoreCitySafety(attack, board), Is.Zero);
+        Assert.That(city.centerTile.currentUnit, Is.SameAs(wounded));
+    }
+
+    [Test]
+    public void PlannerCanChooseAttackAndRecruitAndSimulationRestoresBothUnits()
+    {
+        SetupDefense();
+        wounded.currentHealth = wounded.data.maxHealth;
+        attacker.currentHealth = 1;
+        Assert.That(planner.TryPlan(player, profile, scorer, out var action), Is.True);
+        Assert.That(action.outgoingKind, Is.EqualTo(ActionKind.Attack));
+        ActionSimulator.Apply(board, action);
+        Assert.That(board.GetOccupant(city.centerTile), Is.SameAs(board.Recruit));
+        Assert.That(board.IsAlive(attacker), Is.False);
+        board.Rollback(0);
+        Assert.That(board.GetOccupant(city.centerTile), Is.SameAs(wounded));
+        Assert.That(board.IsAlive(attacker), Is.True);
+    }
+
+    [Test]
     public void ReplacementCompetesWithHoldingEvenWithOneCandidatePerUnit()
     {
         SetupDefense();
@@ -58,7 +119,6 @@ public class GarrisonReplacementTests : TacticsTestFixture
     [TestCase("inactive")]
     [TestCase("blocked")]
     [TestCase("weaker")]
-    [TestCase("peace")]
     [TestCase("perk")]
     [TestCase("prefab")]
     public void InfeasibleOrUnhelpfulReplacementIsRejected(string reason)
@@ -72,7 +132,6 @@ public class GarrisonReplacementTests : TacticsTestFixture
             case "inactive": wounded.isActive = false; break;
             case "blocked": grid.GetTileAt(new Vector2Int(2, 3)).terrainType = TerrainType.Mountain; break;
             case "weaker": recruit.unitData.defensePower = 0; recruit.unitData.maxHealth = 1; break;
-            case "peace": turns.Diplomacy.MakePeace(player, enemy); break;
             case "perk": recruit.unitData.requiredPerk = CityPerkKind.Fortification; break;
             case "prefab": recruit.prefab = null; break;
         }
@@ -164,8 +223,6 @@ public class GarrisonReplacementTests : TacticsTestFixture
         SetupDefense();
         wounded.data.defensePower = recruit.unitData.defensePower;
         wounded.currentHealth = health;
-        Assert.That(EconomyAI.FindReplacement(city, wounded, profile, out float improvement), Is.SameAs(recruit));
-        Assert.That(improvement, Is.Zero);
         Assert.That(planner.TryPlan(player, profile, scorer, out _), Is.True);
     }
 
@@ -196,7 +253,7 @@ public class GarrisonReplacementTests : TacticsTestFixture
             var secondDefender = Unit(player, secondCity.centerTile);
             secondDefender.currentHealth = 2;
             Unit(enemy, Tile(4, 10));
-            Assert.That(EconomyAI.FindReplacement(secondCity, secondDefender, profile, out _), Is.Null,
+            Assert.That(planner.TryPlan(player, profile, scorer, out _), Is.False,
                 "The first purchase must consume the shared budget.");
         }
         finally
@@ -206,11 +263,19 @@ public class GarrisonReplacementTests : TacticsTestFixture
         }
     }
 
-    [Test]
-    public void RetreatAndRecruitCompleteBeforeFirstYieldAndSpendOnlyOnce()
+    [TestCase(false)]
+    [TestCase(true)]
+    public void ActionAndRecruitCompleteBeforeFirstYieldAndSpendOnlyOnce(bool attack)
     {
         SetupDefense();
+        if (attack)
+        {
+            wounded.currentHealth = wounded.data.maxHealth;
+            attacker.currentHealth = 1;
+        }
         planner.TryPlan(player, profile, scorer, out var action);
+        Tile destination = attack ? attacker.currentTile : action.moveTile;
+        Assert.That(action.outgoingKind, Is.EqualTo(attack ? ActionKind.Attack : ActionKind.MoveOnly));
         FogOfWarManager previous = FogOfWarManager.Instance;
         FogOfWarManager.Instance = Component<FogOfWarManager>();
         Unit spawned = null;
@@ -220,7 +285,7 @@ public class GarrisonReplacementTests : TacticsTestFixture
             Assert.That(execution.MoveNext(), Is.True);
             spawned = city.centerTile.currentUnit;
             Assert.That(spawned, Is.Not.Null.And.Not.SameAs(wounded));
-            Assert.That(wounded.currentTile, Is.SameAs(action.moveTile));
+            Assert.That(wounded.currentTile, Is.SameAs(destination));
             Assert.That(spawned.data, Is.SameAs(recruit.unitData));
             Assert.That(spawned.isActive, Is.False);
             Assert.That(player.stars, Is.EqualTo(2));

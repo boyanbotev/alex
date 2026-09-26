@@ -31,7 +31,7 @@ public class TacticsAI : MonoBehaviour
             _candidates.SelectShortlist(perUnitCount, _shortlist);
             // A coordinated purchase must compete with ordinary actions even when
             // the profile keeps only one immediate candidate per unit.
-            bool hasReplacement = replacements.TryPlan(player, profile, _scorer, out CandidateAction replacement);
+            bool hasReplacement = replacements.TryPlan(player, profile, _scorer, out CandidateAction replacement, _candidates.Candidates);
 
             CandidateAction best = default;
             float bestScore = float.NegativeInfinity;
@@ -160,7 +160,8 @@ public class TacticsAI : MonoBehaviour
         if (TurnManager.Instance.Diplomacy.Revision != diplomacyRevision || action.unit == null) yield break;
         if (action.kind == ActionKind.ReplaceGarrison)
         {
-            if (!action.unit.TryReplaceGarrison(action.recruitCity, action.recruit, action.moveTile)) yield break;
+            if (!action.unit.TryReplaceGarrison(action.recruitCity, action.recruit, action.moveTile,
+                action.outgoingKind == ActionKind.Attack ? action.target : null)) yield break;
             yield return ActionAnimationWait;
             yield break;
         }

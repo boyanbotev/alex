@@ -9,12 +9,10 @@ public sealed class TacticalScorer
     private readonly NeuronRaidScorer neuronRaids = new();
     private readonly Dictionary<(Player, Building), float> raidValues = new();
     private readonly List<Unit> splashTargets = new();
-    private readonly Dictionary<City, bool> threatenedCities = new();
 
     public void BeginGeneration()
     {
         raidValues.Clear();
-        threatenedCities.Clear();
     }
 
     private float RaidValue(Unit unit, Building segment, BoardState board)
@@ -36,18 +34,15 @@ public sealed class TacticalScorer
     {
         float value = RaidValue(unit, segment, board);
         int checkpoint = board.Checkpoint();
-        bool changesWar = !board.IsAtWar(board.GetUnitOwner(unit), segment.owner);
         try
         {
             // Include danger from the faction that this action would turn hostile.
             board.WithWar(board.GetUnitOwner(unit), segment.owner);
-            if (changesWar) threatenedCities.Clear();
             return value + ScoreMove(unit, board.GetTile(unit), position, board);
         }
         finally
         {
             board.Rollback(checkpoint);
-            if (changesWar) threatenedCities.Clear();
         }
     }
 
@@ -153,12 +148,6 @@ public sealed class TacticalScorer
     {
         float score = 0f;
 
-        // Give urgent garrison moves/staying put a chance to survive immediate
-        // pruning, even with one candidate per unit. Lookahead still judges combat.
-        if (tile.city != null && board.GetOwner(tile.city) == board.GetUnitOwner(unit) &&
-            IsCityThreatened(tile.city, board) && tile.city.units.Count >= tile.city.UnitCapacity) // is this ok??????
-            score += profile.cityCaptureWeight;
-
         for (int p = 0; p < players.Count; p++)
         {
             Player enemy = players[p];
@@ -194,12 +183,26 @@ public sealed class TacticalScorer
         return score;
     }
 
-    private bool IsCityThreatened(City city, BoardState board)
+    public float ScoreCitySafety(CandidateAction action, BoardState board)
     {
-        if (threatenedCities.TryGetValue(city, out bool threatened)) return threatened;
-        threatened = CityDefense.IsThreatened(city.centerTile, board.GetOwner(city), board);
-        threatenedCities[city] = threatened;
-        return threatened;
+        if (action.kind == ActionKind.DoNothing) return 0f;
+        Player owner = board.GetUnitOwner(action.unit);
+        City origin = board.GetTile(action.unit).city;
+        City destination = action.moveTile.city;
+        if (origin != null && board.GetOwner(origin) != owner) origin = null;
+        if (destination != null && (destination == origin || board.GetOwner(destination) != owner)) destination = null;
+        if (origin == null && destination == null) return 0f;
+        float before = (origin == null ? 0f : CityDefense.Risk(origin, board)) +
+            (destination == null ? 0f : CityDefense.Risk(destination, board));
+        int checkpoint = board.Checkpoint();
+        try
+        {
+            ActionSimulator.Apply(board, action);
+            float after = (origin == null ? 0f : CityDefense.Risk(origin, board)) +
+                (destination == null ? 0f : CityDefense.Risk(destination, board));
+            return (before - after) * profile.cityCaptureWeight;
+        }
+        finally { board.Rollback(checkpoint); }
     }
 
     private bool ExposesToLethalCounter(Unit unit, Tile destination, Unit justKilled, BoardState board)

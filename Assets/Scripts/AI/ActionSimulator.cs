@@ -9,8 +9,10 @@ public static class ActionSimulator
         Unit unit = action.unit;
         if (action.kind == ActionKind.ReplaceGarrison)
         {
-            board.WithMove(unit, board.GetTile(unit), action.moveTile);
-            board.WithRecruit(action.recruitCity, action.recruit);
+            action.kind = action.outgoingKind;
+            Apply(board, action);
+            if (board.GetOccupant(action.recruitCity.centerTile) == null)
+                board.WithRecruit(action.recruitCity, action.recruit);
             return;
         }
         // Revalidate before applying any part of a queued attack, including movement.

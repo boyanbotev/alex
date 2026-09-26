@@ -1,10 +1,12 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 // Conservative next-turn estimates shared by tactics and recruitment. These ignore
 // spent action flags (which refresh), but respect static attackers and city perks.
-// Distance estimates intentionally ignore path obstacles and occupancy.
+// Attack estimates are conservative; walk-in threats use legal movement paths.
 public static class CityDefense
 {
+    private static readonly List<Tile> reachable = new();
     public static bool CanAttackNextTurn(Unit attacker, Tile tile, BoardState board)
     {
         if (attacker == null || !board.IsAlive(attacker)) return false;
@@ -16,22 +18,41 @@ public static class CityDefense
     }
 
     // Reaching an undefended city does not require attacking, even for static units.
-    public static bool CanReachCityNextTurn(Unit unit, Tile tile, BoardState board) =>
-        unit != null && board.IsAlive(unit) &&
-        Utils.GridDistance(board.GetTile(unit).gridPosition, tile.gridPosition) <= board.GetMoveRange(unit);
-
-    public static bool CanThreaten(Unit attacker, Tile tile, BoardState board) =>
-        CanReachCityNextTurn(attacker, tile, board) || 
-        (CanAttackNextTurn(attacker, tile, board) && 
-        tile.currentUnit?.currentHealth < tile.currentUnit?.data.maxHealth);
-
-    public static bool IsThreatened(Tile tile, Player owner, BoardState board)
+    public static bool CanReachCityNextTurn(Unit unit, Tile tile, BoardState board)
     {
+        if (unit == null || !board.IsAlive(unit) || board.GetOccupant(tile) != null ||
+            Utils.GridDistance(board.GetTile(unit).gridPosition, tile.gridPosition) > board.GetMoveRange(unit)) return false;
+        GridManager.Instance.GetReachableMoveTiles(board.GetTile(unit), board.GetUnitOwner(unit), board.GetMoveRange(unit),
+            board.GetOccupant, reachable, board.IsAtWar, board.GetUnitOwner);
+        return reachable.Contains(tile);
+    }
+
+    public static int AssessGuard(City city, BoardState board)
+    {
+        Unit guard = board.GetOccupant(city.centerTile);
+        return guard == null ? 0 : RemainingHealth(board.GetData(guard), board.GetHealth(guard),
+            city.centerTile, board.GetOwner(city), board);
+    }
+
+    // Only an exposed city or a guard predicted to fall needs special defense.
+    public static float Risk(City city, BoardState board)
+    {
+        Unit guard = board.GetOccupant(city.centerTile);
+        if (guard == null) return CanEnemyEnter(city, board) ? 1f : 0f;
+        if (board.GetUnitOwner(guard) != board.GetOwner(city)) return 1f;
+        return AssessGuard(city, board) <= 0 ? 1f : 0f;
+    }
+
+    public static bool CanEnemyEnter(City city, BoardState board)
+    {
+        Tile tile = city.centerTile;
+        if (board.GetOccupant(tile) != null) return false;
+        Player owner = board.GetOwner(city);
         foreach (Player enemy in TurnManager.Instance.players)
         {
             if (!board.IsAtWar(owner, enemy)) continue;
             for (int i = 0; i < board.UnitCount(enemy); i++)
-                if (CanThreaten(board.UnitAt(enemy, i), tile, board)) return true;
+                if (CanReachCityNextTurn(board.UnitAt(enemy, i), tile, board)) return true;
         }
         return false;
     }
@@ -62,7 +83,7 @@ public static class CityDefense
 
     public static float RecruitmentScore(FactionUnit recruit, City city, AIProfile profile)
     {
-        if (!IsThreatened(city.centerTile, city.owner, BoardState.Live)) return 0f;
+        if (!CanEnemyEnter(city, BoardState.Live)) return 0f;
         UnitData data = recruit.unitData;
         int remaining = RemainingHealth(data, data.maxHealth, city.centerTile, city.owner, BoardState.Live);
         return profile.cityCaptureWeight * (1f + (float)remaining / data.maxHealth);

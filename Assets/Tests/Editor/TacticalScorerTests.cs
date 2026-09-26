@@ -34,6 +34,7 @@ public class TacticalScorerTests : TacticsTestFixture
     public void CaptureReachDoesNotRequireAnAttack(bool isStatic, int power)
     {
         var city = City(Tile(0), player);
+        Tile(1);
         var attacker = Unit(enemy, Tile(2));
         attacker.data.moveRange = 2;
         attacker.data.attackRange = 1;
@@ -41,7 +42,7 @@ public class TacticalScorerTests : TacticsTestFixture
         attacker.data.skills = isStatic ? new[] { Skill.Static } : System.Array.Empty<Skill>();
         Assert.That(CityDefense.CanAttackNextTurn(attacker, city.centerTile, board), Is.False);
         Assert.That(CityDefense.CanReachCityNextTurn(attacker, city.centerTile, board), Is.True);
-        Assert.That(CityDefense.IsThreatened(city.centerTile, player, board), Is.True);
+        Assert.That(CityDefense.CanEnemyEnter(city, board), Is.True);
     }
 
     [Test]
@@ -68,7 +69,7 @@ public class TacticalScorerTests : TacticsTestFixture
     }
 
     [Test]
-    public void KillingMeleeAttackOffCityDoesNotKeepGarrisonBonus()
+    public void OccupyingCityDoesNotEarnStandingBonus()
     {
         ClearWeights();
         profile.cityCaptureWeight = 40;
@@ -77,10 +78,10 @@ public class TacticalScorerTests : TacticsTestFixture
         var target = Unit(enemy, Tile(1));
         target.currentHealth = 1;
         Unit(enemy, Tile(-1));
-        Assert.That(scorer.ScoreMove(defender, defender.currentTile, defender.currentTile, board), Is.EqualTo(40));
+        Assert.That(scorer.ScoreMove(defender, defender.currentTile, defender.currentTile, board), Is.Zero);
         Assert.That(scorer.ScoreAttack(defender, defender.currentTile, target, board), Is.Zero);
         defender.data.attackRange = 2;
-        Assert.That(scorer.ScoreAttack(defender, defender.currentTile, target, board), Is.EqualTo(40));
+        Assert.That(scorer.ScoreAttack(defender, defender.currentTile, target, board), Is.Zero);
     }
 
     [Test]
