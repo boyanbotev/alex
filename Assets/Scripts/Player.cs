@@ -14,7 +14,6 @@ public class Player : MonoBehaviour
 
     public List<City> cities = new List<City>();
     public List<Unit> units = new List<Unit>();
-    public PlayerTechState techState = new PlayerTechState();
     public VisibilityState visibleTiles;
 
     public void AddStars(int amount)
@@ -63,7 +62,7 @@ public class Player : MonoBehaviour
     // Shared with route planning, where earlier planned segments provide the anchor.
     public bool CanPlaceNeuronSite(BuildingData data, Tile tile)
     {
-        if (data == null || !data.isNeuron || !techState.CanBuild(data) || tile == null ||
+        if (data == null || !data.isNeuron || tile == null ||
             tile.terrainType == TerrainType.Mountain ||
             tile.city != null || tile.currentBuilding != null || faction == null || faction.availableBuildings == null ||
             System.Array.IndexOf(faction.availableBuildings, data) < 0) return false;

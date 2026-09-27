@@ -37,8 +37,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] GameObject captureButtonPrefab;
 
     public static UIManager Instance;
-    private TechTreeView techTree;
-    private TechData selectedTech;
     private Player techPlayer;
     private City displayedCity;
     [SerializeField] private CityBondView bondView;
@@ -57,7 +55,6 @@ public class UIManager : MonoBehaviour
         while (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady)
             yield return null;
         SetStarsPerTurn(TurnManager.Instance.players.Find(p => !p.isAI).CalculateTurnIncome());
-        PrepareTechTree(TurnManager.Instance.players.Find(p => !p.isAI));
     }
 
     private void OnEnable()
@@ -175,61 +172,6 @@ public class UIManager : MonoBehaviour
         });
     }
 
-    public void ShowTechButtons()
-    {
-        if (techPanel.gameObject.activeSelf) return;
-
-        var player = TurnManager.Instance.ActivePlayer;
-
-        if (player.isAI) return;
-
-        techPanel.gameObject.SetActive(true);
-        PrepareTechTree(player);
-    }
-
-    private void PrepareTechTree(Player player)
-    {
-        if (player == null) return;
-        if (techTree == null)
-        {
-            techTree = techButtonHolder.gameObject.AddComponent<TechTreeView>();
-            techTree.Initialize(techButtonHolder, itemPurchaseButtonPrefab, ShowTechPurchasePanel);
-        }
-        techTree.Show(player);
-    }
-
-    public void ShowTechPurchasePanel(TechData tech, Player player)
-    {
-        if (techPurchasePanel.gameObject.activeSelf) CloseTechPurchasePanel();
-        selectedTech = tech;
-        techPlayer = player;
-        techPurchasePanel.gameObject.SetActive(true);
-        techTitle.text = tech.techName;
-
-        foreach (BuildingData building in player.faction.availableBuildings)
-        {
-            if (building.constructionDisabled || building.requiredTech != tech) continue;
-            BuildingData b = building; // local copy for the closure
-            CreateUnlockCard(b.buildingName, b.cost, () => ShowBuildingInfoPopup(b));
-        }
-
-        researchButton.onClick.RemoveAllListeners();
-        researchButton.onClick.AddListener(() => {
-            player.techState.TryResearch(tech, player);
-            CloseTechPurchasePanel();
-            techTree.RefreshState();
-        });
-
-        RefreshResearchState();
-    }
-
-    private void RefreshResearchState()
-    {
-        if (selectedTech == null || techPlayer == null) return;
-        researchButton.interactable = techPlayer.techState.CanResearch(selectedTech) && selectedTech.cost <= techPlayer.stars;
-        cantResearchText.gameObject.SetActive(!techPlayer.techState.IsUnlocked(selectedTech) && selectedTech.cost > techPlayer.stars);
-    }
-
     private void CreateUnlockCard(string itemName, int cost, UnityAction onClick)
     {
         var button = Instantiate(itemPurchaseButtonPrefab, techUnlocksButtonHolder);
@@ -237,21 +179,6 @@ public class UIManager : MonoBehaviour
         card.AddText(itemName);
         card.AddCost(cost);
         card.AddListener(onClick);
-    }
-
-    public void CloseTechPurchasePanel()
-    {
-        for (int i = 0; i < techUnlocksButtonHolder.childCount; i++)
-        {
-            Destroy(techUnlocksButtonHolder.GetChild(i).gameObject);
-        }
-
-        HideBuildingInfoPopup();
-        HideUnitStatsPopup();
-
-        techPurchasePanel.gameObject.SetActive(false);
-        selectedTech = null;
-        techPlayer = null;
     }
 
     public void ShowCaptureButton(City city, Unit capturer)
@@ -336,12 +263,6 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void CloseTechPanel()
-    {
-        if (techPurchasePanel.gameObject.activeSelf) CloseTechPurchasePanel();
-        techPanel.gameObject.SetActive(false);
-    }
-
     public void ShowBuildingInfoPopup(BuildingData building)
     {
         buildingInfoPopup.gameObject.SetActive(true);
@@ -368,8 +289,6 @@ public class UIManager : MonoBehaviour
     {
         RefreshCityPanel();
         starsCounter.text = value + " stars";
-        if (techTree != null) techTree.RefreshState();
-        RefreshResearchState();
     }
 
     private void RefreshCityPanel()

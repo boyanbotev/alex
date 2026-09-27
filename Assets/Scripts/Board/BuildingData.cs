@@ -17,11 +17,6 @@ public class BuildingData : ScriptableObject
     public bool constructionDisabled;
     [Range(0f, 1f)] public float demolitionRefundFraction = 0.5f;
 
-    [Tooltip("Tech required to unlock this building. Leave empty if it's available from the start.")]
-    public TechData requiredTech;
-
-    [Tooltip("Every condition here must pass for the building to be placeable on a tile. " +
-             "See the Conditions folder for available condition types.")]
     public BuildingPlacementCondition[] placementConditions;
 
     public bool CanPlaceAt(Tile tile, City city)

@@ -157,11 +157,6 @@ public class City : MonoBehaviour
             return false;
         }
 
-        if (!owner.techState.CanBuild(buildingData))
-        {
-            return false;
-        }
-
         if (!buildingData.CanPlaceAt(targetTile, this))
         {
             return false;

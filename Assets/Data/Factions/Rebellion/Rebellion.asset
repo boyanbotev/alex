@@ -24,14 +24,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7d2c201e8ca336a40aeb6ba1b01b0a34, type: 2}
   - {fileID: 11400000, guid: c00e927f473ca1d438a1640c488e0d1d, type: 2}
   availableBuildings:
-  - {fileID: 11400000, guid: cd366363dfc6e6947b45c254d7f03472, type: 2}
   - {fileID: 11400000, guid: 41342e08a6456534fa22e5e8895988ee, type: 2}
-  availableTech:
-  - {fileID: 11400000, guid: c1328990d578ffd44ad2e0effe8bf672, type: 2}
-  - {fileID: 11400000, guid: 19d9dfc725a3ff945aad5084a33f41a3, type: 2}
-  - {fileID: 11400000, guid: e41b17a24b55aa049b927448172b00e6, type: 2}
-  - {fileID: 11400000, guid: 39596448097723c449b9118be84a5424, type: 2}
-  - {fileID: 11400000, guid: 0f80d8f5e80b385438c0c41566678087, type: 2}
-  - {fileID: 11400000, guid: 4f6243906ed07f241a08269cdab5f87f, type: 2}
-  startingUnlockedTech:
-  - {fileID: 11400000, guid: 0f80d8f5e80b385438c0c41566678087, type: 2}

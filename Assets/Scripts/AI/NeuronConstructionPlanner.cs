@@ -23,7 +23,7 @@ public sealed class NeuronConstructionPlanner
             profile.neuronMaxPaybackTurns <= 0f || TurnManager.Instance.neuronStarsPerConnection <= 0) return;
         foreach (BuildingData data in player.faction.availableBuildings)
         {
-            if (data == null || !data.isNeuron || !player.techState.CanBuild(data) || data.cost < 0 ||
+            if (data == null || !data.isNeuron || data.cost < 0 ||
                 data.cost > player.stars || data.buildingPrefab == null ||
                 data.buildingPrefab.GetComponent<Building>() == null) continue;
             foreach (City source in player.cities)

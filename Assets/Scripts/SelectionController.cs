@@ -210,7 +210,7 @@ public class SelectionController : MonoBehaviour
 
         var availableBuildings = player.faction.availableBuildings.Where(b =>
         {
-            return player.techState.CanBuild(b) && (b.isNeuron ? player.CanPlaceNeuron(b, tile) :
+            return (b.isNeuron ? player.CanPlaceNeuron(b, tile) :
                 city != null && city.owner == player && tile.city == null && b.CanPlaceAt(tile, city));
         })
         .ToArray();

@@ -90,8 +90,7 @@ public sealed class FactionUnitWindow : EditorWindow
             try { FactionAssetUtility.SetCity(faction, cityTemplate); }
             catch (Exception error) { EditorUtility.DisplayDialog("Could not assign city", error.Message, "OK"); }
         }
-        DrawProperties(faction, "startingUnit", "availableBuildings", "availableTech", "startingUnlockedTech");
-        EditorGUILayout.HelpBox("Starting techs are free grants. Only listed techs are unlocked, regardless of prerequisites.", MessageType.Info);
+        DrawProperties(faction, "startingUnit", "availableBuildings");
         EditorGUILayout.LabelField("Roster", EditorStyles.boldLabel);
         foreach (var entry in faction.availableUnits ?? Array.Empty<FactionUnit>())
         {
@@ -206,10 +205,6 @@ public sealed class FactionUnitWindow : EditorWindow
             if (entry.prefab == null || entry.prefab.GetComponent<Unit>() == null)
                 Warn(entry.name + ": assign a prefab with a Unit component on its root.");
         }
-        foreach (var tech in faction.startingUnlockedTech ?? Array.Empty<TechData>())
-            if (tech == null) Warn("Starting tech list contains a missing technology.");
-            else if (!(faction.availableTech ?? Array.Empty<TechData>()).Contains(tech))
-                Warn(tech.name + " is granted at start but is absent from the faction's technology tree.");
     }
 
     private static void Warn(string message) => EditorGUILayout.HelpBox(message, MessageType.Warning);

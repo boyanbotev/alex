@@ -86,15 +86,12 @@ public class CityBondTests : TacticsTestFixture
         var entry = Asset<FactionUnit>();
         entry.unitData = Asset<UnitData>();
         entry.unitData.requiredPerk = kind;
-        entry.unitData.requiredTech = Asset<TechData>();
         entry.prefab = Component<Unit>().gameObject;
         player.faction.availableUnits = new[] { entry };
         Assert.That(city.CanRecruit(entry), Is.False);
-        player.techState.InitializeStartingTech(new[] { entry.unitData.requiredTech });
         Assert.That(city.CanRecruit(entry), Is.False);
         Assert.That(city.SpawnUnit(entry, 2), Is.False);
         Assert.That(player.stars, Is.EqualTo(20));
-        player.techState.InitializeStartingTech(null);
         Perk(city, kind, 0);
         Assert.That(city.CanRecruit(entry), Is.True);
         player.faction.availableUnits = System.Array.Empty<FactionUnit>();

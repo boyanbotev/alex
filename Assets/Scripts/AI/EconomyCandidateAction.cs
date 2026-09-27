@@ -1,4 +1,4 @@
-public enum EconomyActionKind { ResearchTech, PlaceBuilding, SpawnUnit, PlaceNeuron, UpgradePerk }
+public enum EconomyActionKind { PlaceBuilding, SpawnUnit, PlaceNeuron, UpgradePerk }
 
 public class EconomyCandidateAction
 {
@@ -6,7 +6,6 @@ public class EconomyCandidateAction
     public float score;
     public int cost;
 
-    public TechData tech;
     public BuildingData building;
     public Tile buildTile;
     public City city;

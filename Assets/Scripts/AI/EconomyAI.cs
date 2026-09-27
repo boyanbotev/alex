@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class EconomyAI : MonoBehaviour
@@ -56,7 +55,6 @@ public class EconomyAI : MonoBehaviour
         neuronPlanner.GenerateCandidates(controlledPlayer, profile, buffer);
         GenerateSpawnCandidates(buffer);
         GeneratePerkUpgradeCandidates(buffer);
-        GenerateResearchCandidates(buffer);
     }
 
     private void GenerateBuildingCandidates(List<EconomyCandidateAction> buffer)
@@ -68,7 +66,7 @@ public class EconomyAI : MonoBehaviour
             for (int j = 0; j < controlledPlayer.faction.availableBuildings.Length; j++)
             {
                 BuildingData building = controlledPlayer.faction.availableBuildings[j];
-                if (building.isNeuron || !controlledPlayer.techState.CanBuild(building)) continue;
+                if (building.isNeuron) continue;
 
                 Tile tile = FindBestBuildTile(building, city);
                 if (tile == null) continue;
@@ -228,56 +226,12 @@ public class EconomyAI : MonoBehaviour
         return 0f;
     }
 
-    private void GenerateResearchCandidates(List<EconomyCandidateAction> buffer)
-    {
-        for (int i = 0; i < controlledPlayer.faction.availableTech.Length; i++)
-        {
-            TechData tech = controlledPlayer.faction.availableTech[i];
-            if (!controlledPlayer.techState.CanResearch(tech)) continue;
-
-            buffer.Add(new EconomyCandidateAction
-            {
-                kind = EconomyActionKind.ResearchTech,
-                tech = tech,
-                cost = tech.cost,
-                score = ScoreResearch(tech)
-            });
-        }
-    }
-
-    private float ScoreResearch(TechData tech)
-    {
-        float score = profile.researchBaseWeight;
-
-        for (int i = 0; i < controlledPlayer.faction.availableBuildings.Length; i++)
-        {
-            if (!controlledPlayer.faction.availableBuildings[i].constructionDisabled &&
-                controlledPlayer.faction.availableBuildings[i].requiredTech == tech)
-            {
-                score += profile.researchBuildingUnlockWeight;
-            }
-        }
-
-        for (int i = 0; i < controlledPlayer.faction.availableTech.Length; i++)
-        {
-            TechData other = controlledPlayer.faction.availableTech[i];
-            if (other.prerequisites != null && other.prerequisites.Contains(tech))
-            {
-                score += profile.researchBridgeWeight;
-            }
-        }
-
-        return score;
-    }
-
     private bool ExecuteEconomyAction(EconomyCandidateAction c)
     {
         switch (c.kind)
         {
             case EconomyActionKind.UpgradePerk:
                 return c.city.TryUpgradePerk(controlledPlayer);
-            case EconomyActionKind.ResearchTech:
-                return controlledPlayer.techState.TryResearch(c.tech, controlledPlayer);
             case EconomyActionKind.PlaceBuilding:
                 return c.city.PlaceBuilding(c.building, c.buildTile);
             case EconomyActionKind.SpawnUnit:

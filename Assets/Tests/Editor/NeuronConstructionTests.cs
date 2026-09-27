@@ -14,7 +14,6 @@ public class NeuronConstructionTests : TacticsTestFixture
         player.visibleTiles = new VisibilityState(20, 20);
         player.faction = Asset<Faction>();
         player.faction.availableUnits = System.Array.Empty<FactionUnit>();
-        player.faction.availableTech = System.Array.Empty<TechData>();
         neuron = Asset<BuildingData>();
         neuron.isNeuron = true;
         neuron.cost = 3;
@@ -206,9 +205,6 @@ public class NeuronConstructionTests : TacticsTestFixture
         Endpoint(Visible(0), player);
         var gap = Visible(1);
         Endpoint(Visible(2), player);
-        neuron.requiredTech = Asset<TechData>();
-        Assert.That(Plan(), Is.Empty);
-        neuron.requiredTech = null;
         profile.neuronMaxPaybackTurns = 1;
         Assert.That(Plan(), Is.Empty); // Cost 3, income 2.
         profile.neuronMaxPaybackTurns = 2;
