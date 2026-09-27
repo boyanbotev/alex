@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Collosus
   m_EditorClassIdentifier: 
   counterType: {fileID: 0}
-  cost: 3
+  cost: 10
   maxHealth: 20
   attackPower: 3
   defensePower: 3
