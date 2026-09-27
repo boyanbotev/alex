@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Heavy Cavalry
   m_EditorClassIdentifier: 
   counterType: {fileID: 0}
-  cost: 10
+  cost: 12
   maxHealth: 15
   attackPower: 3
   defensePower: 2
