@@ -185,13 +185,20 @@ public sealed class TacticalScorer
 
     public float ScoreCitySafety(CandidateAction action, BoardState board)
     {
-        if (action.kind == ActionKind.DoNothing) return 0f;
         Player owner = board.GetUnitOwner(action.unit);
         City origin = board.GetTile(action.unit).city;
         City destination = action.moveTile.city;
         if (origin != null && board.GetOwner(origin) != owner) origin = null;
         if (destination != null && (destination == origin || board.GetOwner(destination) != owner)) destination = null;
         if (origin == null && destination == null) return 0f;
+
+        if (action.kind == ActionKind.DoNothing)
+        {
+            if (origin.units.Count < origin.UnitCapacity) return 0f;
+            // don't sit on city if can spawn more units
+            return CityDefense.Risk(origin, board) * profile.cityCaptureWeight;
+        }
+
         float before = (origin == null ? 0f : CityDefense.Risk(origin, board)) +
             (destination == null ? 0f : CityDefense.Risk(destination, board));
         int checkpoint = board.Checkpoint();

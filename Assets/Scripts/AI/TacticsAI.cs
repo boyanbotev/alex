@@ -10,7 +10,6 @@ public class TacticsAI : MonoBehaviour
 
     private readonly TacticalScorer _scorer = new();
     private readonly CandidateGenerator _candidates = new();
-    private readonly GarrisonReplacementPlanner replacements = new();
     private readonly List<CandidateAction> _shortlist = new List<CandidateAction>(32);
     private readonly System.Diagnostics.Stopwatch _frameBudgetTimer = new System.Diagnostics.Stopwatch();
     private static readonly WaitForSeconds ActionAnimationWait = new WaitForSeconds(0.3f);
@@ -29,22 +28,13 @@ public class TacticsAI : MonoBehaviour
 
             int perUnitCount = Mathf.Max(1, profile.perUnitLookaheadCandidates);
             _candidates.SelectShortlist(perUnitCount, _shortlist);
-            // A coordinated purchase must compete with ordinary actions even when
-            // the profile keeps only one immediate candidate per unit.
-            bool hasReplacement = replacements.TryPlan(player, profile, _scorer, out CandidateAction replacement, _candidates.Candidates);
-
+  
             CandidateAction best = default;
             float bestScore = float.NegativeInfinity;
 
             _frameBudgetTimer.Restart();
 
             int len = Mathf.Min(_shortlist.Count, Mathf.Max(1, profile.maxShortlistSize));
-            if (hasReplacement)
-            {
-                if (_shortlist.Count > len) _shortlist.RemoveRange(len, _shortlist.Count - len);
-                _shortlist.Add(replacement);
-                len++;
-            }
 
             if (len == 1)
             {
@@ -74,6 +64,7 @@ public class TacticsAI : MonoBehaviour
             // A manual transition may happen while lookahead yields between frames.
             // Discard every old score and regenerate, including move-only plans.
             if (TurnManager.Instance.Diplomacy.Revision != diplomacyRevision) continue;
+
             yield return Execute(best, diplomacyRevision);
         }
     }
@@ -158,6 +149,7 @@ public class TacticsAI : MonoBehaviour
     private IEnumerator Execute(CandidateAction action, int diplomacyRevision)
     {
         if (TurnManager.Instance.Diplomacy.Revision != diplomacyRevision || action.unit == null) yield break;
+        
         if (action.kind == ActionKind.ReplaceGarrison)
         {
             if (!action.unit.TryReplaceGarrison(action.recruitCity, action.recruit, action.moveTile,

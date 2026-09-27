@@ -16,6 +16,15 @@ public class EconomyAI : MonoBehaviour
         this.controlledPlayer = controlledPlayer;
         this.profile = profile;
 
+        var warrior = controlledPlayer.faction.availableUnits[0];
+        foreach (var city in controlledPlayer.cities)
+        {
+            Debug.Log(
+                $"{city.cityName} \ncan spawn: {city.CanSpawnUnit(warrior, warrior.unitData.cost)}" +
+                $"\nunits:{city.units.Count}/{city.UnitCapacity}"
+            );
+        }
+
         while (true)
         {
             GenerateEconomyCandidates(_candidateBuffer);
@@ -34,6 +43,8 @@ public class EconomyAI : MonoBehaviour
             if (best == null || best.score <= 0f) break;
 
             // Failed validation must not repeat the same rejected purchase indefinitely.
+            Debug.Log("----best----\n " + best.ToString() + "\n");
+
             if (!ExecuteEconomyAction(best)) break;
         }
     }

@@ -11,4 +11,14 @@ public class EconomyCandidateAction
     public Tile buildTile;
     public City city;
     public FactionUnit unit;
+
+    public override string ToString()
+    {
+        return $"EconomyAction " +
+            $"score: {score}, "+
+            $"unit name: {unit?.name},  " +
+            $"city name: {city?.cityName},  " +
+            $"cost: {cost},  " +
+            $"building name: {building?.buildingName}";
+    }
 }

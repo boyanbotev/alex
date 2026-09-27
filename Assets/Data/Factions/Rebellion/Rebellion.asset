@@ -17,10 +17,10 @@ MonoBehaviour:
   units: []
   startingUnit: {fileID: 11400000, guid: ef4ba16ffe57b3344b02414d05b69843, type: 2}
   availableUnits:
+  - {fileID: 11400000, guid: 64d080705ad1c734bb4314e9386234c8, type: 2}
   - {fileID: 11400000, guid: ef4ba16ffe57b3344b02414d05b69843, type: 2}
   - {fileID: 11400000, guid: a192616d9158d3b4dbb17878f491aa61, type: 2}
   - {fileID: 11400000, guid: cb683d5c4c5fd0449b6ca494acf52b0a, type: 2}
-  - {fileID: 11400000, guid: 64d080705ad1c734bb4314e9386234c8, type: 2}
   - {fileID: 11400000, guid: 7d2c201e8ca336a40aeb6ba1b01b0a34, type: 2}
   - {fileID: 11400000, guid: c00e927f473ca1d438a1640c488e0d1d, type: 2}
   availableBuildings:
