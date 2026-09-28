@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cityCaptureWeight: 40
   cityProgressWeight: 3
-  damageWeight: 2
+  damageWeight: 1.5
   killWeight: 5
   retaliationWeight: 1
   survivalWeight: 3
