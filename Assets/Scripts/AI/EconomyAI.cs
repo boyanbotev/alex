@@ -32,6 +32,7 @@ public class EconomyAI : MonoBehaviour
             for (int i = 0; i < _candidateBuffer.Count; i++)
             {
                 EconomyCandidateAction c = _candidateBuffer[i];
+                Debug.Log(c.ToString() );
                 if (c.cost > controlledPlayer.stars) continue;
                 if (best == null || c.score > best.score)
                 {
