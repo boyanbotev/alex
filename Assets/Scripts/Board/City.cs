@@ -206,6 +206,7 @@ public class City : MonoBehaviour
         else
         {
             Capture(capturer);
+            Debug.Log("================= capture without button =================");
         }
 
         return true;

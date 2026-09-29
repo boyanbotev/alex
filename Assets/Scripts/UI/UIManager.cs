@@ -198,6 +198,8 @@ public class UIManager : MonoBehaviour
 
         if (buttonText != null) buttonText.text = "Capture";
 
+        Debug.Log($"======================= {city.cityName} show capture button ==============================");
+
         buttonComponent.onClick.AddListener(() =>
         {
             if (!capturer.isAlive ||
@@ -207,6 +209,7 @@ public class UIManager : MonoBehaviour
                 return;
             }
 
+            Debug.Log($"======================= {city.cityName} capture button pressed ==============================");
             city.Capture(capturer);
             HideCaptureButton(city);
         });

@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class TurnManager : MonoBehaviour
@@ -164,10 +163,12 @@ public class TurnManager : MonoBehaviour
 
             if (player.isAI)
             {
+                Debug.Log($"{player.faction.name} capture {city.cityName} without showing button");
                 city.ResolvePendingCapture(false);
             }
             else
             {
+                Debug.Log($"{player.faction.name} capture {city.cityName} showing button");
                 city.ResolvePendingCapture(true);
             }
         }
