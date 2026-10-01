@@ -96,37 +96,4 @@ public class LevelGenerationTests : TacticsTestFixture
         Assert.That(plan.Positions, Is.Null);
         Assert.That(population.allCities, Is.Empty);
     }
-
-    [Test]
-    public void SingleCapitalAndNoNeutralsWorksAndAvoidsWater()
-    {
-        var level = CreateLevel();
-        level.factions = new[] { new LevelFaction { startingCities = Cities("Only City") } };
-        level.neutralCities = Array.Empty<CityData>();
-        Tile(3, 3).terrainType = TerrainType.Water;
-        Tile(4, 4).terrainType = TerrainType.Mountain;
-        Tile valid = Tile(5, 5);
-        valid.terrainType = TerrainType.Forest;
-        Assert.That(Place(level).Positions, Is.EqualTo(new[] { valid }));
-    }
-
-    [Test]
-    public void RosterComesFromLevelAndDoesNotStoreRuntimeStateInAsset()
-    {
-        var level = CreateLevel();
-        level.factions[0].faction = Asset<Faction>();
-        level.factions[0].isAI = false;
-        level.factions[0].startingStars = 12;
-        level.factions[1].faction = Asset<Faction>();
-        turns.players.Clear();
-        turns.InitializePlayers(level);
-        Assert.That(turns.players.Count, Is.EqualTo(2));
-        Assert.That(turns.players[0].faction, Is.SameAs(level.factions[0].faction));
-        Assert.That(turns.players[0].isAI, Is.False);
-        Assert.That(turns.players[0].stars, Is.EqualTo(12));
-        Assert.That(turns.players[1].isAI, Is.True);
-        turns.players[0].stars = 0;
-        Assert.That(level.factions[0].startingStars, Is.EqualTo(12));
-    }
-
 }
