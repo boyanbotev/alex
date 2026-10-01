@@ -152,7 +152,7 @@ public class TurnManager : MonoBehaviour
 
     public void EndTurn()
     {
-        if (IsGameOver || GridGenerator.Instance == null || !GridGenerator.Instance.IsReady) return;
+        if (IsGameOver || GridGenerator.Instance == null || !GridGenerator.Instance.IsReady || ActivePlayer.isAI) return;
         UIManager.Instance?.CloseSpawnPanel();
         if (CheckGameOver()) return;
 
