@@ -261,6 +261,7 @@ public class City : MonoBehaviour
 
         TurnManager.Instance.Neurons.Invalidate();
         OnPlayerChange?.Invoke(claimingPlayer);
+        TurnManager.Instance.RequestGameOverCheck();
     }
 
     public void SetFaction(Faction faction)

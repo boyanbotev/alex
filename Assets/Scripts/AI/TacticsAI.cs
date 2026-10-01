@@ -18,7 +18,7 @@ public class TacticsAI : MonoBehaviour
     {
         Configure(player, profile);
 
-        while (true)
+        while (!TurnManager.Instance.CheckGameOver())
         {
             int diplomacyRevision = TurnManager.Instance.Diplomacy.Revision;
             _candidates.Generate(controlledPlayer, BoardState.Live);
@@ -148,7 +148,7 @@ public class TacticsAI : MonoBehaviour
 
     private IEnumerator Execute(CandidateAction action, int diplomacyRevision)
     {
-        if (TurnManager.Instance.Diplomacy.Revision != diplomacyRevision || action.unit == null) yield break;
+        if (TurnManager.Instance.CheckGameOver() || TurnManager.Instance.Diplomacy.Revision != diplomacyRevision || action.unit == null) yield break;
         
         if (action.kind == ActionKind.ReplaceGarrison)
         {

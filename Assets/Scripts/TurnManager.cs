@@ -13,6 +13,11 @@ public class TurnManager : MonoBehaviour
     public Player ActivePlayer => players[activePlayerIndex];
     public event System.Action TurnChanged;
     public TurnAI ai;
+    [Header("Ending")]
+    [SerializeField] private TextAsset endingStory;
+    public bool IsGameOver { get; private set; }
+    private bool matchStarted;
+    private bool checkEnding;
     public CombatSettings combatSettings;
     [Min(0)] public int neuronStarsPerConnection = 1;
     private NeuronNetwork neurons;
@@ -99,28 +104,68 @@ public class TurnManager : MonoBehaviour
             yield return null;
         _ = Diplomacy;
         Neurons.Invalidate();
+        matchStarted = true;
+        if (CheckGameOver()) yield break;
         StartTurn(ActivePlayer);
+    }
+
+    private void LateUpdate()
+    {
+        if (!matchStarted || IsGameOver || !checkEnding) return;
+        checkEnding = false;
+        CheckGameOver();
+    }
+
+    public void RequestGameOverCheck() => checkEnding = true;
+
+    public bool CheckGameOver()
+    {
+        if (IsGameOver) return true;
+        if (!matchStarted) return false;
+        Player human = players.Find(p => !p.isAI);
+        if (human != null && !human.IsAlive())
+        {
+            EndGame(false);
+            return true;
+        }
+        int alive = 0;
+        foreach (Player player in players) if (player.IsAlive()) alive++;
+        if (alive > 1) return false;
+        EndGame(human != null && human.IsAlive());
+        return true;
+    }
+
+    // Also used by a future turn limit, after its final turn has resolved.
+    public void EndGame(bool won)
+    {
+        if (IsGameOver) return;
+        IsGameOver = true;
+        StopAllCoroutines();
+        Bonds.Refresh();
+        var links = new SortedSet<string>(System.StringComparer.Ordinal);
+        foreach (CityBond bond in Bonds.All)
+            if (bond.Active) links.Add(GameEnding.PairKey(bond.a.cityName, bond.b.cityName));
+        UIManager.Instance?.CloseSpawnPanel();
+        UIManager.Instance?.CloseBuildPanel();
+        UIManager.Instance?.HideAllCaptureButtons();
+        TurnChanged?.Invoke();
+        gameObject.AddComponent<GameEnding>().Show(endingStory, links, won);
     }
 
     public void EndTurn()
     {
-        if (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady) return;
+        if (IsGameOver || GridGenerator.Instance == null || !GridGenerator.Instance.IsReady) return;
         UIManager.Instance?.CloseSpawnPanel();
-        List<Player> alivePlayers = players.FindAll(p => p.IsAlive());
-        if (alivePlayers.Count == 1)
-        {
-            Debug.Log("GAME OVER . " + alivePlayers[0].name + " is the victor");
-            return;
-        }
+        if (CheckGameOver()) return;
 
         HealUnusedUnits(ActivePlayer);
 
-        activePlayerIndex = (activePlayerIndex + 1) % players.Count;
-
-        if (activePlayerIndex == 0)
+        do
         {
-            turnNumber++;
+            activePlayerIndex = (activePlayerIndex + 1) % players.Count;
+            if (activePlayerIndex == 0) turnNumber++;
         }
+        while (!ActivePlayer.IsAlive());
 
         TurnChanged?.Invoke();
         StartTurn(ActivePlayer);
@@ -135,6 +180,8 @@ public class TurnManager : MonoBehaviour
             unit.ResetTurn();
 
         ResolvePendingCaptures(player);
+
+        if (CheckGameOver()) return;
 
         if (player.isAI)
             StartCoroutine(RunAITurn(player));
@@ -165,6 +212,7 @@ public class TurnManager : MonoBehaviour
             {
                 Debug.Log($"{player.faction.name} capture {city.cityName} without showing button");
                 city.ResolvePendingCapture(false);
+                if (CheckGameOver()) return;
             }
             else
             {

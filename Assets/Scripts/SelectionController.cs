@@ -41,6 +41,11 @@ public class SelectionController : MonoBehaviour
 
     private void Update()
     {
+        if (TurnManager.Instance != null && TurnManager.Instance.IsGameOver)
+        {
+            CancelPress();
+            return;
+        }
         if (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady)
         {
             CancelPress();

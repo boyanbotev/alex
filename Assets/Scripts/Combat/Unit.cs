@@ -24,7 +24,7 @@ public class Unit : MonoBehaviour
     private static readonly List<Tile> moveTiles = new(64);
     private static readonly System.Func<Tile, Unit> GetLiveOccupant = tile => tile.currentUnit;
     private bool CanAct => isAlive && isActive && data != null && owner != null &&
-        TurnManager.Instance != null && TurnManager.Instance.ActivePlayer == owner &&
+        TurnManager.Instance != null && !TurnManager.Instance.IsGameOver && TurnManager.Instance.ActivePlayer == owner &&
         currentTile != null && currentTile.currentUnit == this;
     private bool IsStatic => data.skills != null && System.Array.IndexOf(data.skills, Skill.Static) >= 0;
 
@@ -219,6 +219,7 @@ public class Unit : MonoBehaviour
 
         if (owner != null) owner.units.Remove(this);
         if (homeCity != null) homeCity.units.Remove(this);
+        TurnManager.Instance?.RequestGameOverCheck();
         if (Application.isPlaying) Destroy(gameObject);
         else DestroyImmediate(gameObject);
     }
