@@ -25,18 +25,19 @@ MonoBehaviour:
   - faction: {fileID: 11400000, guid: 8faff328133394f4db3022a2fdee83c7, type: 2}
     color: {r: 1, g: 1, b: 1, a: 1}
     isAI: 0
-    startingStars: 100
+    startingStars: 1000
     startingCities:
     - {fileID: 11400000, guid: de343c1e1f5845078527bff007d1830e, type: 2}
     - {fileID: 11400000, guid: 98630e9c345e4974b440173fd4520705, type: 2}
     - {fileID: 11400000, guid: 6fe6ce66ed3c4dc2861c75abcd715b7d, type: 2}
-    - {fileID: 11400000, guid: 364b717a3ba246ce9a6793216f4c9332, type: 2}
   - faction: {fileID: 11400000, guid: f865075d944943a45a3acc769ddf00e7, type: 2}
     color: {r: 1, g: 0, b: 0, a: 1}
     isAI: 1
     startingStars: 5
     startingCities:
     - {fileID: 11400000, guid: a288b10498bb4b90843a885d683b0b56, type: 2}
-  neutralCities: []
+  neutralCities:
+  - {fileID: 11400000, guid: 01e77c9a6bcb4046b647e3d2a593f78e, type: 2}
+  - {fileID: 11400000, guid: 3798e56fb4594a2dbef9511e5a92028c, type: 2}
   blockDiagonalsBetweenEnemies: 0
   blockDiagonalsBetweenImpassableTiles: 0
