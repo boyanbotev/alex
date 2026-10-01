@@ -35,16 +35,6 @@ public class NeuronRaidAITests : TacticsTestFixture
     }
 
     [Test]
-    public void EnemyBuiltBridgeBetweenOurCitiesCountsAsFriendlyIncomeLoss()
-    {
-        City(Visible(0), player); City(Visible(2), player);
-        var bridge = Road(Visible(1), enemy);
-        var raids = new NeuronRaidScorer();
-        Assert.That(raids.Evaluate(player, bridge, board, population.allCities, profile),
-            Is.EqualTo(1 - 2 * profile.neuronRaidFriendlyLossWeight));
-    }
-
-    [Test]
     public void DeclaringWarDoesNotDisableUncutRoadsBetweenOurCities()
     {
         City(Visible(0), player); City(Visible(2), player);

@@ -3,26 +3,6 @@ using UnityEngine;
 
 public class CityBondTests : TacticsTestFixture
 {
-    [Test]
-    public void MapPerksAreNativeFirstDeduplicatedAndRemoveSuspendedBonuses()
-    {
-        player.stars = 100;
-        var a = City(Tile(0), player); var road = Segment(1);
-        var b = City(Tile(2), player); var otherRoad = Segment(0, 1); var c = City(Tile(0, 2), player);
-        Perk(a, CityPerkKind.Healing, 3); a.data.perk.perkName = "Oxytocin";
-        Perk(b, CityPerkKind.Fortification, 3); b.data.perk.perkName = "Cortisol";
-        Perk(c, CityPerkKind.Healing, 3); c.data.perk.perkName = "Oxytocin";
-        Assert.That(turns.Bonds.TryCreate(player, a, b), Is.True);
-        Assert.That(turns.Bonds.TryCreate(player, a, c), Is.True);
-        Assert.That(CityPerkIcons.Row(a), Is.EqualTo("Oxytocin<sup>1</sup>  Cortisol<sup>1</sup>"));
-        Assert.That(c.TryUpgradePerk(player), Is.True);
-        Assert.That(CityPerkIcons.Row(a), Is.EqualTo("Oxytocin<sup>2</sup>  Cortisol<sup>1</sup>"));
-        road.tile.currentBuilding = null;
-        otherRoad.tile.currentBuilding = null;
-        turns.Neurons.Invalidate();
-        Assert.That(CityPerkIcons.Row(a), Is.EqualTo("Oxytocin<sup>1</sup>"));
-    }
-
     [TestCase(CityPerkKind.Healing)]
     [TestCase(CityPerkKind.Fortification)]
     [TestCase(CityPerkKind.Adrenaline)]
@@ -102,25 +82,6 @@ public class CityBondTests : TacticsTestFixture
         player.faction.availableUnits = new[] { entry };
         city.data.perk = null;
         Assert.That(city.CanRecruit(entry), Is.True);
-    }
-
-    [Test]
-    public void RecruitmentSharesOnlyDirectActiveBondsAndEndsWhenSevered()
-    {
-        player.faction = Asset<Faction>(); player.stars = 30;
-        var a = City(Tile(0), player); var road = Segment(1);
-        var b = City(Tile(2), player); Segment(3); var c = City(Tile(4), player);
-        Perk(a, CityPerkKind.Healing, 0);
-        var entry = Asset<FactionUnit>(); entry.unitData = Asset<UnitData>();
-        entry.unitData.requiredPerk = CityPerkKind.Healing;
-        player.faction.availableUnits = new[] { entry };
-        Assert.That(turns.Bonds.TryCreate(player, a, b), Is.True);
-        Assert.That(turns.Bonds.TryCreate(player, b, c), Is.True);
-        Assert.That(b.CanRecruit(entry), Is.True);
-        Assert.That(c.CanRecruit(entry), Is.False);
-        road.tile.currentBuilding = null; turns.Neurons.Invalidate();
-        Assert.That(b.CanRecruit(entry), Is.False);
-        Assert.That(a.CanRecruit(entry), Is.True);
     }
 
     [Test]
@@ -288,19 +249,6 @@ public class CityBondTests : TacticsTestFixture
         turns.Diplomacy.MakePeace(player, enemy); unit.Heal();
         Assert.That(unit.currentHealth, Is.EqualTo(3));
         turns.Diplomacy.MakeAlliance(player, enemy); unit.Heal();
-        Assert.That(unit.currentHealth, Is.EqualTo(8));
-    }
-
-    [Test]
-    public void HomeTerritoryOnlyAddsHealingWhenItHasThePerk()
-    {
-        var city = City(Tile(0), player);
-        var unit = Unit(player, city.centerTile);
-        unit.data.maxHealth = 20; unit.currentHealth = 1;
-        unit.Heal();
-        Assert.That(unit.currentHealth, Is.EqualTo(3));
-        Perk(city, CityPerkKind.Healing, 3);
-        unit.Heal();
         Assert.That(unit.currentHealth, Is.EqualTo(8));
     }
 

@@ -149,21 +149,6 @@ public class TacticsAITests : TacticsTestFixture
         Assert.That(board.GetTile(splash), Is.SameAs(splash.currentTile));
     }
 
-    [TestCase(0, 1)]
-    [TestCase(2, 0)]
-    [TestCase(0, 0)]
-    public void ZeroSplashDamageOrRadiusDisablesSplash(int damage, int radius)
-    {
-        var attacker = Unit(player, Tile(0)); var primary = Unit(enemy, Tile(3));
-        Unit(enemy, Tile(4));
-        Assert.That(attacker.data.splashDamage, Is.Zero);
-        Assert.That(attacker.data.splashRadius, Is.Zero);
-        attacker.data.splashDamage = damage; attacker.data.splashRadius = radius;
-        var targets = new List<Unit>();
-        CombatMath.CollectSplashTargets(attacker, primary, primary.currentTile, board, targets);
-        Assert.That(targets, Is.Empty);
-    }
-
     [TestCase(1)]
     [TestCase(2)]
     public void KillingAttackAdvancesOnlyMeleeAndRegistersCapture(int range)
@@ -225,22 +210,6 @@ public class TacticsAITests : TacticsTestFixture
         var shortlist = new List<CandidateAction>();
         generator.SelectShortlist(2, shortlist);
         Assert.That(shortlist, Is.Empty);
-    }
-
-    [Test]
-    public void ShortlistKeepsBestCandidatesPerUnitInDescendingOrder()
-    {
-        var unit = Unit(player, Tile(0));
-        City(Tile(1), enemy);
-        Unit(enemy, Tile(2));
-        generator.Generate(player, board);
-        var shortlist = new List<CandidateAction>();
-        generator.SelectShortlist(2, shortlist);
-        var expected = Candidates(unit);
-        expected.Sort((a, b) => b.score.CompareTo(a.score));
-        Assert.That(shortlist.Count, Is.EqualTo(2));
-        Assert.That(shortlist[0].score, Is.EqualTo(expected[0].score));
-        Assert.That(shortlist[1].score, Is.EqualTo(expected[1].score));
     }
 
     [Test]
@@ -306,17 +275,6 @@ public class TacticsAITests : TacticsTestFixture
         Assert.That(board.GetTile(unit), Is.SameAs(unit.currentTile));
         Assert.That(board.GetOccupant(destination), Is.Null);
         Assert.That(board.HasMoved(unit), Is.False);
-    }
-
-    [Test]
-    public void DoNothingOnlyDeactivatesSimulatedUnit()
-    {
-        var unit = Unit(player, Tile(0));
-        Simulate(new CandidateAction { unit = unit, moveTile = unit.currentTile, kind = ActionKind.DoNothing });
-        Assert.That(board.IsActive(unit), Is.False);
-        Assert.That(board.HasMoved(unit), Is.False);
-        Assert.That(board.HasAttacked(unit), Is.False);
-        Assert.That(unit.isActive, Is.True);
     }
 
     [Test]

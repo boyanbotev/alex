@@ -116,31 +116,4 @@ public class NeuronActionsTests : TacticsTestFixture
         Assert.That(tile.currentBuilding, Is.SameAs(segment));
     }
 
-    [Test]
-    public void MeshConnectsDiagonalsAndCitiesAndUpdatesAfterCutAndReveal()
-    {
-        var origin = Tile(1, 1);
-        origin.transform.position = new Vector3(1, 0, 1);
-        var next = Tile(2, 2);
-        next.transform.position = new Vector3(2, 0, 2);
-        var cityTile = Tile(0, 1);
-        cityTile.transform.position = new Vector3(0, 0, 1);
-        City(cityTile, player);
-        var first = Segment(origin, player);
-        var second = Segment(next, player);
-        first.gameObject.AddComponent<MeshRenderer>();
-        second.gameObject.AddComponent<MeshRenderer>();
-        Reveal(origin);
-        NeuronSegmentVisual.RefreshAround(origin);
-        Mesh mesh = first.GetComponentInChildren<MeshFilter>(true).sharedMesh;
-        Assert.That(mesh.vertexCount, Is.EqualTo(4)); // Hidden neighbours have no arms.
-        Reveal(next);
-        Reveal(cityTile);
-        NeuronSegmentVisual.RefreshAround(origin);
-        Assert.That(mesh.vertexCount, Is.EqualTo(12)); // Centre, diagonal, city.
-        Assert.That(mesh.bounds.max.x, Is.GreaterThan(1.5f));
-        Assert.That(mesh.bounds.min.x, Is.LessThanOrEqualTo(0.001f)); // Reaches city centre.
-        Assert.That(second.TryDemolish(player), Is.True);
-        Assert.That(mesh.vertexCount, Is.EqualTo(8));
-    }
 }

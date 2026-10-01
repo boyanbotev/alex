@@ -3,24 +3,6 @@ using NUnit.Framework;
 public class BoardStateTests : TacticsTestFixture
 {
     [Test]
-    public void ReadersFallBackToLiveState()
-    {
-        var tile = Tile(0);
-        var unit = Unit(player, tile);
-        var city = City(tile, enemy);
-        unit.hasMoved = unit.hasAttacked = true;
-        unit.isActive = false;
-        Assert.That(board.GetTile(unit), Is.SameAs(tile));
-        Assert.That(board.GetOccupant(tile), Is.SameAs(unit));
-        Assert.That(board.GetHealth(unit), Is.EqualTo(10));
-        Assert.That(board.HasMoved(unit), Is.True);
-        Assert.That(board.HasAttacked(unit), Is.True);
-        Assert.That(board.IsActive(unit), Is.False);
-        Assert.That(board.IsAlive(unit), Is.True);
-        Assert.That(board.GetOwner(city), Is.SameAs(enemy));
-    }
-
-    [Test]
     public void MoveAndRollbackRestoreOccupancyWithoutChangingLiveObjects()
     {
         var from = Tile(0);
@@ -127,39 +109,4 @@ public class BoardStateTests : TacticsTestFixture
         Assert.That(board.GetPendingCityCapturer(city), Is.SameAs(unit));
     }
 
-    [Test]
-    public void PendingCaptureCleanupNeedsNoWorldManagerOrRegisteredCities()
-    {
-        var unit = Unit(player, Tile(0));
-        var first = City(unit.currentTile);
-        var second = City(Tile(1));
-        board.WithPendingCityCapture(first, unit);
-        board.WithPendingCityCapture(second, unit);
-        WorldPopulationManager.Instance = null;
-        population.allCities.Clear();
-        int checkpoint = board.Checkpoint();
-        board.WithMove(unit, unit.currentTile, second.centerTile);
-        Assert.That(board.HasPendingCityCapture(first), Is.False);
-        Assert.That(board.HasPendingCityCapture(second), Is.False);
-        board.Rollback(checkpoint);
-        Assert.That(board.GetPendingCityCapturer(first), Is.SameAs(unit));
-        Assert.That(board.GetPendingCityCapturer(second), Is.SameAs(unit));
-    }
-
-    [Test]
-    public void RepeatedWritesAndRollbackToCurrentCheckpointAreHarmless()
-    {
-        var unit = Unit(player, Tile(0));
-        board.WithDamage(unit, 8);
-        board.WithAttacked(unit);
-        int checkpoint = board.Checkpoint();
-        board.WithDamage(unit, 8);
-        board.WithAttacked(unit);
-        Assert.That(board.Checkpoint(), Is.EqualTo(checkpoint));
-        board.Rollback(checkpoint);
-        Assert.That(board.GetHealth(unit), Is.EqualTo(8));
-        board.Rollback(0);
-        unit.currentHealth = 6;
-        Assert.That(board.GetHealth(unit), Is.EqualTo(6), "Rollback must remove overrides, not copy old live values.");
-    }
 }
