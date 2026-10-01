@@ -13,8 +13,6 @@ public class TurnManager : MonoBehaviour
     public Player ActivePlayer => players[activePlayerIndex];
     public event System.Action TurnChanged;
     public TurnAI ai;
-    [Header("Ending")]
-    [SerializeField] private TextAsset endingStory;
     public bool IsGameOver { get; private set; }
     private bool matchStarted;
     private bool checkEnding;
@@ -149,7 +147,7 @@ public class TurnManager : MonoBehaviour
         UIManager.Instance?.CloseBuildPanel();
         UIManager.Instance?.HideAllCaptureButtons();
         TurnChanged?.Invoke();
-        gameObject.AddComponent<GameEnding>().Show(endingStory, links, won);
+        gameObject.AddComponent<GameEnding>().Show(GridGenerator.Instance.level.endingStory, links, won);
     }
 
     public void EndTurn()

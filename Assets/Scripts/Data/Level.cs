@@ -21,6 +21,9 @@ public class Level : ScriptableObject {
     public LevelFaction[] factions = Array.Empty<LevelFaction>();
     public CityData[] neutralCities = Array.Empty<CityData>();
 
+    [Header("Ending Story")]
+    public TextAsset endingStory;
+
     [Header("Movement")]
 
     [Tooltip("Prevent diagonal movement when both adjacent orthogonal tiles contain enemy units.")]
