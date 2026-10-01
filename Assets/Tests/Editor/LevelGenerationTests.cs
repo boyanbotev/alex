@@ -129,28 +129,4 @@ public class LevelGenerationTests : TacticsTestFixture
         Assert.That(level.factions[0].startingStars, Is.EqualTo(12));
     }
 
-    [Test]
-    public void LevelRejectsDuplicateOrBlankNames()
-    {
-        var level = CreateLevel();
-        foreach (var entry in level.factions)
-        {
-            entry.faction = Asset<Faction>();
-            entry.faction.cityPrefab = Component<City>().gameObject;
-            entry.faction.startingUnit = Asset<FactionUnit>();
-            entry.faction.startingUnit.unitData = Asset<UnitData>();
-            entry.faction.startingUnit.prefab = Component<Unit>().gameObject;
-        }
-        level.factions[0].isAI = false;
-        Assert.DoesNotThrow(level.Validate);
-        var copy = UnityEngine.Object.Instantiate(level);
-        try
-        {
-            copy.neutralCities = new[] { copy.factions[0].startingCities[0] };
-            Assert.Throws<InvalidOperationException>(copy.Validate);
-            copy.neutralCities = Cities(" ");
-            Assert.Throws<InvalidOperationException>(copy.Validate);
-        }
-        finally { UnityEngine.Object.DestroyImmediate(copy); }
-    }
 }

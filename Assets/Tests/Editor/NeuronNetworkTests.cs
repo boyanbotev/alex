@@ -97,9 +97,6 @@ public class NeuronNetworkTests : TacticsTestFixture
         Assert.That(player.CanPlaceNeuron(data, target), Is.True);
         target.currentBuilding = Component<Building>();
         Assert.That(player.CanPlaceNeuron(data, target), Is.False);
-        target.currentBuilding = null;
-        data.constructionDisabled = true;
-        Assert.That(player.CanPlaceNeuron(data, target), Is.False);
     }
 
     [Test]

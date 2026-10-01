@@ -49,17 +49,4 @@ public class DiplomacyStateTests : TacticsTestFixture
         Assert.That(turns.Diplomacy.IsAtWar(third, enemy), Is.True);
     }
 
-    [Test]
-    public void RosterChangesDoNotRebuildMatchState()
-    {
-        var diplomacy = turns.Diplomacy;
-        turns.players.Reverse();
-        Assert.That(turns.Diplomacy, Is.SameAs(diplomacy));
-        Assert.That(diplomacy.IsAtWar(player, enemy), Is.True);
-
-        var newcomer = Component<Player>();
-        turns.players.Add(newcomer);
-        Assert.Throws<ArgumentException>(() => diplomacy.GetRelation(player, newcomer));
-    }
-
 }

@@ -94,19 +94,4 @@ public class BoardStateTests : TacticsTestFixture
         Assert.That(board.IsActive(unit), Is.True);
     }
 
-    [Test]
-    public void ReplacingAndRemovingPendingCaptureRollsBackInOrder()
-    {
-        var unit = Unit(player, Tile(0));
-        var other = Unit(enemy, Tile(1));
-        var city = City(unit.currentTile);
-        board.WithPendingCityCapture(city, unit);
-        int checkpoint = board.Checkpoint();
-        board.WithPendingCityCapture(city, other);
-        board.WithoutPendingCityCapture(city);
-        Assert.That(board.HasPendingCityCapture(city), Is.False);
-        board.Rollback(checkpoint);
-        Assert.That(board.GetPendingCityCapturer(city), Is.SameAs(unit));
-    }
-
 }

@@ -15,12 +15,10 @@ public class EconomyAI : MonoBehaviour
         this.controlledPlayer = controlledPlayer;
         this.profile = profile;
 
-        var warrior = controlledPlayer.faction.availableUnits[0];
         foreach (var city in controlledPlayer.cities)
         {
             Debug.Log(
-                $"{city.cityName} \ncan spawn: {city.CanSpawnUnit(warrior, warrior.unitData.cost)}" +
-                $"\nunits:{city.units.Count}/{city.UnitCapacity}"
+                $"{city.cityName} \nunits:{city.units.Count}/{city.UnitCapacity}"
             );
         }
 
