@@ -26,6 +26,14 @@ MonoBehaviour:
       Build neurons to connect all your cities.'
     condition: 1
     targetCount: 1
-  - instruction: Click on a city and reinforce a bond between two cities.
+  - instruction: 'Fantastic!
+
+
+      Connecting your cities creates 1 more star per
+      turn per connection.
+
+
+      Click on a city and reinforce a bond to another
+      city.'
     condition: 2
     targetCount: 1
