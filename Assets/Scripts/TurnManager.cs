@@ -148,7 +148,7 @@ public class TurnManager : MonoBehaviour
         UIManager.Instance?.CloseBuildPanel();
         UIManager.Instance?.HideAllCaptureButtons();
         TurnChanged?.Invoke();
-        gameObject.AddComponent<GameEnding>().Show(GridGenerator.Instance.level.endingStory, links, won);
+        gameObject.AddComponent<GameEnding>().Show(GameManager.Instance.Level.endingStory, links, won);
     }
 
     public void EndTurn()

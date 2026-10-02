@@ -1,9 +1,6 @@
 using UnityEngine;
 public class CameraController : MonoBehaviour
 {
-    [Header("Grid")]
-    [SerializeField] private GridGenerator gridGenerator;
-
     [Header("Pan")]
     [SerializeField] private float panSmoothing = 0.1f;
     [SerializeField, Min(0.01f)] private float inertiaDamping = 4f;
@@ -147,12 +144,12 @@ public class CameraController : MonoBehaviour
     private Vector3 ClampCameraPosition(Vector3 position)
     {
         float gridWidth =
-            gridGenerator.level.width *
-            gridGenerator.level.tileSize;
+            GameManager.Instance.Level.width *
+            GameManager.Instance.Level.tileSize;
 
         float gridHeight =
-            gridGenerator.level.height *
-            gridGenerator.level.tileSize;
+            GameManager.Instance.Level.height *
+            GameManager.Instance.Level.tileSize;
 
         position.x = Mathf.Clamp(position.x, -16, gridWidth - 16);
         position.z = Mathf.Clamp(position.z, -16, gridHeight - 16);

@@ -54,7 +54,7 @@ public class GridManager : MonoBehaviour
         if (start == null || range <= 0) return;
         if (start.terrainType == TerrainType.Forest) range = 1;
 
-        Level settings = GridGenerator.Instance != null ? GridGenerator.Instance.level : null;
+        Level settings = GameManager.Instance != null ? GameManager.Instance.Level : null;
         bool blockCorners = settings == null || settings.blockDiagonalsBetweenEnemies;
         bool blockTerrainCorners = settings == null || settings.blockDiagonalsBetweenImpassableTiles;
         moveQueue.Add((start, 0));

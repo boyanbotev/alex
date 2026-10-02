@@ -7,8 +7,7 @@ public class GridGenerator : MonoBehaviour
     public static GridGenerator Instance;
     private static readonly ProfilerMarker creationMarker = new ProfilerMarker("WorldGeneration.TerrainTile");
 
-    [UnityEngine.Serialization.FormerlySerializedAs("boardSettings")]
-    public Level level;
+    private Level level => GameManager.Instance.Level;
 
     [Header("Tile Prefabs")]
     public GameObject fieldTilePrefab;
@@ -30,8 +29,6 @@ public class GridGenerator : MonoBehaviour
 
     private IEnumerator Start()
     {
-        if (level == null) throw new System.InvalidOperationException("Assign a Level to GridGenerator.");
-        level.Validate();
         TurnManager.Instance.InitializePlayers(level);
         GenerationRandom = new System.Random(level.randomizeSeed ? Random.Range(0, int.MaxValue) : level.seed);
         terrainOffset = (float)GenerationRandom.NextDouble() * 100f;

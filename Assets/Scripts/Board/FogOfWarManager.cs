@@ -37,7 +37,7 @@ public class FogOfWarManager : MonoBehaviour
                 yield return null;
                 budget.ShouldYield(); // Start timing this frame before doing more work.
             }
-            var settings = GridGenerator.Instance.level;
+            var settings = GameManager.Instance.Level;
             player.visibleTiles = new VisibilityState(settings.width, settings.height);
 
             foreach (City city in player.cities)

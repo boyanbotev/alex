@@ -4,21 +4,21 @@ using NUnit.Framework;
 public class MovementTests : TacticsTestFixture
 {
     private readonly List<Tile> reachable = new();
-    private GridGenerator previousGenerator;
+    private GameManager previousManager;
     private Level settings;
 
     [SetUp]
     public void SetUpMovement()
     {
-        previousGenerator = GridGenerator.Instance;
-        var gridGenerator = Component<GridGenerator>();
+        previousManager = GameManager.Instance;
+        var manager = Component<GameManager>();
         settings = Asset<Level>();
-        gridGenerator.level = settings;
-        GridGenerator.Instance = gridGenerator;
+        typeof(GameManager).GetProperty(nameof(GameManager.Level)).SetValue(manager, settings);
+        typeof(GameManager).GetProperty(nameof(GameManager.Instance)).SetValue(null, manager);
     }
 
     [TearDown]
-    public void TearDownMovement() => GridGenerator.Instance = previousGenerator;
+    public void TearDownMovement() => typeof(GameManager).GetProperty(nameof(GameManager.Instance)).SetValue(null, previousManager);
 
     private void Search(Unit unit, int range) => grid.GetReachableMoveTiles(
         unit.currentTile, unit.owner, range, tile => tile.currentUnit, reachable);

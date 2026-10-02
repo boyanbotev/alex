@@ -14,7 +14,7 @@ public class WorldPopulationManager : MonoBehaviour
 
     public IEnumerator PopulateWorld(GenerationBudget budget)
     {
-        Level level = GridGenerator.Instance.level;
+        Level level = GameManager.Instance.Level;
         if (villagePrefab == null || villagePrefab.GetComponent<City>() == null)
             throw new System.InvalidOperationException("WorldPopulationManager needs a village prefab with a City component.");
         WorldLoadingOverlay.Show("Placing cities...");

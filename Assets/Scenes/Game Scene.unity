@@ -880,7 +880,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43dc00533b5a59240857e7f2a0b1110d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridGenerator: {fileID: 451323999}
   panSmoothing: 10
   inertiaDamping: 4
   inertiaStopSpeed: 0.01
@@ -1391,8 +1390,9 @@ GameObject:
   m_Component:
   - component: {fileID: 451324000}
   - component: {fileID: 451323999}
+  - component: {fileID: 451324001}
   m_Layer: 0
-  m_Name: GridGenerator
+  m_Name: GameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1410,7 +1410,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6aa5f779daaed74c87d05e547ce3960, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  level: {fileID: 11400000, guid: c3573ef86c9c7924395e024122936a67, type: 2}
   fieldTilePrefab: {fileID: 4525404964014115685, guid: 23ffd742d51009245ae233184336cca1, type: 3}
   forestTilePrefab: {fileID: 4525404964014115685, guid: a96da7eaf33725948a5ac05b93e1140a, type: 3}
   mountainTilePrefab: {fileID: 4525404964014115685, guid: 611567fef59cfc54b9af7744ad2fa028, type: 3}
@@ -6936,3 +6935,17 @@ SceneRoots:
   - {fileID: 750415853}
   - {fileID: 309630537}
   - {fileID: 1970735486}
+
+--- !u!114 &451324001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 451323998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49be74e8c435450c9fb93b3fe3538be9, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  game: {fileID: 11400000, guid: 5fa0e5f142e8422b8ef7d07fe71e6ce2, type: 2}
