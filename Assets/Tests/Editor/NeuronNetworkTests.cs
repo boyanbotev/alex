@@ -16,7 +16,7 @@ public class NeuronNetworkTests : TacticsTestFixture
     }
 
     [Test]
-    public void DiagonalsConnectAndInterveningCitiesStopTraversal()
+    public void DiagonalsConnectThroughInterveningCities()
     {
         var a = City(Tile(0, 0), player);
         Segment(1, 1, player);
@@ -25,7 +25,11 @@ public class NeuronNetworkTests : TacticsTestFixture
         var c = City(Tile(4, 4), player);
         Assert.That(turns.Neurons.AreConnected(a, b), Is.True);
         Assert.That(turns.Neurons.AreConnected(b, c), Is.True);
-        Assert.That(turns.Neurons.AreConnected(a, c), Is.False);
+        Assert.That(turns.Neurons.AreConnected(a, c), Is.True);
+        Assert.That(a.NeuronIncome, Is.EqualTo(2));
+        var route = new System.Collections.Generic.List<Tile>();
+        Assert.That(turns.Neurons.TryGetRoute(a, c, route), Is.True);
+        Assert.That(route, Does.Contain(b.centerTile));
         Assert.That(b.NeuronIncome, Is.EqualTo(2));
     }
 

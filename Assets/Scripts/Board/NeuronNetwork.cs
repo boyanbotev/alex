@@ -36,7 +36,7 @@ public sealed class NeuronNetwork
         return neighbours.TryGetValue(a, out var cities) && cities.Contains(b);
     }
 
-    // Returns only neuron tiles; city centres are endpoints, never transit nodes.
+    // Returns intermediate tiles, including city centres used for transit.
     public bool TryGetRoute(City a, City b, List<Tile> route)
     {
         route.Clear();
@@ -56,13 +56,16 @@ public sealed class NeuronNetwork
                 if (next == null) continue;
                 if (next.city != null)
                 {
-                    if (next.city != b || current == a.centerTile) continue;
-                    for (Tile tile = current; tile != a.centerTile; tile = parents[tile]) route.Add(tile);
-                    route.Reverse();
-                    return true;
+                    if (current.city != null) continue;
+                    if (next.city == b)
+                    {
+                        for (Tile tile = current; tile != a.centerTile; tile = parents[tile]) route.Add(tile);
+                        route.Reverse();
+                        return true;
+                    }
                 }
-                if (parents.ContainsKey(next) || next.currentBuilding == null ||
-                    !next.currentBuilding.IsPlacedNeuron || next.currentBuilding.owner == null) continue;
+                if (parents.ContainsKey(next) || (next.city == null && (next.currentBuilding == null ||
+                    !next.currentBuilding.IsPlacedNeuron || next.currentBuilding.owner == null))) continue;
                 parents[next] = current;
                 queue.Add(next);
             }
@@ -98,16 +101,16 @@ public sealed class NeuronNetwork
                     if (next == null) continue;
                     if (next.city != null)
                     {
-                        // Require at least one segment; all city centres stop traversal, including neutral cities.
+                        // Cities join neuron branches, but adjacent cities need a segment between them.
+                        if (current.city != null) continue;
                         Player destinationOwner = next.city.owner;
-                        if (next.city != source && current != source.centerTile && destinationOwner != null &&
+                        if (next.city != source && destinationOwner != null &&
                             turns.players.Contains(destinationOwner) && !turns.Diplomacy.IsAtWar(source.owner, destinationOwner))
                             connected.Add(next.city);
-                        continue;
                     }
                     if (!visited.Add(next)) continue;
                     Building segment = next.currentBuilding;
-                    if (segment == null || segment.data == null || !segment.data.isNeuron || segment.owner == null) continue;
+                    if (next.city == null && (segment == null || !segment.IsPlacedNeuron || segment.owner == null)) continue;
                     queue.Add(next);
                 }
             }

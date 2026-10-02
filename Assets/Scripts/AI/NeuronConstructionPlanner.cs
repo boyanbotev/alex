@@ -75,6 +75,7 @@ public sealed class NeuronConstructionPlanner
                 if (next == null || !player.visibleTiles.IsVisible(next)) continue;
                 if (next.city != null)
                 {
+                    if (current.city != null) continue;
                     if (next.city.owner == destinationOwner && targets.Contains(next.city) && firstBuild[current] != null)
                     {
                         // The first path reaching a city is cheapest because the frontier is cost ordered.
@@ -91,14 +92,13 @@ public sealed class NeuronConstructionPlanner
                             remainingTargets--;
                         }
                     }
-                    continue; // Never plan through another city, including unclaimed villages.
                 }
 
                 Building segment = next.currentBuilding;
-                bool existing = segment != null;
+                bool existing = next.city != null || segment != null;
                 if (existing)
                 {
-                    if (!segment.IsPlacedNeuron || segment.owner == null) continue;
+                    if (next.city == null && (!segment.IsPlacedNeuron || segment.owner == null)) continue;
                 }
                 else
                 {
@@ -106,7 +106,8 @@ public sealed class NeuronConstructionPlanner
                     // Other players' roads permit transit but cannot anchor our next purchase.
                     // A planned empty tile will become our own segment before we extend it.
                     Building previous = current.currentBuilding;
-                    if (previous != null && previous.owner != player && !player.HasNeuronBuildAnchor(next)) continue;
+                    if (((previous != null && previous.owner != player) ||
+                        (current.city != null && current.city.owner != player)) && !player.HasNeuronBuildAnchor(next)) continue;
                 }
 
                 int cost = entry.cost + (existing ? 0 : 1);

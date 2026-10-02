@@ -61,12 +61,12 @@ public sealed class NeuronRaidScorer
                 if (next == null || !actor.visibleTiles.IsVisible(next)) continue;
                 if (next.city != null)
                 {
-                    if (next.city == b && current != a.centerTile) return true;
-                    continue;
+                    if (current.city != null) continue;
+                    if (next.city == b) return true;
                 }
                 if (!visited.Add(next)) continue;
                 Building road = board.GetBuilding(next);
-                if (road == null || road == removed || !road.IsPlacedNeuron || road.owner == null) continue;
+                if (next.city == null && (road == null || road == removed || !road.IsPlacedNeuron || road.owner == null)) continue;
                 queue.Add(next);
             }
         }

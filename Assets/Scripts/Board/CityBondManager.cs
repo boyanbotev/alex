@@ -106,7 +106,7 @@ public sealed class CityBondManager
             Tile previous = bond.a.centerTile;
             foreach (var tile in bond.route)
             {
-                reinforced.Add(tile);
+                if (tile.city == null) reinforced.Add(tile);
                 reinforcedLinks.Add((previous, tile));
                 previous = tile;
             }
@@ -126,8 +126,8 @@ public sealed class CityBondManager
     {
         if (bond.route.Count == 0) return false;
         foreach (var tile in bond.route)
-            if (tile == null || tile.city != null || tile.currentBuilding == null ||
-                !tile.currentBuilding.IsPlacedNeuron || tile.currentBuilding.owner == null) return false;
+            if (tile == null || (tile.city == null && (tile.currentBuilding == null ||
+                !tile.currentBuilding.IsPlacedNeuron || tile.currentBuilding.owner == null))) return false;
         return true;
     }
 }
