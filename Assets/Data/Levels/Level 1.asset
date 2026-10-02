@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 757080d81166d2b4e940f78d23b2f558, type: 3}
+  m_Name: Level 1
+  m_EditorClassIdentifier: 
+  width: 7
+  height: 7
+  tileSize: 1
+  is3DIsometric: 1
+  noiseScale: 0.5
+  randomizeSeed: 1
+  seed: 0
+  minCityDistance: 3
+  minMargin: 1
+  factions:
+  - faction: {fileID: 11400000, guid: 8faff328133394f4db3022a2fdee83c7, type: 2}
+    color: {r: 0, g: 0, b: 0, a: 0}
+    isAI: 0
+    startingStars: 5
+    startingCities:
+    - {fileID: 11400000, guid: 9280e2cf6ee69b547be6e3389c7eabe9, type: 2}
+  neutralCities:
+  - {fileID: 11400000, guid: 42bb9b1862edbc04cad0b31aec68b5c8, type: 2}
+  - {fileID: 11400000, guid: f50094fb6498a37409750709deda2006, type: 2}
+  endingStory: {fileID: 4900000, guid: 693637769f1446ceb95701443418ad0b, type: 3}
+  blockDiagonalsBetweenEnemies: 0
+  blockDiagonalsBetweenImpassableTiles: 0

@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 757080d81166d2b4e940f78d23b2f558, type: 3}
+  m_Name: Science Level 1
+  m_EditorClassIdentifier: 
+  width: 16
+  height: 16
+  tileSize: 1
+  is3DIsometric: 1
+  noiseScale: 0.5
+  randomizeSeed: 1
+  seed: 0
+  minCityDistance: 3
+  minMargin: 1
+  factions:
+  - faction: {fileID: 11400000, guid: 8faff328133394f4db3022a2fdee83c7, type: 2}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    isAI: 0
+    startingStars: 5
+    startingCities:
+    - {fileID: 11400000, guid: de343c1e1f5845078527bff007d1830e, type: 2}
+    - {fileID: 11400000, guid: 4d06f6a8efe14d6d834507161cd145ca, type: 2}
+  - faction: {fileID: 11400000, guid: f865075d944943a45a3acc769ddf00e7, type: 2}
+    color: {r: 1, g: 0, b: 0, a: 1}
+    isAI: 1
+    startingStars: 5
+    startingCities:
+    - {fileID: 11400000, guid: a288b10498bb4b90843a885d683b0b56, type: 2}
+    - {fileID: 11400000, guid: 7df0eb238a1e47eda5e229c98c4c6bd9, type: 2}
+  - faction: {fileID: 11400000, guid: 3c65617266f15f74198d98636dfaa38f, type: 2}
+    color: {r: 0, g: 0, b: 0, a: 1}
+    isAI: 1
+    startingStars: 5
+    startingCities:
+    - {fileID: 11400000, guid: a5326edb328d4b98994ce6d6e8767c6e, type: 2}
+  - faction: {fileID: 11400000, guid: 5999dffb9d250354b9adb70eb82d7bf2, type: 2}
+    color: {r: 0.901975, g: 0.5840156, b: 0.9622642, a: 1}
+    isAI: 1
+    startingStars: 5
+    startingCities:
+    - {fileID: 11400000, guid: 6fe6ce66ed3c4dc2861c75abcd715b7d, type: 2}
+  neutralCities:
+  - {fileID: 11400000, guid: 01e77c9a6bcb4046b647e3d2a593f78e, type: 2}
+  - {fileID: 11400000, guid: 794cf5d30baa4a0ca9c702eaaf44e702, type: 2}
+  - {fileID: 11400000, guid: 98630e9c345e4974b440173fd4520705, type: 2}
+  - {fileID: 11400000, guid: 364b717a3ba246ce9a6793216f4c9332, type: 2}
+  - {fileID: 11400000, guid: 3ce8e32a7de1406fb1b49880ef04d57a, type: 2}
+  - {fileID: 11400000, guid: 3798e56fb4594a2dbef9511e5a92028c, type: 2}
+  endingStory: {fileID: 4900000, guid: 693637769f1446ceb95701443418ad0b, type: 3}
+  blockDiagonalsBetweenEnemies: 0
+  blockDiagonalsBetweenImpassableTiles: 0

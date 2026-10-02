@@ -120,6 +120,7 @@ public class TurnManager : MonoBehaviour
     {
         if (IsGameOver) return true;
         if (!matchStarted) return false;
+        if (players.Count == 1) return false;
         Player human = players.Find(p => !p.isAI);
         if (human != null && !human.IsAlive())
         {
@@ -152,7 +153,7 @@ public class TurnManager : MonoBehaviour
 
     public void EndTurn()
     {
-        if (IsGameOver || GridGenerator.Instance == null || !GridGenerator.Instance.IsReady || ActivePlayer.isAI) return;
+        if (IsGameOver || GridGenerator.Instance == null || !GridGenerator.Instance.IsReady) return;
         UIManager.Instance?.CloseSpawnPanel();
         if (CheckGameOver()) return;
 

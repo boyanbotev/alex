@@ -154,8 +154,8 @@ public class CameraController : MonoBehaviour
             gridGenerator.level.height *
             gridGenerator.level.tileSize;
 
-        position.x = Mathf.Clamp(position.x, -gridWidth, 0);
-        position.z = Mathf.Clamp(position.z, -gridHeight, 0);
+        position.x = Mathf.Clamp(position.x, -16, gridWidth - 16);
+        position.z = Mathf.Clamp(position.z, -16, gridHeight - 16);
 
         return position;
     }

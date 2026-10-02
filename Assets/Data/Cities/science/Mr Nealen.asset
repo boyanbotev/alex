@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a878fc69da2c4d32aae4c71054b807b1, type: 3}
-  m_Name: Science Level_school
+  m_Name: Mr Nealen
   m_EditorClassIdentifier: 
-  cityName: school
+  cityName: Mr Nealen
   perk: {fileID: 11400000, guid: 78398eccc8f32e64699730c1239d0549, type: 2}
