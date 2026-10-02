@@ -18,6 +18,7 @@ public sealed class GameManager : MonoBehaviour
         Level = game.levels[LevelIndex];
         if (Level == null) throw new System.InvalidOperationException($"Level {LevelIndex} is missing from the game catalog.");
         Level.Validate();
+        if (Level.tutorial != null) gameObject.AddComponent<TutorialManager>();
         if (LevelIndex != SaveManager.LevelIndex) SaveManager.SetLevelIndex(LevelIndex);
     }
 

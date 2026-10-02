@@ -14,6 +14,7 @@ public sealed class CityBond
 // Match-owned relationships. Perks never propagate beyond a direct partner.
 public sealed class CityBondManager
 {
+    public event System.Action Changed;
     private readonly TurnManager turns;
     private readonly List<CityBond> bonds = new();
     private readonly HashSet<Tile> reinforced = new();
@@ -121,6 +122,7 @@ public sealed class CityBondManager
         }
         foreach (City city in affectedCities)
             if (city != null) city.RefreshIncomeLabel();
+        Changed?.Invoke();
     }
     private static bool RouteIntact(CityBond bond)
     {

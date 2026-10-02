@@ -21,6 +21,8 @@ public class Level : ScriptableObject {
     public LevelFaction[] factions = Array.Empty<LevelFaction>();
     public CityData[] neutralCities = Array.Empty<CityData>();
 
+    public Tutorial tutorial;
+
     [Header("Ending Story")]
     public TextAsset endingStory;
 

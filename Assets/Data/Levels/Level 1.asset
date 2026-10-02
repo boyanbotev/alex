@@ -31,6 +31,7 @@ MonoBehaviour:
   neutralCities:
   - {fileID: 11400000, guid: 42bb9b1862edbc04cad0b31aec68b5c8, type: 2}
   - {fileID: 11400000, guid: f50094fb6498a37409750709deda2006, type: 2}
-  endingStory: {fileID: 4900000, guid: 693637769f1446ceb95701443418ad0b, type: 3}
+  tutorial: {fileID: 11400000, guid: 7979a2cd8270425487753391f26a396b, type: 2}
+  endingStory: {fileID: 4900000, guid: 85e9aed3dd4933340a335f53e45cc88d, type: 3}
   blockDiagonalsBetweenEnemies: 0
   blockDiagonalsBetweenImpassableTiles: 0
