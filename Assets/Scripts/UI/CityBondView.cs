@@ -126,7 +126,6 @@ public sealed class CityBondView : MonoBehaviour
             {
                 text.AppendLine($"{source.cityName} receives: {Perk(target)}");
                 text.AppendLine($"{target.cityName} receives: {Perk(source)}");
-                text.Append("One slot in each city. Matching perks do not stack.");
             }
             bool affordable = TurnManager.Instance.ActivePlayer.stars >= cost;
             if (valid && !affordable) text.Append($"\nRequires {cost} stars.");
