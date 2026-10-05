@@ -5,7 +5,16 @@ EXTERNAL get_links()
 -> start
 
 ==start
-your links are {GetLinks()}
+ ~ temp links = get_links()
+    {links ? city_links.cheddar_hummous:
+        cheddar & hummous
+    }
+    {links ? city_links.hummous_tuna:
+        hummous & tuna
+    }
+    {links ? city_links.cheddar_tuna:
+        cheddar and tuna. Yuck
+    }
 -> DONE
 
 
