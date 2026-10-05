@@ -13,6 +13,7 @@ public class UnitData : ScriptableObject
     [Tooltip("Original unit type for counter matching when these are faction-specific stats. Leave empty for a base unit.")]
     public UnitData counterType;
     public UnitData CounterType => counterType != null ? counterType : this;
+    [TextArea(2, 4)] public string description;
     public int cost = 2;
     public int maxHealth = 10;
     public int attackPower = 2;

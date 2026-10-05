@@ -13,6 +13,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] RectTransform spawnPanel;
     [SerializeField] RectTransform cantSpawnText;
     [SerializeField] TextMeshProUGUI cityNameAndLevelText;
+    [Header("Unit Info")]
+    [SerializeField] RectTransform unitInfoPanel;
+    [SerializeField] TextMeshProUGUI unitInfoTitle;
+    [SerializeField] TextMeshProUGUI unitInfoDescription;
     [Header("Build")]
     [SerializeField] RectTransform buildPanel;
     [SerializeField] RectTransform buildButtonHolder;
@@ -81,6 +85,7 @@ public class UIManager : MonoBehaviour
 
     private void ShowCityPanel(City city, FactionUnit[] availableUnits)
     {
+        CloseUnitInfo();
         CloseSpawnPanel();
         spawnPanel.gameObject.SetActive(true);
         displayedCity = city;
@@ -100,6 +105,19 @@ public class UIManager : MonoBehaviour
         if (bondView != null) bondView.Show(city);
         RefreshCityPanel();
     }
+
+    public void ShowUnitInfo(Unit unit)
+    {
+        CloseSpawnPanel();
+        string faction = unit.owner.faction.name;
+        string name = unit.data.name;
+        unitInfoTitle.text = name.StartsWith(faction + " ", System.StringComparison.Ordinal)
+            ? name : $"{faction} {name}";
+        unitInfoDescription.text = unit.data.description;
+        unitInfoPanel.gameObject.SetActive(true);
+    }
+
+    public void CloseUnitInfo() => unitInfoPanel.gameObject.SetActive(false);
 
     public void ShowCityInfo(City city)
     {

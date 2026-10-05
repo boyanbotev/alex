@@ -182,6 +182,7 @@ public class SelectionController : MonoBehaviour
         {
             selectedUnit = clickedTile.currentUnit;
             HighlightActions(selectedUnit);
+            UIManager.Instance.ShowUnitInfo(selectedUnit);
             return;
         }
         else if (clickedTile.city != null)
@@ -388,5 +389,6 @@ public class SelectionController : MonoBehaviour
         GridManager.Instance.ClearAllHighlights();
         UIManager.Instance.CloseBuildPanel();
         UIManager.Instance.CloseSpawnPanel();
+        UIManager.Instance.CloseUnitInfo();
     }
 }
