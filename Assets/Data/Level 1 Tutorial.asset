@@ -13,7 +13,11 @@ MonoBehaviour:
   m_Name: Level 1 Tutorial
   m_EditorClassIdentifier: 
   stages:
-  - instruction: Capture the two unclaimed cities!
+  - instruction: 'Capture the two unclaimed cities!
+
+
+      Press ''end turn'' if
+      you''ve run out of actions.'
     condition: 0
     targetCount: 3
   - instruction: 'Great work!
