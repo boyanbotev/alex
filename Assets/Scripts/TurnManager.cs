@@ -13,6 +13,8 @@ public class TurnManager : MonoBehaviour
     public Player ActivePlayer => players[activePlayerIndex];
     public event System.Action TurnChanged;
     public TurnAI ai;
+    [SerializeField] private UnityEngine.UI.Button endTurnButton;
+    private bool enemyTurnsInProgress;
     public bool IsGameOver { get; private set; }
     private bool matchStarted;
     private bool checkEnding;
@@ -44,6 +46,7 @@ public class TurnManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (enemyTurnsInProgress) WorldLoadingOverlay.Hide();
         if (diplomacy != null) diplomacy.RelationChanged -= OnRelationChanged;
         if (Instance == this) Instance = null;
     }
@@ -139,6 +142,8 @@ public class TurnManager : MonoBehaviour
     {
         if (IsGameOver) return;
         IsGameOver = true;
+        SetEnemyTurnsInProgress(false);
+        if (endTurnButton != null) endTurnButton.interactable = false;
         StopAllCoroutines();
         Bonds.Refresh();
         var links = new SortedSet<string>(System.StringComparer.Ordinal);
@@ -152,6 +157,12 @@ public class TurnManager : MonoBehaviour
     }
 
     public void EndTurn()
+    {
+        if (!matchStarted || enemyTurnsInProgress || ActivePlayer.isAI) return;
+        AdvanceTurn();
+    }
+
+    private void AdvanceTurn()
     {
         if (IsGameOver || GridGenerator.Instance == null || !GridGenerator.Instance.IsReady) return;
         UIManager.Instance?.CloseSpawnPanel();
@@ -172,6 +183,7 @@ public class TurnManager : MonoBehaviour
 
     private void StartTurn(Player player)
     {
+        SetEnemyTurnsInProgress(player.isAI);
         int income = player.CalculateTurnIncome();
         player.AddStars(income);
 
@@ -223,7 +235,18 @@ public class TurnManager : MonoBehaviour
 
     private IEnumerator RunAITurn(Player player)
     {
+        // Give the panel a frame to render before AI work begins.
+        yield return null;
         yield return ai.PlayTurn(player);
-        EndTurn();
+        AdvanceTurn();
+    }
+
+    private void SetEnemyTurnsInProgress(bool inProgress)
+    {
+        if (endTurnButton != null) endTurnButton.interactable = !inProgress && !IsGameOver;
+        if (enemyTurnsInProgress == inProgress) return;
+        enemyTurnsInProgress = inProgress;
+        if (inProgress) WorldLoadingOverlay.Show("Enemy turns in progress", compact: true);
+        else WorldLoadingOverlay.Hide();
     }
 }

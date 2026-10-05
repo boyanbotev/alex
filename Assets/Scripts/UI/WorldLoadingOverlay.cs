@@ -9,8 +9,9 @@ public sealed class WorldLoadingOverlay : MonoBehaviour
     private static WorldLoadingOverlay instance;
     private RectTransform spinner;
     private TextMeshProUGUI label;
+    private Image background;
 
-    public static void Show(string message)
+    public static void Show(string message, bool compact = false)
     {
         if (instance == null)
         {
@@ -29,7 +30,7 @@ public sealed class WorldLoadingOverlay : MonoBehaviour
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = rect.offsetMax = Vector2.zero;
-            background.GetComponent<Image>().color = new Color(0.04f, 0.06f, 0.09f, 1f);
+            instance.background = background.GetComponent<Image>();
             instance.spinner = new GameObject("Spinner", typeof(RectTransform)).GetComponent<RectTransform>();
             instance.spinner.SetParent(root.transform, false);
             instance.spinner.anchoredPosition = new Vector2(0, 35);
@@ -54,6 +55,16 @@ public sealed class WorldLoadingOverlay : MonoBehaviour
             instance.label.alignment = TextAlignmentOptions.Center;
             instance.label.raycastTarget = false;
         }
+        var panel = instance.background.rectTransform;
+        panel.anchorMin = compact ? new Vector2(0.5f, 0.5f) : Vector2.zero;
+        panel.anchorMax = compact ? new Vector2(0.5f, 0.5f) : Vector2.one;
+        panel.offsetMin = panel.offsetMax = Vector2.zero;
+        if (compact) panel.sizeDelta = new Vector2(380, 130);
+        instance.background.color = new Color(0.04f, 0.06f, 0.09f, compact ? 0.55f : 1f);
+        instance.spinner.anchoredPosition = new Vector2(0, compact ? 20 : 35);
+        instance.label.rectTransform.anchoredPosition = new Vector2(0, compact ? -30 : -40);
+        instance.label.rectTransform.sizeDelta = new Vector2(compact ? 360 : 700, 60);
+        instance.label.fontSize = compact ? 24 : 28;
         instance.label.text = message;
     }
 
