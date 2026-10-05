@@ -23,6 +23,34 @@ public class CameraController : MonoBehaviour
     private Vector2 lastTouchPosition;
     Plane groundPlane;
     private int lastScreenHeight;
+    private bool framing;
+    private Vector3 framingVelocity;
+
+    public void FramePoints(System.Collections.Generic.List<Vector3> points, float panelTop)
+    {
+        Rect safeArea = Rect.MinMaxRect(48f, panelTop + 48f, Screen.width - 48f, Screen.height - 100f);
+        if (safeArea.width <= 0f || safeArea.height <= 0f) return;
+        Vector2 min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+        Vector2 max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+        bool outside = false;
+        foreach (var point in points)
+        {
+            Vector2 screen = cam.WorldToScreenPoint(point);
+            min = Vector2.Min(min, screen);
+            max = Vector2.Max(max, screen);
+            outside |= !safeArea.Contains(screen);
+        }
+        if (!outside) return;
+        Vector2 shift = safeArea.center - (min + max) * .5f;
+        // Keep the source visible when the candidate spread exceeds the viewport.
+        Vector2 source = cam.WorldToScreenPoint(points[0]);
+        shift.x = Mathf.Clamp(shift.x, safeArea.xMin - source.x, safeArea.xMax - source.x);
+        shift.y = Mathf.Clamp(shift.y, safeArea.yMin - source.y, safeArea.yMax - source.y);
+        targetPosition = ClampCameraPosition(transform.position +
+            GetPointerWorldPosition(safeArea.center) - GetPointerWorldPosition(safeArea.center + shift));
+        panVelocity = framingVelocity = Vector3.zero;
+        framing = true;
+    }
 
     private void Awake()
     {
@@ -62,13 +90,14 @@ public class CameraController : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             panVelocity = Vector3.zero;
-            targetPosition = transform.position;
             isDragging = false;
             startedOverUI = UIRaycastUtility.IsPointerOverBlockingUI(Input.mousePosition);
 
             if (startedOverUI)
                 return;
 
+            framing = false;
+            targetPosition = transform.position;
             lastTouchPosition = Input.mousePosition;
             totalDragDistance = 0f;
         }
@@ -99,12 +128,22 @@ public class CameraController : MonoBehaviour
         {
             isDragging = false;
             panVelocity = Vector3.ClampMagnitude(panVelocity, Mathf.Max(0f, maxPanVelocity));
-            targetPosition = transform.position;
+            if (!framing) targetPosition = transform.position;
         }
     }
 
     private void ApplyMovement()
     {
+        if (framing)
+        {
+            transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref framingVelocity, .2f);
+            if ((transform.position - targetPosition).sqrMagnitude < .0001f)
+            {
+                transform.position = targetPosition;
+                framing = false;
+            }
+            return;
+        }
         if (!Input.GetMouseButton(0))
         {
             float damping = Mathf.Max(0.01f, inertiaDamping);

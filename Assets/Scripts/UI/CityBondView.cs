@@ -17,6 +17,10 @@ public sealed class CityBondView : MonoBehaviour
 
 
     private readonly List<Tile> route = new();
+    private readonly List<Vector3> candidates = new();
+    private RectTransform cityPanel;
+    private Vector2 normalCitySize, normalPanelSize, normalPanelPosition;
+    private bool compact;
     public bool Selecting { get; private set; }
     public event System.Action SelectionChanged;
     private CityBondManager Bonds => TurnManager.Instance.Bonds;
@@ -28,6 +32,7 @@ public sealed class CityBondView : MonoBehaviour
     }
     public void Show(City city)
     {
+        RestoreLayout();
         source = city; target = null; Selecting = false;
         viewer = TurnManager.Instance.ActivePlayer;
         panel.gameObject.SetActive(true);
@@ -36,6 +41,7 @@ public sealed class CityBondView : MonoBehaviour
     }
     public void Hide()
     {
+        RestoreLayout();
         bool wasSelecting = Selecting;
         if (wasSelecting) GridManager.Instance?.ClearAllHighlights();
         Selecting = false; source = target = null;
@@ -59,6 +65,7 @@ public sealed class CityBondView : MonoBehaviour
             SelectionChanged?.Invoke();
     
             Highlight(); Refresh();
+            FrameCandidates();
         }
         else if (target != null)
         {
@@ -76,6 +83,7 @@ public sealed class CityBondView : MonoBehaviour
     }
     private void Cancel()
     {
+        RestoreLayout();
         Selecting = false; target = null;
         GridManager.Instance.ClearAllHighlights();
         SelectionChanged?.Invoke();
@@ -132,6 +140,50 @@ public sealed class CityBondView : MonoBehaviour
             action.interactable = valid && affordable;
         }
         label.text = text.ToString();
+        if (Selecting) CompactLayout();
+    }
+    private void CompactLayout()
+    {
+        if (!compact)
+        {
+            cityPanel = panel.parent as RectTransform;
+            if (cityPanel == null) return;
+            normalCitySize = cityPanel.sizeDelta;
+            normalPanelSize = panel.sizeDelta;
+            normalPanelPosition = panel.anchoredPosition;
+            compact = true;
+        }
+        // Keep the city heading, then fit the existing text and button row.
+        panel.anchoredPosition = new Vector2(normalPanelPosition.x, -40f);
+        panel.sizeDelta = new Vector2(normalPanelSize.x, -40f);
+        float textHeight = label.GetPreferredValues(label.text, label.rectTransform.rect.width, Mathf.Infinity).y;
+        cityPanel.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 40f + textHeight + 85f);
+    }
+    private void RestoreLayout()
+    {
+        if (!compact) return;
+        cityPanel.sizeDelta = normalCitySize;
+        panel.sizeDelta = normalPanelSize;
+        panel.anchoredPosition = normalPanelPosition;
+        compact = false;
+    }
+    private void FrameCandidates()
+    {
+        Camera camera = Camera.main;
+        if (camera == null || !camera.TryGetComponent<CameraController>(out var controller)) return;
+        candidates.Clear();
+        candidates.Add(source.centerTile.transform.position);
+        foreach (var city in WorldPopulationManager.Instance.allCities)
+            if (viewer.visibleTiles.IsVisible(city.centerTile) && Bonds.CanCreate(viewer, source, city, out _))
+                candidates.Add(city.centerTile.transform.position);
+        if (candidates.Count < 2 || cityPanel == null) return;
+        Canvas.ForceUpdateCanvases();
+        var corners = new Vector3[4];
+        cityPanel.GetWorldCorners(corners);
+        Canvas canvas = cityPanel.GetComponentInParent<Canvas>();
+        Camera uiCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+        float panelTop = RectTransformUtility.WorldToScreenPoint(uiCamera, corners[1]).y;
+        controller.FramePoints(candidates, panelTop);
     }
     private static string Perk(City city)
     {
