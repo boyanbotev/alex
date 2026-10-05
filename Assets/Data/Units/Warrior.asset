@@ -17,7 +17,7 @@ MonoBehaviour:
   cost: 2
   maxHealth: 10
   attackPower: 2
-  defensePower: 2
+  defensePower: 1
   moveRange: 1
   attackRange: 1
   splashDamage: 0
