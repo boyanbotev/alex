@@ -8,6 +8,7 @@ public sealed class GameManager : MonoBehaviour
     [SerializeField] private GameData game;
     public int LevelIndex { get; private set; }
     public Level Level { get; private set; }
+    public bool HasNextLevel => LevelIndex + 1 < game.levels.Length && game.levels[LevelIndex + 1] != null;
 
     private void Awake()
     {
@@ -25,6 +26,14 @@ public sealed class GameManager : MonoBehaviour
     private void OnDestroy()
     {
         if (Instance == this) Instance = null;
+    }
+
+    public void LoadNextLevel()
+    {
+        var turns = TurnManager.Instance;
+        if (turns == null || !turns.IsGameOver || !turns.HasWon || !HasNextLevel) return;
+        SaveManager.SetLevelIndex(LevelIndex + 1);
+        LoadGame();
     }
 
     public static void LoadGame() => WorldLoadingOverlay.LoadGame(

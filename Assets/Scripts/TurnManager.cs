@@ -16,6 +16,7 @@ public class TurnManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button endTurnButton;
     private bool enemyTurnsInProgress;
     public bool IsGameOver { get; private set; }
+    public bool HasWon { get; private set; }
     private bool matchStarted;
     private bool checkEnding;
     public CombatSettings combatSettings;
@@ -142,6 +143,7 @@ public class TurnManager : MonoBehaviour
     {
         if (IsGameOver) return;
         IsGameOver = true;
+        HasWon = won;
         SetEnemyTurnsInProgress(false);
         if (endTurnButton != null) endTurnButton.interactable = false;
         StopAllCoroutines();

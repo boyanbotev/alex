@@ -13,6 +13,7 @@ public sealed class GameEnding : MonoBehaviour
     private TextMeshProUGUI text;
     private RectTransform content;
     private ScrollRect scroll;
+    private bool won;
     private readonly List<GameObject> buttons = new();
 
     public static string PairKey(string a, string b)
@@ -24,6 +25,7 @@ public sealed class GameEnding : MonoBehaviour
 
     public void Show(TextAsset json, IEnumerable<string> pairKeys, bool won)
     {
+        this.won = won;
         BuildPanel(won);
         try
         {
@@ -53,7 +55,7 @@ public sealed class GameEnding : MonoBehaviour
         {
             Debug.LogError($"Could not play the Ink ending: {exception.Message}");
             text.text = "The ending could not be loaded. Check the Unity Console for details.";
-            AddMenuButton();
+            AddEndButtons();
         }
     }
 
@@ -70,7 +72,7 @@ public sealed class GameEnding : MonoBehaviour
             var output = new StringBuilder();
             while (story.canContinue) output.Append(story.Continue());
             text.text = output.ToString().Trim();
-            if (story.currentChoices.Count == 0) AddMenuButton();
+            if (story.currentChoices.Count == 0) AddEndButtons();
             else foreach (Choice choice in story.currentChoices)
             {
                 int index = choice.index;
@@ -87,11 +89,20 @@ public sealed class GameEnding : MonoBehaviour
         {
             Debug.LogError($"Ink ending error: {exception.Message}");
             text.text = "The ending could not be read. Check the Unity Console for details.";
-            AddMenuButton();
+            AddEndButtons();
         }
     }
 
-    private void AddMenuButton() => AddButton("Main menu", () => SceneManager.LoadScene("Main Menu"));
+    private void AddEndButtons()
+    {
+        if (won)
+        {
+            if (GameManager.Instance.HasNextLevel)
+                AddButton("Next level", () => GameManager.Instance.LoadNextLevel());
+        }
+        else AddButton("Restart", GameManager.LoadGame);
+        AddButton("Main menu", () => SceneManager.LoadScene("Main Menu"));
+    }
 
     private void BuildPanel(bool won)
     {
