@@ -95,13 +95,22 @@ public sealed class GameEnding : MonoBehaviour
 
     private void AddEndButtons()
     {
+        RectTransform row = Rect("Navigation", content);
+        row.gameObject.AddComponent<LayoutElement>().preferredHeight = 56;
+        HorizontalLayoutGroup layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+        layout.spacing = 24;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = true;
+        buttons.Add(row.gameObject);
         if (won)
         {
             if (GameManager.Instance.HasNextLevel)
-                AddButton("Next level", () => GameManager.Instance.LoadNextLevel());
+                AddButton("Next level", () => GameManager.Instance.LoadNextLevel(), row);
         }
-        else AddButton("Restart", GameManager.LoadGame);
-        AddButton("Main menu", () => SceneManager.LoadScene("Main Menu"));
+        else AddButton("Restart", GameManager.LoadGame, row);
+        AddButton("Main menu", () => SceneManager.LoadScene("Main Menu"), row);
     }
 
     private void BuildPanel(bool won)
@@ -152,17 +161,19 @@ public sealed class GameEnding : MonoBehaviour
         text.richText = true;
     }
 
-    private void AddButton(string caption, UnityEngine.Events.UnityAction action)
+    private void AddButton(string caption, UnityEngine.Events.UnityAction action, RectTransform parent = null)
     {
-        RectTransform rect = Rect("Ending button", content);
+        RectTransform rect = Rect("Ending button", parent != null ? parent : content);
         rect.gameObject.AddComponent<Image>().color = new Color(0.15f, 0.2f, 0.27f);
-        rect.gameObject.AddComponent<LayoutElement>().preferredHeight = 56;
+        LayoutElement size = rect.gameObject.AddComponent<LayoutElement>();
+        size.preferredHeight = 56;
+        size.flexibleWidth = 1;
         rect.gameObject.AddComponent<Button>().onClick.AddListener(action);
         TextMeshProUGUI label = Label("Label", rect, 24);
         Stretch(label.rectTransform, new Vector2(12, 4), new Vector2(-12, -4));
         label.alignment = TextAlignmentOptions.Center;
         label.text = caption;
-        buttons.Add(rect.gameObject);
+        if (parent == null) buttons.Add(rect.gameObject);
     }
 
     private static TextMeshProUGUI Label(string name, Transform parent, float size)
