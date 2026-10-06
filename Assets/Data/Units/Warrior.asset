@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   counterType: {fileID: 0}
   description: A standard melee unit
-  cost: 2
+  cost: 3
   maxHealth: 10
   attackPower: 2
-  defensePower: 1
+  defensePower: 2
   moveRange: 1
   attackRange: 1
   splashDamage: 0

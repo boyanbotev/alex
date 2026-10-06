@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   counterType: {fileID: 0}
   description: A defensive unit with weak attack. It can either move or attack.
-  cost: 3
+  cost: 4
   maxHealth: 15
   attackPower: 1
   defensePower: 3

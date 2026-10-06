@@ -7,6 +7,7 @@ public class City : MonoBehaviour
     public static event Action<Player> OnPlayerChange;
     public static event Action<Player> OnUnsiege;
     public static event Action<Player> OnSiege;
+    public static event Action<Unit> UnitRecruited;
     public string cityName;
     public CityData data;
     public const int PerkUpgradeCost = 10;
@@ -138,6 +139,7 @@ public class City : MonoBehaviour
         unit.name = unit.owner.faction.name + " " + unit.data.name + " " + owner.unitsCreated; 
 
         owner.units.Add(unit);
+        UnitRecruited?.Invoke(unit);
         return true;
     }
 

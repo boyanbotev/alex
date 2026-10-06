@@ -7,13 +7,14 @@ public sealed class Tutorial : ScriptableObject
     public TutorialStage[] stages = Array.Empty<TutorialStage>();
 }
 
-public enum TutorialCondition { OwnedCities, ConnectAllCities, StrongBonds }
+public enum TutorialCondition { OwnedCities, ConnectAllCities, StrongBonds, RecruitUnit, KillEnemyUnit, Instruction }
 
 [Serializable]
 public sealed class TutorialStage
 {
     [TextArea(2, 6)] public string instruction;
     public TutorialCondition condition;
+    public UnitData unitType;
     [Min(1)] public int targetCount = 1;
 
     public bool IsSatisfied(Player player, TurnManager turns)

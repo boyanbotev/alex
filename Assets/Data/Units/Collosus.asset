@@ -15,7 +15,7 @@ MonoBehaviour:
   counterType: {fileID: 0}
   description: A vast, heavy unit with strong attack and defence. Can either move
     or attack.
-  cost: 10
+  cost: 12
   maxHealth: 20
   attackPower: 3
   defensePower: 3

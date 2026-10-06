@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8f42b5e9004b348411d41cbd4a3bd4, type: 3}
+  m_Name: Level 2 Tutorial
+  m_EditorClassIdentifier: 
+  stages:
+  - instruction: 'Adrenaline gives your units +1 movement in this city''s territory.
+      Level 1 unlocks light cavalry. Level 2 unlocks heavy cavalry.
+
+      Select
+      an empty city and recruit light cavalry.'
+    condition: 3
+    unitType: {fileID: 11400000, guid: 8f429f719567c9647b426f8f9872f96e, type: 2}
+    targetCount: 1
+  - instruction: With your own unit selected, click on an adjacent enemy to attack
+      it.
+    condition: 4
+    unitType: {fileID: 0}
+    targetCount: 1
+  - instruction: Destroy Rebellion!
+    condition: 5
+    unitType: {fileID: 0}
+    targetCount: 1

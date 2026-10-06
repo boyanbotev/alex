@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   counterType: {fileID: 0}
   description: A flexible unit with 2 attack range
-  cost: 3
+  cost: 4
   maxHealth: 10
   attackPower: 2
   defensePower: 1

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   counterType: {fileID: 0}
   description: A siege weapon with 3 attack range. Vulnerable to melee attacks
-  cost: 8
+  cost: 10
   maxHealth: 10
   attackPower: 4
   defensePower: 0

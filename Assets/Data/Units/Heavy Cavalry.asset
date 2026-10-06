@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   counterType: {fileID: 0}
   description: An elite unit with 2 movement range
-  cost: 12
+  cost: 15
   maxHealth: 15
   attackPower: 3
   defensePower: 2

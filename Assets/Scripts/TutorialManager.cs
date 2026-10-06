@@ -12,6 +12,7 @@ public sealed class TutorialManager : MonoBehaviour
     private TextMeshProUGUI instruction;
     private int stageIndex;
     private bool dirty;
+    private bool actionSatisfied;
 
     private IEnumerator Start()
     {
@@ -22,18 +23,40 @@ public sealed class TutorialManager : MonoBehaviour
         player = turns.players.Find(p => !p.isAI);
         NeuronNetwork.IncomeChanged += MarkDirty;
         turns.Bonds.Changed += MarkDirty;
+        City.UnitRecruited += OnUnitRecruited;
+        Unit.UnitKilled += OnUnitKilled;
         BuildPopup();
         ShowStage();
         MarkDirty();
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         NeuronNetwork.IncomeChanged -= MarkDirty;
+        City.UnitRecruited -= OnUnitRecruited;
+        Unit.UnitKilled -= OnUnitKilled;
         if (turns != null) turns.Bonds.Changed -= MarkDirty;
     }
 
     private void MarkDirty() => dirty = true;
+
+    private void OnUnitRecruited(Unit unit)
+    {
+        if (!enabled || unit.owner != player) return;
+        TutorialStage stage = tutorial.stages[stageIndex];
+        if (stage.condition != TutorialCondition.RecruitUnit || stage.unitType == null ||
+            unit.data.CounterType != stage.unitType.CounterType) return;
+        actionSatisfied = true;
+        MarkDirty();
+    }
+
+    private void OnUnitKilled(Player attacker, Player victim)
+    {
+        if (!enabled || attacker != player || victim == null || victim == player ||
+            tutorial.stages[stageIndex].condition != TutorialCondition.KillEnemyUnit) return;
+        actionSatisfied = true;
+        MarkDirty();
+    }
 
     private void LateUpdate()
     {
@@ -46,7 +69,7 @@ public sealed class TutorialManager : MonoBehaviour
         }
         if (!dirty) return;
         dirty = false;
-        while (tutorial.stages[stageIndex].IsSatisfied(player, turns))
+        while (actionSatisfied || tutorial.stages[stageIndex].IsSatisfied(player, turns))
         {
             if (++stageIndex == tutorial.stages.Length)
             {
@@ -61,6 +84,7 @@ public sealed class TutorialManager : MonoBehaviour
 
     private void ShowStage()
     {
+        actionSatisfied = false;
         instruction.text = tutorial.stages[stageIndex].instruction;
         panel.SetActive(true);
     }

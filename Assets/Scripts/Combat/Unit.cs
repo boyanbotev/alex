@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
+    public static event System.Action<Player, Player> UnitKilled;
     [Header("Unit Profile")]
     public string unitName;
     public Player owner;
@@ -103,13 +104,13 @@ public class Unit : MonoBehaviour
         var (attackDamage, retaliationDamage, advance) = CombatMath.PredictAttack(this, defender, BoardState.Live);
 
         CombatMath.CollectSplashTargets(this, defender, defender.currentTile, BoardState.Live, splashTargets);
-        defender.TakeDamage(attackDamage);
-        foreach (Unit target in splashTargets) target.TakeDamage(data.splashDamage);
+        defender.TakeDamage(attackDamage, owner);
+        foreach (Unit target in splashTargets) target.TakeDamage(data.splashDamage, owner);
         splashTargets.Clear();
 
         if (retaliationDamage > 0)
         {
-            TakeDamage(retaliationDamage);
+            TakeDamage(retaliationDamage, defender.owner);
         }
 
         hasAttacked = true;
@@ -153,14 +154,14 @@ public class Unit : MonoBehaviour
         return false;
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, Player attacker = null)
     {
         currentHealth -= damage;
         healthUI?.Set(currentHealth);
 
         if (currentHealth <= 0)
         {
-            Die();
+            Die(attacker);
         }
     }
 
@@ -204,7 +205,7 @@ public class Unit : MonoBehaviour
         return (damage, retaliation);
     }
 
-    private void Die()
+    private void Die(Player attacker)
     {
         isAlive = false;
         if (currentTile != null)
@@ -220,6 +221,7 @@ public class Unit : MonoBehaviour
         if (owner != null) owner.units.Remove(this);
         if (homeCity != null) homeCity.units.Remove(this);
         TurnManager.Instance?.RequestGameOverCheck();
+        if (attacker != null) UnitKilled?.Invoke(attacker, owner);
         if (Application.isPlaying) Destroy(gameObject);
         else DestroyImmediate(gameObject);
     }

@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Mum
   m_EditorClassIdentifier: 
   cityName: Mum
-  perk: {fileID: 0}
+  perk: {fileID: 11400000, guid: db2c6c0576987ca40b5be8118128f5b7, type: 2}
