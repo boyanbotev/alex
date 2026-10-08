@@ -7,7 +7,6 @@ public class Player : MonoBehaviour
     public static event Action<int> OnUpdateStars;
     public string factionName;
     public Faction faction;
-    public Color factionColor;
     public int stars = 5;
     public bool isAI;
     public int unitsCreated = 0;

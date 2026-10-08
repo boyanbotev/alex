@@ -26,7 +26,6 @@ MonoBehaviour:
   minMargin: 1
   factions:
   - faction: {fileID: 11400000, guid: 8faff328133394f4db3022a2fdee83c7, type: 2}
-    color: {r: 0, g: 0, b: 0, a: 0}
     isAI: 0
     startingStars: 5
     spawnCapitalUnit: 0

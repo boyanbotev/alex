@@ -92,7 +92,6 @@ public class TurnManager : MonoBehaviour
             player.transform.SetParent(transform, false);
             player.faction = entry.faction;
             player.factionName = entry.faction.name;
-            player.factionColor = entry.color;
             player.isAI = entry.isAI;
             player.stars = entry.startingStars;
             players.Add(player);

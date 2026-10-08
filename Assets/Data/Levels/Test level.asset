@@ -23,7 +23,6 @@ MonoBehaviour:
   minMargin: 1
   factions:
   - faction: {fileID: 11400000, guid: 8faff328133394f4db3022a2fdee83c7, type: 2}
-    color: {r: 1, g: 1, b: 1, a: 1}
     isAI: 0
     startingStars: 1000
     startingCities:
@@ -31,7 +30,6 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 98630e9c345e4974b440173fd4520705, type: 2}
     - {fileID: 11400000, guid: 6fe6ce66ed3c4dc2861c75abcd715b7d, type: 2}
   - faction: {fileID: 11400000, guid: f865075d944943a45a3acc769ddf00e7, type: 2}
-    color: {r: 1, g: 0, b: 0, a: 1}
     isAI: 1
     startingStars: 5
     startingCities:

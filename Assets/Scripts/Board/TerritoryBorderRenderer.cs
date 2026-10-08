@@ -45,7 +45,7 @@ public class TerritoryBorderManager : MonoBehaviour
             .Where(t => t.territoryCity != null && t.territoryCity.owner == player)
             .ToList();
 
-        RebuildGroup(player, territoryTiles, player.factionColor);
+        RebuildGroup(player, territoryTiles, player.faction.color);
     }
 
     /// <summary>Removes a player's territory outline entirely (e.g. player eliminated).</summary>

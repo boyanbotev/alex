@@ -99,7 +99,6 @@ public enum CityPlacementSource { Automatic, Handcrafted }
 [Serializable]
 public class LevelFaction {
     public Faction faction;
-    public Color color = Color.white;
     public bool isAI = true;
     [Min(0)] public int startingStars = 5;
     [Tooltip("Spawn the faction's default starting unit on its capital unless a placed unit occupies that tile.")]

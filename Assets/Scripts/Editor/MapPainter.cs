@@ -436,7 +436,7 @@ public sealed class MapPainter : EditorWindow
                 if (level.factions != null)
                     foreach (var faction in level.factions)
                         if (faction?.startingCities != null && Array.IndexOf(faction.startingCities, city.city) >= 0)
-                        { color = faction.color; capital = faction.startingCities.Length > 0 && faction.startingCities[0] == city.city; break; }
+                        { color = faction.faction.color; capital = faction.startingCities.Length > 0 && faction.startingCities[0] == city.city; break; }
                 var center = stage.Position(city.position);
                 if (level.is3DIsometric) center.y = .2f;
                 Handles.color = color;
@@ -450,7 +450,7 @@ public sealed class MapPainter : EditorWindow
                     var center = stage.Position(unit.position);
                     center += level.is3DIsometric ? new Vector3(level.tileSize * .25f, .25f, 0) : Vector3.right * level.tileSize * .25f;
                     Handles.color = unit.factionIndex >= 0 && unit.factionIndex < level.factions.Length
-                        ? level.factions[unit.factionIndex].color : Color.gray;
+                        ? level.factions[unit.factionIndex].faction.color : Color.gray;
                     Handles.DrawWireDisc(center, level.is3DIsometric ? Vector3.up : Vector3.forward, level.tileSize * .16f);
                     Handles.Label(center, $"{unit.factionIndex + 1}: {unit.unit.name}");
                 }
