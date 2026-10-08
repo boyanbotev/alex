@@ -19,6 +19,9 @@ MonoBehaviour:
   noiseScale: 0.5
   randomizeSeed: 1
   seed: 0
+  terrainSource: 1
+  map: {fileID: 11400000, guid: bf3b98c8843f35f4fa85d87a8a5ac3a5, type: 2}
+  cityPlacement: 1
   minCityDistance: 2
   minMargin: 1
   factions:

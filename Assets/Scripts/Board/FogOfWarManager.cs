@@ -38,7 +38,7 @@ public class FogOfWarManager : MonoBehaviour
                 budget.ShouldYield(); // Start timing this frame before doing more work.
             }
             var settings = GameManager.Instance.Level;
-            player.visibleTiles = new VisibilityState(settings.width, settings.height);
+            player.visibleTiles = new VisibilityState(settings.Width, settings.Height);
 
             foreach (City city in player.cities)
                 Reveal(player, city.centerTile, 2);

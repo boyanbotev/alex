@@ -183,11 +183,11 @@ public class CameraController : MonoBehaviour
     private Vector3 ClampCameraPosition(Vector3 position)
     {
         float gridWidth =
-            GameManager.Instance.Level.width *
+            GameManager.Instance.Level.Width *
             GameManager.Instance.Level.tileSize;
 
         float gridHeight =
-            GameManager.Instance.Level.height *
+            GameManager.Instance.Level.Height *
             GameManager.Instance.Level.tileSize;
 
         position.x = Mathf.Clamp(position.x, -16, gridWidth - 16);

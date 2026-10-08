@@ -11,14 +11,42 @@ public sealed class CityPlacement
 
     public IEnumerator Generate(Level level, IEnumerable<Tile> tiles, System.Random random, GenerationBudget budget)
     {
+        if (level.cityPlacement == CityPlacementSource.Handcrafted)
+        {
+            if (level.terrainSource == TerrainSource.Handcrafted) level.map.ValidateTerrain();
+            level.map.ValidateCities(level);
+            var locations = new Dictionary<CityData, Vector2Int>();
+            foreach (var entry in level.map.cities) locations.Add(entry.city, entry.position);
+            var board = new Dictionary<Vector2Int, Tile>();
+            foreach (Tile tile in tiles)
+            {
+                if (budget.ShouldYield()) { yield return null; budget.ShouldYield(); }
+                board.Add(tile.gridPosition, tile);
+            }
+            var authored = new Tile[level.CityCount];
+            int index = 0;
+            foreach (var faction in level.factions)
+                foreach (var city in faction.startingCities) authored[index++] = Resolve(city);
+            if (level.neutralCities != null)
+                foreach (var city in level.neutralCities) authored[index++] = Resolve(city);
+            Positions = authored;
+            yield break;
+
+            Tile Resolve(CityData city)
+            {
+                if (!board.TryGetValue(locations[city], out Tile tile) || !MapData.IsCityTerrain(tile.terrainType))
+                    throw new InvalidOperationException($"City '{city.cityName}' needs an existing Field or Forest tile.");
+                return tile;
+            }
+        }
         var land = new List<Tile>();
         foreach (Tile tile in tiles)
         {
             if (budget.ShouldYield()) { yield return null; budget.ShouldYield(); }
             Vector2Int p = tile.gridPosition;
             if ((tile.terrainType == TerrainType.Field || tile.terrainType == TerrainType.Forest) &&
-                p.x >= level.minMargin && p.x < level.width - level.minMargin &&
-                p.y >= level.minMargin && p.y < level.height - level.minMargin)
+                p.x >= level.minMargin && p.x < level.Width - level.minMargin &&
+                p.y >= level.minMargin && p.y < level.Height - level.minMargin)
                 land.Add(tile);
         }
 

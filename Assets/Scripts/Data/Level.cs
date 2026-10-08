@@ -15,6 +15,14 @@ public class Level : ScriptableObject {
     public bool randomizeSeed = true;
     public int seed;
 
+    [Header("Map")]
+    public TerrainSource terrainSource;
+    public MapData map;
+    [Tooltip("Handcrafted cities use the positions in the map asset. Procedural terrain keeps these tiles as fields.")]
+    public CityPlacementSource cityPlacement;
+    public int Width => terrainSource == TerrainSource.Handcrafted && map != null ? map.width : width;
+    public int Height => terrainSource == TerrainSource.Handcrafted && map != null ? map.height : height;
+
     [Header("Cities")]
     [Min(1)] public int minCityDistance = 3;
     [Min(0)] public int minMargin = 1;
@@ -44,8 +52,13 @@ public class Level : ScriptableObject {
     }
 
     public void Validate() {
-        if (width <= 0 || height <= 0 || tileSize <= 0 || noiseScale <= 0 ||
-            minCityDistance < 1 || minMargin < 0 || minMargin >= (width + 1) / 2 || minMargin >= (height + 1) / 2)
+        if ((terrainSource == TerrainSource.Handcrafted || cityPlacement == CityPlacementSource.Handcrafted) && map == null)
+            throw new InvalidOperationException($"Level '{name}' needs a map asset for handcrafted terrain or cities.");
+        if (terrainSource == TerrainSource.Handcrafted) map.ValidateTerrain();
+        if (Width <= 0 || Height <= 0 || tileSize <= 0 ||
+            (terrainSource == TerrainSource.Procedural && noiseScale <= 0) ||
+            (cityPlacement == CityPlacementSource.Automatic && (minCityDistance < 1 || minMargin < 0 ||
+                minMargin >= (Width + 1) / 2 || minMargin >= (Height + 1) / 2)))
             throw new InvalidOperationException($"Level '{name}' has invalid grid or city spacing settings.");
         if (factions == null || factions.Length == 0)
             throw new InvalidOperationException($"Level '{name}' needs at least one faction.");
@@ -63,6 +76,7 @@ public class Level : ScriptableObject {
         if (humanCount != 1)
             throw new InvalidOperationException($"Level '{name}' needs exactly one human faction for the current UI.");
         ValidateNames(neutralCities, names);
+        if (cityPlacement == CityPlacementSource.Handcrafted) map.ValidateCities(this);
     }
 
     private static void ValidateNames(CityData[] cities, HashSet<string> names) {
@@ -72,6 +86,9 @@ public class Level : ScriptableObject {
                 throw new InvalidOperationException("City names must be non-empty and unique throughout the Level.");
     }
 }
+
+public enum TerrainSource { Procedural, Handcrafted }
+public enum CityPlacementSource { Automatic, Handcrafted }
 
 [Serializable]
 public class LevelFaction {

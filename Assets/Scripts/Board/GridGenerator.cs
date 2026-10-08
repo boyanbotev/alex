@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Profiling;
 using System.Collections;
+using System.Collections.Generic;
 
 public class GridGenerator : MonoBehaviour
 {
@@ -48,9 +49,12 @@ public class GridGenerator : MonoBehaviour
 
     public IEnumerator GenerateGrid(GenerationBudget budget)
     {
-        for (int x = 0; x < level.width; x++)
+        var cityPositions = new HashSet<Vector2Int>();
+        if (level.cityPlacement == CityPlacementSource.Handcrafted)
+            foreach (var city in level.map.cities) cityPositions.Add(city.position);
+        for (int x = 0; x < level.Width; x++)
         {
-            for (int y = 0; y < level.height; y++)
+            for (int y = 0; y < level.Height; y++)
             {
                 if (budget.ShouldYield())
                 {
@@ -60,8 +64,12 @@ public class GridGenerator : MonoBehaviour
                 Vector2Int gridPos = new Vector2Int(x, y);
                 Vector3 worldPos = GridToWorldPosition(x, y);
 
-                // Determine terrain type procedurally via Perlin Noise
-                GameObject tilePrefab = GetTerrainPrefabForPosition(x, y);
+                TerrainType type = level.terrainSource == TerrainSource.Handcrafted
+                    ? level.map.GetTerrain(x, y)
+                    : cityPositions.Contains(gridPos) ? TerrainType.Field : SampleTerrain(x, y, level.noiseScale, terrainOffset);
+                GameObject tilePrefab = GetTerrainPrefab(type);
+                if (tilePrefab == null)
+                    throw new System.InvalidOperationException($"GridGenerator needs a prefab for {type} terrain.");
 
                 // Instantiate Tile
                 GameObject tileObj;
@@ -73,6 +81,7 @@ public class GridGenerator : MonoBehaviour
                 if (tileScript == null) tileScript = tileObj.AddComponent<Tile>();
 
                 tileScript.gridPosition = gridPos;
+                tileScript.terrainType = type;
 
                 // Handle 2D Isometric Sprite Sorting Order
                 if (!level.is3DIsometric)
@@ -112,11 +121,19 @@ public class GridGenerator : MonoBehaviour
         }
     }
 
-    private GameObject GetTerrainPrefabForPosition(int x, int y)
+    public GameObject GetTerrainPrefab(TerrainType type)
     {
-        float noiseValue = Mathf.PerlinNoise((x + terrainOffset) * level.noiseScale, (y + terrainOffset) * level.noiseScale);
-
-        if (noiseValue < 0.63f) return fieldTilePrefab;
-        return mountainTilePrefab;
+        return type switch
+        {
+            TerrainType.Field => fieldTilePrefab,
+            TerrainType.Forest => forestTilePrefab,
+            TerrainType.Mountain => mountainTilePrefab,
+            TerrainType.Water => waterTilePrefab,
+            _ => null
+        };
     }
+
+    public static TerrainType SampleTerrain(int x, int y, float noiseScale, float offset) =>
+        Mathf.PerlinNoise((x + offset) * noiseScale, (y + offset) * noiseScale) < 0.63f
+            ? TerrainType.Field : TerrainType.Mountain;
 }
