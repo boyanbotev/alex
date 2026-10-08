@@ -28,7 +28,7 @@ MonoBehaviour:
   - faction: {fileID: 11400000, guid: 8faff328133394f4db3022a2fdee83c7, type: 2}
     color: {r: 0, g: 0, b: 0, a: 0}
     isAI: 0
-    startingStars: 5
+    startingStars: 10
     spawnCapitalUnit: 0
     startingCities: []
   - faction: {fileID: 11400000, guid: f865075d944943a45a3acc769ddf00e7, type: 2}

@@ -29,11 +29,12 @@ MonoBehaviour:
     color: {r: 0, g: 0, b: 0, a: 0}
     isAI: 0
     startingStars: 5
-    startingCities:
-    - {fileID: 11400000, guid: 9280e2cf6ee69b547be6e3389c7eabe9, type: 2}
+    spawnCapitalUnit: 0
+    startingCities: []
   neutralCities:
   - {fileID: 11400000, guid: 42bb9b1862edbc04cad0b31aec68b5c8, type: 2}
   - {fileID: 11400000, guid: f50094fb6498a37409750709deda2006, type: 2}
+  - {fileID: 11400000, guid: 9280e2cf6ee69b547be6e3389c7eabe9, type: 2}
   tutorial: {fileID: 11400000, guid: 7979a2cd8270425487753391f26a396b, type: 2}
   endingStory: {fileID: 4900000, guid: 85e9aed3dd4933340a335f53e45cc88d, type: 3}
   blockDiagonalsBetweenEnemies: 0
