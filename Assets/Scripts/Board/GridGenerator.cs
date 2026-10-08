@@ -52,6 +52,9 @@ public class GridGenerator : MonoBehaviour
         var cityPositions = new HashSet<Vector2Int>();
         if (level.cityPlacement == CityPlacementSource.Handcrafted)
             foreach (var city in level.map.cities) cityPositions.Add(city.position);
+        // Authored unit positions stay usable even with randomized procedural terrain.
+        if (level.map != null && level.map.units != null)
+            foreach (var unit in level.map.units) cityPositions.Add(unit.position);
         for (int x = 0; x < level.Width; x++)
         {
             for (int y = 0; y < level.Height; y++)

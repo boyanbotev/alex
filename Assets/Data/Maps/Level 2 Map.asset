@@ -26,3 +26,7 @@ MonoBehaviour:
     position: {x: 2, y: 2}
   - city: {fileID: 11400000, guid: 0ea2dbd8ee5bf0645a6311f6b63cfe57, type: 2}
     position: {x: 7, y: 4}
+  units:
+  - factionIndex: 0
+    unit: {fileID: 11400000, guid: abf8ff4417c380c4980e374f20455c08, type: 2}
+    position: {x: 3, y: 9}

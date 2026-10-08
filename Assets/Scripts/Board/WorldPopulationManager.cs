@@ -28,8 +28,7 @@ public class WorldPopulationManager : MonoBehaviour
             foreach (CityData cityData in level.factions[f].startingCities)
             {
                 if (budget.ShouldYield()) { yield return null; budget.ShouldYield(); }
-                City city = SpawnCity(placement.Positions[index++], cityData, player);
-                if (player.cities.Count == 1) SpawnStartingUnit(player, city);
+                SpawnCity(placement.Positions[index++], cityData, player);
             }
             TerritoryBorderManager.Instance.RebuildBorder(player);
         }
@@ -39,6 +38,25 @@ public class WorldPopulationManager : MonoBehaviour
                 if (budget.ShouldYield()) { yield return null; budget.ShouldYield(); }
                 SpawnCity(placement.Positions[index++], cityData, null);
             }
+        if (level.map != null && level.map.units != null)
+            foreach (var entry in level.map.units)
+            {
+                if (budget.ShouldYield()) { yield return null; budget.ShouldYield(); }
+                Player player = TurnManager.Instance.players[entry.factionIndex];
+                Tile tile = GridManager.Instance.GetTileAt(entry.position);
+                if (tile == null || tile.terrainType == TerrainType.Mountain || tile.currentUnit != null ||
+                    (tile.city != null && tile.city.owner != player))
+                    throw new System.InvalidOperationException($"Cannot place '{entry.unit.name}' at {entry.position}: blocked tile or foreign city.");
+                SpawnInitialUnit(player, entry.unit, tile, tile.city);
+            }
+        for (int f = 0; f < level.factions.Length; f++)
+        {
+            Player player = TurnManager.Instance.players[f];
+            if (!level.factions[f].spawnCapitalUnit || player.cities.Count == 0) continue;
+            City capital = player.cities[0];
+            if (capital.centerTile.currentUnit == null)
+                SpawnInitialUnit(player, player.faction.startingUnit, capital.centerTile, capital);
+        }
         WorldLoadingOverlay.Show("Creating fog...");
         yield return FogOfWarManager.Instance.CreateFogTiles(budget);
     }
@@ -64,19 +82,19 @@ public class WorldPopulationManager : MonoBehaviour
         return city;
     }
 
-    private void SpawnStartingUnit(Player player, City capital)
+    private void SpawnInitialUnit(Player player, FactionUnit profile, Tile tile, City home)
     {
-        GameObject unitObj = Instantiate(player.faction.startingUnit.prefab, capital.centerTile.transform.position, Quaternion.identity);
+        GameObject unitObj = Instantiate(profile.prefab, tile.transform.position, Quaternion.identity);
         Unit unit = unitObj.GetComponent<Unit>();
-        unit.data = player.faction.startingUnit.unitData;
+        unit.data = profile.unitData;
         unit.owner = player;
-        unit.currentTile = capital.centerTile;
-        capital.centerTile.currentUnit = unit;
-        unit.homeCity = capital;
-        unit.dopamineBonus = capital.PerkAmount(CityPerkKind.Dopamine);
+        unit.currentTile = tile;
+        tile.currentUnit = unit;
+        unit.homeCity = home;
+        unit.dopamineBonus = home != null ? home.PerkAmount(CityPerkKind.Dopamine) : 0;
         unit.hasMoved = false;
         unit.hasAttacked = false;
-        capital.units.Add(unit);
+        if (home != null) home.units.Add(unit);
         player.units.Add(unit);
     }
 }

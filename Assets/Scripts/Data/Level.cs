@@ -66,17 +66,23 @@ public class Level : ScriptableObject {
         int humanCount = 0;
         foreach (var entry in factions) {
             if (entry == null || entry.faction == null || entry.faction.cityPrefab == null ||
-                entry.faction.startingUnit == null || entry.faction.startingUnit.unitData == null || entry.faction.startingUnit.prefab == null ||
-                entry.faction.startingUnit.prefab.GetComponent<Unit>() == null ||
-                entry.startingStars < 0 || entry.startingCities == null || entry.startingCities.Length == 0)
-                throw new InvalidOperationException($"Level '{name}': each faction needs its prefabs, starting cities and non-negative stars.");
+                (entry.spawnCapitalUnit && entry.startingCities != null && entry.startingCities.Length > 0 &&
+                 (entry.faction.startingUnit == null || entry.faction.startingUnit.unitData == null || entry.faction.startingUnit.prefab == null ||
+                  entry.faction.startingUnit.prefab.GetComponent<Unit>() == null)) ||
+                entry.startingStars < 0 || entry.startingCities == null || (entry.isAI && entry.startingCities.Length == 0))
+                throw new InvalidOperationException($"Level '{name}': each faction needs valid prefabs and non-negative stars; AI factions also need a starting city.");
             if (!entry.isAI) humanCount++;
             ValidateNames(entry.startingCities, names);
         }
-        if (humanCount != 1)
-            throw new InvalidOperationException($"Level '{name}' needs exactly one human faction for the current UI.");
         ValidateNames(neutralCities, names);
         if (cityPlacement == CityPlacementSource.Handcrafted) map.ValidateCities(this);
+        if (map != null) map.ValidateUnits(this);
+        for (int i = 0; i < factions.Length; i++)
+            if (factions[i].startingCities.Length == 0 &&
+                (map == null || map.units == null || !map.units.Exists(u => u.factionIndex == i)))
+                throw new InvalidOperationException($"Level '{name}': a cityless faction needs at least one placed unit.");
+        if (humanCount != 1)
+            throw new InvalidOperationException($"Level '{name}' needs exactly one human faction for the current UI.");
     }
 
     private static void ValidateNames(CityData[] cities, HashSet<string> names) {
@@ -96,6 +102,8 @@ public class LevelFaction {
     public Color color = Color.white;
     public bool isAI = true;
     [Min(0)] public int startingStars = 5;
-    [Tooltip("The first city is the capital and receives the faction's starting unit.")]
+    [Tooltip("Spawn the faction's default starting unit on its capital unless a placed unit occupies that tile.")]
+    public bool spawnCapitalUnit = true;
+    [Tooltip("The first city is the capital. Human factions may start without cities if they have placed units.")]
     public CityData[] startingCities = Array.Empty<CityData>();
 }

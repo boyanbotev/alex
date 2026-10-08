@@ -42,6 +42,8 @@ public class FogOfWarManager : MonoBehaviour
 
             foreach (City city in player.cities)
                 Reveal(player, city.centerTile, 2);
+            foreach (Unit unit in player.units)
+                Reveal(player, unit.currentTile, 1);
         }
     }
 

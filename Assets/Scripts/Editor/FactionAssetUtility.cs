@@ -28,7 +28,7 @@ public static class FactionAssetUtility
     }
 
     private static FactionUnit[] Entries(Faction faction) =>
-        (faction.availableUnits ?? Array.Empty<FactionUnit>()).Concat(faction.units ?? Array.Empty<FactionUnit>())
+        (faction.availableUnits ?? Array.Empty<FactionUnit>())
             .Append(faction.startingUnit).Where(e => e != null).Distinct().ToArray();
 
     private static void Free(string path, string current = null)
@@ -124,7 +124,6 @@ public static class FactionAssetUtility
                 foreach (var entry in Entries(source))
                     map[entry] = CreateEntry(faction, entry.unitData, entry.prefab);
                 faction.availableUnits = (source.availableUnits ?? Array.Empty<FactionUnit>()).Select(e => e != null ? map[e] : null).ToArray();
-                faction.units = (source.units ?? Array.Empty<FactionUnit>()).Select(e => e != null ? map[e] : null).ToArray();
                 faction.startingUnit = source.startingUnit != null ? map[source.startingUnit] : null;
                 faction.cityPrefab = source.cityPrefab != null
                     ? CopyPrefab(source.cityPrefab, PrefabFolder(name) + "/" + name + " City.prefab") : null;

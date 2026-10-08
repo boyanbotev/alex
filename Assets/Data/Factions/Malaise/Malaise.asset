@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   aiProfile: {fileID: 11400000, guid: 0b65dc4d64614be8b0758850951410e9, type: 2}
   cityPrefab: {fileID: 4072920081775810972, guid: 2cd26fbb3ba27814fa9fa01a31387dbf, type: 3}
-  units: []
   startingUnit: {fileID: 11400000, guid: f0478dc086a5a9f4f8f536e9140d64b4, type: 2}
   availableUnits:
   - {fileID: 11400000, guid: 1a3ce859ab36bf94788af3783c902bd1, type: 2}

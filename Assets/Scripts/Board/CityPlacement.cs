@@ -39,12 +39,15 @@ public sealed class CityPlacement
                 return tile;
             }
         }
+        var unitPositions = new HashSet<Vector2Int>();
+        if (level.map != null && level.map.units != null)
+            foreach (var unit in level.map.units) unitPositions.Add(unit.position);
         var land = new List<Tile>();
         foreach (Tile tile in tiles)
         {
             if (budget.ShouldYield()) { yield return null; budget.ShouldYield(); }
             Vector2Int p = tile.gridPosition;
-            if ((tile.terrainType == TerrainType.Field || tile.terrainType == TerrainType.Forest) &&
+            if (!unitPositions.Contains(p) && (tile.terrainType == TerrainType.Field || tile.terrainType == TerrainType.Forest) &&
                 p.x >= level.minMargin && p.x < level.Width - level.minMargin &&
                 p.y >= level.minMargin && p.y < level.Height - level.minMargin)
                 land.Add(tile);
@@ -116,7 +119,8 @@ public sealed class CityPlacement
                 {
                     score = float.PositiveInfinity;
                     for (int f = 0; f < faction; f++)
-                        score = Mathf.Min(score, (p - positions[offsets[f]].gridPosition).sqrMagnitude);
+                        if (level.factions[f].startingCities.Length > 0)
+                            score = Mathf.Min(score, (p - positions[offsets[f]].gridPosition).sqrMagnitude);
                 }
                 else if (anchor != null) score = -(p - anchor.gridPosition).sqrMagnitude;
                 else break;

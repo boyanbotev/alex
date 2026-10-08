@@ -9,6 +9,7 @@ public sealed class MapData : ScriptableObject
     [Min(1)] public int height = 15;
     public TerrainType[] terrain = Array.Empty<TerrainType>();
     public List<MapCity> cities = new();
+    public List<MapUnit> units = new();
 
     public bool Contains(Vector2Int p) => p.x >= 0 && p.y >= 0 && p.x < width && p.y < height;
     public TerrainType GetTerrain(int x, int y) => terrain[y * width + x];
@@ -27,6 +28,8 @@ public sealed class MapData : ScriptableObject
         terrain = resized;
         cities ??= new List<MapCity>();
         cities.RemoveAll(c => !Contains(c.position));
+        units ??= new List<MapUnit>();
+        units.RemoveAll(u => !Contains(u.position));
     }
 
     public void ValidateTerrain()
@@ -63,6 +66,32 @@ public sealed class MapData : ScriptableObject
             throw new InvalidOperationException($"Map '{name}' is missing {expected.Count} of this Level's cities.");
     }
 
+    public void ValidateUnits(Level level)
+    {
+        if (units == null || units.Count == 0) return;
+        if (width != level.Width || height != level.Height)
+            throw new InvalidOperationException($"Map '{name}' must match the level grid for unit placements.");
+        var positions = new HashSet<Vector2Int>();
+        foreach (var entry in units)
+        {
+            if (entry.factionIndex < 0 || entry.factionIndex >= level.factions.Length ||
+                entry.unit == null || entry.unit.unitData == null || entry.unit.prefab == null ||
+                entry.unit.prefab.GetComponent<Unit>() == null ||
+                level.factions[entry.factionIndex].faction.availableUnits == null ||
+                Array.IndexOf(level.factions[entry.factionIndex].faction.availableUnits, entry.unit) < 0)
+                throw new InvalidOperationException($"Map '{name}' has a unit outside its faction's roster or missing its prefab/data.");
+            if (!Contains(entry.position) || !positions.Add(entry.position))
+                throw new InvalidOperationException($"Map '{name}' has units outside the grid or sharing a tile.");
+            if (level.terrainSource == TerrainSource.Handcrafted && GetTerrain(entry.position.x, entry.position.y) == TerrainType.Mountain)
+                throw new InvalidOperationException($"Map '{name}' has a unit on a mountain.");
+            if (level.cityPlacement == CityPlacementSource.Handcrafted)
+                foreach (var city in cities)
+                    if (city.position == entry.position &&
+                        Array.IndexOf(level.factions[entry.factionIndex].startingCities, city.city) < 0)
+                        throw new InvalidOperationException($"Map '{name}' has a unit on a neutral or another faction's city.");
+        }
+    }
+
     public static bool IsCityTerrain(TerrainType type) => type == TerrainType.Field || type == TerrainType.Forest;
 }
 
@@ -72,4 +101,14 @@ public struct MapCity
     public CityData city;
     public Vector2Int position;
     public MapCity(CityData city, Vector2Int position) { this.city = city; this.position = position; }
+}
+
+[Serializable]
+public struct MapUnit
+{
+    public int factionIndex;
+    public FactionUnit unit;
+    public Vector2Int position;
+    public MapUnit(int factionIndex, FactionUnit unit, Vector2Int position)
+    { this.factionIndex = factionIndex; this.unit = unit; this.position = position; }
 }

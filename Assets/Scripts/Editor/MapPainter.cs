@@ -9,7 +9,9 @@ public sealed class MapPainter : EditorWindow
     [SerializeField] private Level level;
     [SerializeField] private TerrainType brush;
     [SerializeField] private int brushSize = 1;
-    [SerializeField] private bool cityTool;
+    [SerializeField] private int tool;
+    [SerializeField] private int selectedFaction;
+    [SerializeField] private FactionUnit selectedUnit;
     [SerializeField] private CityData selectedCity;
     private MapEditingStage stage;
     private readonly List<CityData> cityChoices = new();
@@ -124,21 +126,21 @@ public sealed class MapPainter : EditorWindow
             EditorUtility.SetDirty(level);
         }
         if (level.terrainSource == TerrainSource.Procedural)
-            EditorGUILayout.HelpBox("The painted terrain is a draft until you select Handcrafted. Fixed city tiles become fields on procedural maps.", MessageType.Info);
+            EditorGUILayout.HelpBox("The painted terrain is a draft until you select Handcrafted. Fixed city and unit tiles become fields on procedural maps.", MessageType.Info);
         if (GUILayout.Button(stage == null ? "Open Map in Scene View" : "Reopen / Refresh Preview")) StartPreview();
         using (new EditorGUILayout.HorizontalScope())
         {
             if (GUILayout.Button("Top Down")) Frame(true);
             if (GUILayout.Button("Game Angle")) Frame(false);
         }
-        cityTool = GUILayout.Toolbar(cityTool ? 1 : 0, new[] { "Terrain", "Cities" }) == 1;
-        if (!cityTool)
+        tool = GUILayout.Toolbar(tool, new[] { "Terrain", "Cities", "Units" });
+        if (tool == 0)
         {
             brush = (TerrainType)GUILayout.SelectionGrid((int)brush, Enum.GetNames(typeof(TerrainType)), 2);
             brushSize = EditorGUILayout.IntSlider("Brush size", brushSize, 1, 9) | 1;
             EditorGUILayout.LabelField("Paint area", $"{brushSize} × {brushSize} tiles");
         }
-        else
+        else if (tool == 1)
         {
             if (level.cityPlacement == CityPlacementSource.Automatic)
                 EditorGUILayout.HelpBox("Select Handcrafted city placement above to use painted city positions in the game.", MessageType.Info);
@@ -152,7 +154,8 @@ public sealed class MapPainter : EditorWindow
             }
             EditorGUILayout.LabelField("Placed", $"{map.cities?.Count ?? 0} / {level.CityCount}");
         }
-        EditorGUILayout.HelpBox("Paint in the Scene view with left click / drag. Right click erases to Field or removes a city. Alt + mouse navigates. Ctrl+Z undoes a whole stroke.", MessageType.Info);
+        else DrawUnitTools();
+        EditorGUILayout.HelpBox("Paint in the Scene view with left click / drag. Right click erases terrain, a city, or a unit according to the selected tool. Alt + mouse navigates. Ctrl+Z undoes a whole stroke.", MessageType.Info);
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Starting layout", EditorStyles.boldLabel);
         DrawSeedFields();
@@ -164,6 +167,34 @@ public sealed class MapPainter : EditorWindow
             if (GUILayout.Button("Save")) { EndStroke(); AssetDatabase.SaveAssets(); message = "Map saved."; messageType = MessageType.Info; }
         }
         if (GUILayout.Button("Play This Level")) PlayLevel();
+    }
+
+    private void DrawUnitTools()
+    {
+        if (level.factions == null || level.factions.Length == 0) return;
+        var labels = new string[level.factions.Length];
+        for (int i = 0; i < labels.Length; i++) labels[i] = $"{i + 1}: {level.factions[i]?.faction?.name ?? "Missing faction"}";
+        selectedFaction = EditorGUILayout.Popup("Faction", Mathf.Clamp(selectedFaction, 0, labels.Length - 1), labels);
+        var faction = level.factions[selectedFaction];
+        if (faction == null || faction.faction == null) return;
+        bool automatic = EditorGUILayout.Toggle("Automatic capital unit", faction.spawnCapitalUnit);
+        if (automatic != faction.spawnCapitalUnit)
+        {
+            Undo.RecordObject(level, "Change capital starting unit");
+            faction.spawnCapitalUnit = automatic;
+            EditorUtility.SetDirty(level);
+        }
+        var roster = faction.faction.availableUnits;
+        var choices = new List<FactionUnit>();
+        var names = new List<string>();
+        if (roster != null)
+            foreach (var unit in roster)
+                if (unit != null) { choices.Add(unit); names.Add(unit.name); }
+        if (choices.Count == 0) EditorGUILayout.HelpBox("Add units to this faction's full roster first.", MessageType.Info);
+        else selectedUnit = choices[EditorGUILayout.Popup("Unit", Mathf.Max(0, choices.IndexOf(selectedUnit)), names.ToArray())];
+        if (choices.Count == 0) selectedUnit = null;
+        EditorGUILayout.LabelField("Placed units", (level.map.units?.Count ?? 0).ToString());
+        EditorGUILayout.HelpBox("Place any roster unit on a non-mountain tile or a friendly city. Recruitment unlocks and costs do not apply. A placed capital unit takes precedence over the automatic starter.", MessageType.Info);
     }
 
     private void DrawSeedFields()
@@ -249,6 +280,9 @@ public sealed class MapPainter : EditorWindow
         for (int y = 0; y < map.height; y++)
             for (int x = 0; x < map.width; x++) map.terrain[y * map.width + x] = GridGenerator.SampleTerrain(x, y, level.noiseScale, offset);
         foreach (var city in map.cities) if (map.Contains(city.position)) map.terrain[city.position.y * map.width + city.position.x] = TerrainType.Field;
+        foreach (var unit in map.units)
+            if (map.Contains(unit.position) && map.GetTerrain(unit.position.x, unit.position.y) == TerrainType.Mountain)
+                map.terrain[unit.position.y * map.width + unit.position.x] = TerrainType.Field;
         Changed();
         stage?.Rebuild();
     }
@@ -409,27 +443,42 @@ public sealed class MapPainter : EditorWindow
                 Handles.DrawSolidDisc(center, level.is3DIsometric ? Vector3.up : Vector3.forward, level.tileSize * .22f);
                 Handles.Label(center, $"{(capital ? "★ " : "")}{city.city.cityName}");
             }
+            if (map.units != null)
+                foreach (var unit in map.units)
+                {
+                    if (unit.unit == null || !map.Contains(unit.position)) continue;
+                    var center = stage.Position(unit.position);
+                    center += level.is3DIsometric ? new Vector3(level.tileSize * .25f, .25f, 0) : Vector3.right * level.tileSize * .25f;
+                    Handles.color = unit.factionIndex >= 0 && unit.factionIndex < level.factions.Length
+                        ? level.factions[unit.factionIndex].color : Color.gray;
+                    Handles.DrawWireDisc(center, level.is3DIsometric ? Vector3.up : Vector3.forward, level.tileSize * .16f);
+                    Handles.Label(center, $"{unit.factionIndex + 1}: {unit.unit.name}");
+                }
         }
         var plane = new Plane(level.is3DIsometric ? Vector3.up : Vector3.forward, Vector3.zero);
         var ray = HandleUtility.GUIPointToWorldRay(e.mousePosition);
         if (!plane.Raycast(ray, out float distance)) return;
         var cell = stage.Cell(ray.GetPoint(distance));
         if (map.Contains(cell) && e.type == EventType.Repaint)
-            Handles.DrawSolidRectangleWithOutline(stage.Corners(cell, cityTool ? .5f : brushSize * .5f), new Color(1, 1, 1, .1f), Color.yellow);
+            Handles.DrawSolidRectangleWithOutline(stage.Corners(cell, tool != 0 ? .5f : brushSize * .5f), new Color(1, 1, 1, .1f), Color.yellow);
         if (e.type == EventType.MouseMove) view.Repaint();
         if (e.alt || (e.type != EventType.MouseDown && e.type != EventType.MouseDrag) || e.button > 1 || !map.Contains(cell)) return;
-        if (cityTool && e.type == EventType.MouseDrag) return;
+        if (tool != 0 && e.type == EventType.MouseDrag) return;
         if (e.type == EventType.MouseDown)
         {
             EndStroke();
             Undo.IncrementCurrentGroup();
             strokeGroup = Undo.GetCurrentGroup();
-            Undo.SetCurrentGroupName(cityTool ? "Place map city" : "Paint map terrain");
-            Undo.RecordObject(map, cityTool ? "Place map city" : "Paint map terrain");
+            Undo.SetCurrentGroupName(tool == 2 ? "Place map unit" : tool == 1 ? "Place map city" : "Paint map terrain");
+            Undo.RecordObject(map, tool == 2 ? "Place map unit" : tool == 1 ? "Place map city" : "Paint map terrain");
             GUIUtility.hotControl = control;
         }
         if (strokeGroup < 0) return;
-        if (cityTool)
+        if (tool == 2)
+        {
+            if (!PlaceUnit(cell, e.button == 1)) { Repaint(); e.Use(); return; }
+        }
+        else if (tool == 1)
         {
             if (!PlaceCity(cell, e.button == 1)) { Repaint(); e.Use(); return; }
         }
@@ -461,9 +510,30 @@ public sealed class MapPainter : EditorWindow
             }
     }
 
+    private bool PlaceUnit(Vector2Int p, bool erase)
+    {
+        var map = level.map;
+        map.units ??= new List<MapUnit>();
+        if (erase) { map.units.RemoveAll(u => u.position == p); return true; }
+        if (selectedUnit == null) return false;
+        if (map.GetTerrain(p.x, p.y) == TerrainType.Mountain)
+        { message = "Units cannot start on mountains."; messageType = MessageType.Warning; return false; }
+        if (level.cityPlacement == CityPlacementSource.Handcrafted)
+            foreach (var city in map.cities)
+                if (city.position == p && Array.IndexOf(level.factions[selectedFaction].startingCities, city.city) < 0)
+                { message = "Place units on their own cities or tiles without cities."; messageType = MessageType.Warning; return false; }
+        map.units.RemoveAll(u => u.position == p);
+        map.units.Add(new MapUnit(selectedFaction, selectedUnit, p));
+        return true;
+    }
+
     private bool PlaceCity(Vector2Int p, bool erase)
     {
         var map = level.map;
+        if (!erase && map.units != null && map.units.Exists(u => u.position == p &&
+            (u.factionIndex < 0 || u.factionIndex >= level.factions.Length ||
+             Array.IndexOf(level.factions[u.factionIndex].startingCities, selectedCity) < 0)))
+        { message = "This tile has a unit from another faction. Move or erase the unit first."; messageType = MessageType.Warning; return false; }
         if (erase) { map.cities.RemoveAll(c => c.position == p); return true; }
         if (selectedCity == null) return false;
         if (!MapData.IsCityTerrain(map.GetTerrain(p.x, p.y)))
