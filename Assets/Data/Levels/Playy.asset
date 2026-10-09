@@ -57,6 +57,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3798e56fb4594a2dbef9511e5a92028c, type: 2}
   - {fileID: 11400000, guid: a74465cd37e910541a436f233458e0e0, type: 2}
   tutorial: {fileID: 0}
+  turnLimit: 20
   endingStory: {fileID: 0}
   blockDiagonalsBetweenEnemies: 1
   blockDiagonalsBetweenImpassableTiles: 1

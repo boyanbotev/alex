@@ -16,7 +16,6 @@ public class TurnManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button endTurnButton;
     private bool enemyTurnsInProgress;
     public bool IsGameOver { get; private set; }
-    public bool HasWon { get; private set; }
     private bool matchStarted;
     private bool checkEnding;
     public CombatSettings combatSettings;
@@ -123,26 +122,19 @@ public class TurnManager : MonoBehaviour
     {
         if (IsGameOver) return true;
         if (!matchStarted) return false;
-        if (players.Count == 1) return false;
         Player human = players.Find(p => !p.isAI);
         if (human != null && !human.IsAlive())
         {
-            EndGame(false);
+            EndGame();
             return true;
         }
-        int alive = 0;
-        foreach (Player player in players) if (player.IsAlive()) alive++;
-        if (alive > 1) return false;
-        EndGame(human != null && human.IsAlive());
-        return true;
+        return false;
     }
 
-    // Also used by a future turn limit, after its final turn has resolved.
-    public void EndGame(bool won)
+    public void EndGame()
     {
         if (IsGameOver) return;
         IsGameOver = true;
-        HasWon = won;
         SetEnemyTurnsInProgress(false);
         if (endTurnButton != null) endTurnButton.interactable = false;
         StopAllCoroutines();
@@ -154,7 +146,7 @@ public class TurnManager : MonoBehaviour
         UIManager.Instance?.CloseBuildPanel();
         UIManager.Instance?.HideAllCaptureButtons();
         TurnChanged?.Invoke();
-        gameObject.AddComponent<GameEnding>().Show(GameManager.Instance.Level.endingStory, links, won);
+        gameObject.AddComponent<GameEnding>().Show(GameManager.Instance.Level.endingStory, links);
     }
 
     public void EndTurn()
@@ -174,7 +166,15 @@ public class TurnManager : MonoBehaviour
         do
         {
             activePlayerIndex = (activePlayerIndex + 1) % players.Count;
-            if (activePlayerIndex == 0) turnNumber++;
+            if (activePlayerIndex == 0)
+            {
+                if (turnNumber >= GameManager.Instance.Level.turnLimit)
+                {
+                    EndGame();
+                    return;
+                }
+                turnNumber++;
+            }
         }
         while (!ActivePlayer.IsAlive());
 

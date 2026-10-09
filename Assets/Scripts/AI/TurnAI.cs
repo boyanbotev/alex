@@ -19,6 +19,7 @@ public class TurnAI : MonoBehaviour
         }
 
         yield return tacticsAI.PlayTurn(player, turnProfile);
+        if (TurnManager.Instance.CheckGameOver()) yield break;
         economyAI.HandleEconomy(player, turnProfile);
     }
 }

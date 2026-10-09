@@ -75,7 +75,7 @@ public sealed class TutorialManager : MonoBehaviour
             {
                 panel.SetActive(false);
                 enabled = false;
-                turns.EndGame(true);
+                turns.EndGame();
                 return;
             }
             ShowStage();

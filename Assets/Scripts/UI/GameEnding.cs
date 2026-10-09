@@ -13,7 +13,6 @@ public sealed class GameEnding : MonoBehaviour
     private TextMeshProUGUI text;
     private RectTransform content;
     private ScrollRect scroll;
-    private bool won;
     private readonly List<GameObject> buttons = new();
 
     public static string PairKey(string a, string b)
@@ -23,13 +22,12 @@ public sealed class GameEnding : MonoBehaviour
         return string.CompareOrdinal(a, b) <= 0 ? a + "_" + b : b + "_" + a;
     }
 
-    public void Show(TextAsset json, IEnumerable<string> pairKeys, bool won)
+    public void Show(TextAsset json, IEnumerable<string> pairKeys)
     {
-        this.won = won;
-        BuildPanel(won);
+        BuildPanel();
         try
         {
-            if (json == null) throw new InvalidOperationException("Assign an exported Ink JSON to TurnManager's Ending Story.");
+            if (json == null) throw new InvalidOperationException("Assign an exported Ink JSON to the Level's Ending Story.");
             story = new Story(json.text);
             story.onError += (message, type) =>
             {
@@ -104,16 +102,12 @@ public sealed class GameEnding : MonoBehaviour
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = true;
         buttons.Add(row.gameObject);
-        if (won)
-        {
-            if (GameManager.Instance.HasNextLevel)
-                AddButton("Next level", () => GameManager.Instance.LoadNextLevel(), row);
-        }
-        else AddButton("Restart", GameManager.LoadGame, row);
+        if (GameManager.Instance.HasNextLevel)
+            AddButton("Next level", () => GameManager.Instance.LoadNextLevel(), row);
         AddButton("Main menu", () => SceneManager.LoadScene("Main Menu"), row);
     }
 
-    private void BuildPanel(bool won)
+    private void BuildPanel()
     {
         var root = new GameObject("Game ending", typeof(RectTransform), typeof(Canvas),
             typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -156,7 +150,7 @@ public sealed class GameEnding : MonoBehaviour
         scroll.content = content;
 
         TextMeshProUGUI title = Label("Title", content, 40);
-        title.text = won ? "Victory" : "Game over";
+        title.text = "Level complete";
         text = Label("Story", content, 26);
         text.richText = true;
     }

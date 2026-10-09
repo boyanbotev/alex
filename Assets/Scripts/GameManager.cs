@@ -31,7 +31,7 @@ public sealed class GameManager : MonoBehaviour
     public void LoadNextLevel()
     {
         var turns = TurnManager.Instance;
-        if (turns == null || !turns.IsGameOver || !turns.HasWon || !HasNextLevel) return;
+        if (turns == null || !turns.IsGameOver || !HasNextLevel) return;
         SaveManager.SetLevelIndex(LevelIndex + 1);
         LoadGame();
     }

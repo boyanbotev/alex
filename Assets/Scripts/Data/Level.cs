@@ -31,6 +31,9 @@ public class Level : ScriptableObject {
 
     public Tutorial tutorial;
 
+    [Header("Turns")]
+    [Min(1)] public int turnLimit = 20;
+
     [Header("Ending Story")]
     public TextAsset endingStory;
 
@@ -52,6 +55,8 @@ public class Level : ScriptableObject {
     }
 
     public void Validate() {
+        if (turnLimit < 1)
+            throw new InvalidOperationException($"Level '{name}' needs at least one turn.");
         if ((terrainSource == TerrainSource.Handcrafted || cityPlacement == CityPlacementSource.Handcrafted) && map == null)
             throw new InvalidOperationException($"Level '{name}' needs a map asset for handcrafted terrain or cities.");
         if (terrainSource == TerrainSource.Handcrafted) map.ValidateTerrain();

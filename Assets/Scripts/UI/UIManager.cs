@@ -33,6 +33,8 @@ public class UIManager : MonoBehaviour
     [Header("Stars")]
     [SerializeField] TextMeshProUGUI starsCounter;
     [SerializeField] TextMeshProUGUI starsPerTurnCounter;
+    [SerializeField] TextMeshProUGUI turnCounter;
+    private TurnManager turns;
 
     [SerializeField] GameObject itemPurchaseButtonPrefab;
 
@@ -59,10 +61,18 @@ public class UIManager : MonoBehaviour
         while (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady)
             yield return null;
         SetStarsPerTurn(TurnManager.Instance.players.Find(p => !p.isAI).CalculateTurnIncome());
+        turns = TurnManager.Instance;
+        turns.TurnChanged += RefreshTurnCounter;
+        RefreshTurnCounter();
     }
 
     private void OnEnable()
     {
+        if (turns != null)
+        {
+            turns.TurnChanged += RefreshTurnCounter;
+            RefreshTurnCounter();
+        }
         if (bondView != null) bondView.SelectionChanged += RefreshCityPanel;
         Player.OnUpdateStars += SetStars;
         City.OnPlayerChange += OnClaim;
@@ -73,6 +83,7 @@ public class UIManager : MonoBehaviour
 
     private void OnDisable()
     {
+        if (turns != null) turns.TurnChanged -= RefreshTurnCounter;
         if (bondView != null) bondView.SelectionChanged -= RefreshCityPanel;
         Player.OnUpdateStars -= SetStars;
         City.OnPlayerChange -= OnClaim;
@@ -328,6 +339,12 @@ public class UIManager : MonoBehaviour
     {
         starsPerTurnCounter.text = $"(+{value})";
         RefreshCityPanel();
+    }
+
+    private void RefreshTurnCounter()
+    {
+        if (turnCounter != null)
+            turnCounter.text = $"Turn {turns.turnNumber} / {GameManager.Instance.Level.turnLimit}";
     }
 
     private void RefreshNeuronIncome()
