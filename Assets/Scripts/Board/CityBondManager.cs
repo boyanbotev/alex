@@ -34,6 +34,13 @@ public sealed class CityBondManager
         (a == b || turns.Diplomacy.GetRelation(a, b) == DiplomaticRelation.Allied);
 
     public bool CanCreate(Player actor, City a, City b, out string reason)
+        => CanCreate(actor, a, b, true, out reason);
+
+    // Construction planning uses the same bond rules before a route exists.
+    public bool CanPlan(Player actor, City a, City b)
+        => CanCreate(actor, a, b, false, out _);
+
+    private bool CanCreate(Player actor, City a, City b, bool requireConnection, out string reason)
     {
         reason = null;
         if (actor == null || actor != turns.ActivePlayer || a == null || b == null || a == b || a.owner != actor)
@@ -42,7 +49,7 @@ public sealed class CityBondManager
         else if (a.HasPendingCapture || b.HasPendingCapture) reason = "A city is under siege.";
         else if (bonds.Exists(x => x.Other(a) == b)) reason = "These cities already share a bond.";
         else if (Count(a) >= turns.maxBondsPerCity || Count(b) >= turns.maxBondsPerCity) reason = "A city has no free bond slots.";
-        else if (!turns.Neurons.AreConnected(a, b)) reason = "Build a neuron connection first.";
+        else if (requireConnection && !turns.Neurons.AreConnected(a, b)) reason = "Build a neuron connection first.";
         return reason == null;
     }
 

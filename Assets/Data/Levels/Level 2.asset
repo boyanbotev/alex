@@ -30,17 +30,24 @@ MonoBehaviour:
     startingStars: 10
     spawnCapitalUnit: 0
     startingCities: []
-  - faction: {fileID: 11400000, guid: f865075d944943a45a3acc769ddf00e7, type: 2}
+    desiredConnections: []
+  - faction: {fileID: 11400000, guid: 3c65617266f15f74198d98636dfaa38f, type: 2}
     isAI: 1
     startingStars: 0
     spawnCapitalUnit: 1
     startingCities:
-    - {fileID: 11400000, guid: c5a6c4ff8de782d4185ca76755c0946a, type: 2}
+    - {fileID: 11400000, guid: 69cc90e1970afc94b9ceea9dc43db357, type: 2}
+    desiredConnections:
+    - from: {fileID: 11400000, guid: 9280e2cf6ee69b547be6e3389c7eabe9, type: 2}
+      to: {fileID: 11400000, guid: 69cc90e1970afc94b9ceea9dc43db357, type: 2}
+    - from: {fileID: 11400000, guid: 4064bc33bf57ef748be2d498c5ee8511, type: 2}
+      to: {fileID: 11400000, guid: 69cc90e1970afc94b9ceea9dc43db357, type: 2}
+    - from: {fileID: 11400000, guid: 23efdd988d9d5d242ae6af96a6dba214, type: 2}
+      to: {fileID: 11400000, guid: 69cc90e1970afc94b9ceea9dc43db357, type: 2}
   neutralCities:
-  - {fileID: 11400000, guid: c77d98915e271574db07666a09e6b538, type: 2}
-  - {fileID: 11400000, guid: 0ea2dbd8ee5bf0645a6311f6b63cfe57, type: 2}
-  - {fileID: 11400000, guid: a74465cd37e910541a436f233458e0e0, type: 2}
-  - {fileID: 11400000, guid: de343c1e1f5845078527bff007d1830e, type: 2}
+  - {fileID: 11400000, guid: 4064bc33bf57ef748be2d498c5ee8511, type: 2}
+  - {fileID: 11400000, guid: 23efdd988d9d5d242ae6af96a6dba214, type: 2}
+  - {fileID: 11400000, guid: 9280e2cf6ee69b547be6e3389c7eabe9, type: 2}
   tutorial: {fileID: 11400000, guid: 927a821a8a9b4dd3b6bb68dbcf66c529, type: 2}
   turnLimit: 20
   endingStory: {fileID: 4900000, guid: 85e9aed3dd4933340a335f53e45cc88d, type: 3}

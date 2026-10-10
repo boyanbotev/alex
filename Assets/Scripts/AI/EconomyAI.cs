@@ -50,10 +50,37 @@ public class EconomyAI : MonoBehaviour
     private void GenerateEconomyCandidates(List<EconomyCandidateAction> buffer)
     {
         buffer.Clear();
+        GenerateBondUpgradeCandidates(buffer);
         GenerateBuildingCandidates(buffer);
         neuronPlanner.GenerateCandidates(controlledPlayer, profile, buffer);
         GenerateSpawnCandidates(buffer);
         GeneratePerkUpgradeCandidates(buffer);
+    }
+
+    private void GenerateBondUpgradeCandidates(List<EconomyCandidateAction> buffer)
+    {
+        if (profile.bondUpgradeWeight <= 0f || controlledPlayer.visibleTiles == null) return;
+        var turns = TurnManager.Instance;
+        if (turns.bondUpgradeCost < 0 || controlledPlayer.stars < turns.bondUpgradeCost) return;
+        var cities = WorldPopulationManager.Instance.allCities;
+        foreach (var pair in controlledPlayer.desiredConnections)
+        {
+            City a = null, b = null;
+            foreach (City city in cities)
+            {
+                if (city.data == pair.from) a = city;
+                if (city.data == pair.to) b = city;
+            }
+            if (a == null || b == null) continue;
+            if (a.owner != controlledPlayer && b.owner == controlledPlayer) (a, b) = (b, a);
+            if (!controlledPlayer.visibleTiles.IsVisible(a.centerTile) ||
+                !controlledPlayer.visibleTiles.IsVisible(b.centerTile) ||
+                !turns.Bonds.CanCreate(controlledPlayer, a, b, out _)) continue;
+            buffer.Add(new EconomyCandidateAction {
+                kind = EconomyActionKind.UpgradeBond, city = a, partner = b,
+                cost = turns.bondUpgradeCost, score = profile.bondUpgradeWeight
+            });
+        }
     }
 
     private void GenerateBuildingCandidates(List<EconomyCandidateAction> buffer)
@@ -229,6 +256,8 @@ public class EconomyAI : MonoBehaviour
     {
         switch (c.kind)
         {
+            case EconomyActionKind.UpgradeBond:
+                return TurnManager.Instance.Bonds.TryCreate(controlledPlayer, c.city, c.partner);
             case EconomyActionKind.UpgradePerk:
                 return c.city.TryUpgradePerk(controlledPlayer);
             case EconomyActionKind.PlaceBuilding:

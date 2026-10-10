@@ -92,6 +92,7 @@ public class TurnManager : MonoBehaviour
             player.faction = entry.faction;
             player.factionName = entry.faction.name;
             player.isAI = entry.isAI;
+            player.desiredConnections = entry.desiredConnections ?? System.Array.Empty<DesiredConnection>();
             player.stars = entry.startingStars;
             players.Add(player);
         }

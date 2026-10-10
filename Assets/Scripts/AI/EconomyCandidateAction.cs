@@ -1,4 +1,4 @@
-public enum EconomyActionKind { PlaceBuilding, SpawnUnit, PlaceNeuron, UpgradePerk }
+public enum EconomyActionKind { PlaceBuilding, SpawnUnit, PlaceNeuron, UpgradePerk, UpgradeBond }
 
 public class EconomyCandidateAction
 {
@@ -9,6 +9,7 @@ public class EconomyCandidateAction
     public BuildingData building;
     public Tile buildTile;
     public City city;
+    public City partner;
     public FactionUnit unit;
 
     public override string ToString()
@@ -17,6 +18,7 @@ public class EconomyCandidateAction
             $"score: {score}, "+
             $"unit name: {unit?.name},  " +
             $"city name: {city?.cityName},  " +
+            $"partner: {partner?.cityName},  " +
             $"cost: {cost},  " +
             $"building name: {building?.buildingName}";
     }

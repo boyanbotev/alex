@@ -9,11 +9,20 @@ public class Player : MonoBehaviour
     public Faction faction;
     public int stars = 5;
     public bool isAI;
+    [NonSerialized] public DesiredConnection[] desiredConnections = Array.Empty<DesiredConnection>();
     public int unitsCreated = 0;
 
     public List<City> cities = new List<City>();
     public List<Unit> units = new List<Unit>();
     public VisibilityState visibleTiles;
+
+    public bool DesiresBond(City a, City b)
+    {
+        foreach (var pair in desiredConnections)
+            if ((pair.from == a.data && pair.to == b.data) ||
+                (pair.from == b.data && pair.to == a.data)) return true;
+        return false;
+    }
 
     public void AddStars(int amount)
     {

@@ -80,6 +80,17 @@ public class Level : ScriptableObject {
             ValidateNames(entry.startingCities, names);
         }
         ValidateNames(neutralCities, names);
+        var cities = new HashSet<CityData>(neutralCities ?? Array.Empty<CityData>());
+        foreach (var entry in factions) cities.UnionWith(entry.startingCities);
+        foreach (var entry in factions) {
+            var pairs = new HashSet<(CityData, CityData)>();
+            foreach (var pair in entry.desiredConnections ?? Array.Empty<DesiredConnection>()) {
+                if (pair.from == null || pair.to == null || pair.from == pair.to ||
+                    !cities.Contains(pair.from) || !cities.Contains(pair.to) ||
+                    pairs.Contains((pair.to, pair.from)) || !pairs.Add((pair.from, pair.to)))
+                    throw new InvalidOperationException($"Level '{name}': desired connections need distinct cities from this level and no duplicate pairs.");
+            }
+        }
         if (cityPlacement == CityPlacementSource.Handcrafted) map.ValidateCities(this);
         if (map != null) map.ValidateUnits(this);
         for (int i = 0; i < factions.Length; i++)
@@ -110,4 +121,12 @@ public class LevelFaction {
     public bool spawnCapitalUnit = true;
     [Tooltip("The first city is the capital. Human factions may start without cities if they have placed units.")]
     public CityData[] startingCities = Array.Empty<CityData>();
+    [Tooltip("AI only creates strong bonds between these city pairs. Order breaks ties between upgrades.")]
+    public DesiredConnection[] desiredConnections = Array.Empty<DesiredConnection>();
+}
+
+[Serializable]
+public struct DesiredConnection {
+    public CityData from;
+    public CityData to;
 }

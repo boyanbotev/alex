@@ -86,7 +86,9 @@ public sealed class NeuronConstructionPlanner
                             {
                                 kind = EconomyActionKind.PlaceNeuron, building = data, buildTile = build,
                                 city = source, cost = data.cost,
-                                score = profile.neuronConstructionWeight * income / Mathf.Max(1f, entry.cost * (float)data.cost)
+                                score = profile.neuronConstructionWeight * income / Mathf.Max(1f, entry.cost * (float)data.cost) +
+                                    (player.DesiresBond(source, next.city) && TurnManager.Instance.Bonds.CanPlan(player, source, next.city)
+                                        ? Mathf.Max(0f, profile.desiredBondConstructionBonus) : 0f)
                             });
                             targets.Remove(next.city);
                             remainingTargets--;
