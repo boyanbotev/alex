@@ -32,6 +32,7 @@ public class Unit : MonoBehaviour
     [Header("Animation")]
 
     [SerializeField] private Renderer render;
+    public Bounds VisualBounds => render != null ? render.bounds : new Bounds(transform.position, Vector3.zero);
     [SerializeField] HealthUI healthUI;
 
     private void Start()

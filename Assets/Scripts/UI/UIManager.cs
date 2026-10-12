@@ -45,6 +45,7 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance;
     private Player techPlayer;
     private City displayedCity;
+    private readonly Vector3[] unitPanelCorners = new Vector3[4];
     [SerializeField] private CityBondView bondView;
     public bool SelectingBond => bondView != null && bondView.Selecting;
     public bool SelectBondTarget(Tile tile) => bondView != null && bondView.Select(tile);
@@ -126,6 +127,21 @@ public class UIManager : MonoBehaviour
             ? name : $"{faction} {name}";
         unitInfoDescription.text = unit.data.description;
         unitInfoPanel.gameObject.SetActive(true);
+        Camera camera = Camera.main;
+        if (camera == null || !camera.TryGetComponent<CameraController>(out var controller)) return;
+        Canvas.ForceUpdateCanvases();
+        unitInfoPanel.GetWorldCorners(unitPanelCorners);
+        Canvas canvas = unitInfoPanel.GetComponentInParent<Canvas>();
+        Camera uiCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+        Vector2 min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+        Vector2 max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+        foreach (var corner in unitPanelCorners)
+        {
+            Vector2 screen = RectTransformUtility.WorldToScreenPoint(uiCamera, corner);
+            min = Vector2.Min(min, screen);
+            max = Vector2.Max(max, screen);
+        }
+        controller.FrameUnitIfObscured(unit.VisualBounds, Rect.MinMaxRect(min.x, min.y, max.x, max.y));
     }
 
     public void CloseUnitInfo() => unitInfoPanel.gameObject.SetActive(false);

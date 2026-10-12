@@ -18,18 +18,16 @@ MonoBehaviour:
     condition: 0
     unitType: {fileID: 0}
     targetCount: 2
-  - instruction: 'Adrenaline gives your units +1 movement in this city''s territory.
+  - instruction: 'Adrenaline  ^ gives your units +1 movement in its city''s territory.
 
 
-      You
-      can share this perk with your other city by creating a reinforced bond between
-      them.
+      Share
+      this perk with another city by creating a reinforced bond between them.
 
 
-      Protect your cities and try upgrading to level 2 and buying heavy
-      cavalry.
-
-'
+      Protect
+      your cities and connect with neurons. Get light or heavy cavalry to attack
+      the enemy.'
     condition: 3
     unitType: {fileID: 11400000, guid: 8ac88eee0c6b49f45bee511e4e0431d7, type: 2}
     targetCount: 1

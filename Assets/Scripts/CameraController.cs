@@ -25,8 +25,29 @@ public class CameraController : MonoBehaviour
     private int lastScreenHeight;
     private bool framing;
     private Vector3 framingVelocity;
+    private readonly System.Collections.Generic.List<Vector3> unitFocus = new(1);
 
-    public void FramePoints(System.Collections.Generic.List<Vector3> points, float panelTop)
+    public void FrameUnitIfObscured(Bounds bounds, Rect panelRect)
+    {
+        Vector2 min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+        Vector2 max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+        for (int i = 0; i < 8; i++)
+        {
+            Vector3 corner = bounds.center + Vector3.Scale(bounds.extents, new Vector3(
+                (i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f));
+            Vector2 screen = cam.WorldToScreenPoint(corner);
+            min = Vector2.Min(min, screen);
+            max = Vector2.Max(max, screen);
+        }
+        // Include a little breathing room around the visible body.
+        Rect unitRect = Rect.MinMaxRect(min.x - 12f, min.y - 12f, max.x + 12f, max.y + 12f);
+        if (!unitRect.Overlaps(panelRect)) return;
+        unitFocus.Clear();
+        unitFocus.Add(bounds.center);
+        FramePoints(unitFocus, panelRect.yMax, true);
+    }
+
+    public void FramePoints(System.Collections.Generic.List<Vector3> points, float panelTop, bool force = false)
     {
         Rect safeArea = Rect.MinMaxRect(48f, panelTop + 48f, Screen.width - 48f, Screen.height - 100f);
         if (safeArea.width <= 0f || safeArea.height <= 0f) return;
@@ -40,7 +61,7 @@ public class CameraController : MonoBehaviour
             max = Vector2.Max(max, screen);
             outside |= !safeArea.Contains(screen);
         }
-        if (!outside) return;
+        if (!outside && !force) return;
         Vector2 shift = safeArea.center - (min + max) * .5f;
         // Keep the source visible when the candidate spread exceeds the viewport.
         Vector2 source = cam.WorldToScreenPoint(points[0]);
