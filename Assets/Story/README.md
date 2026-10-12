@@ -24,12 +24,14 @@ a future turn limit. Gameplay remains stopped while the scrollable ending is
 shown; Ink choices are supported, with Main menu offered when the story finishes.
 
 Faction assets configure their endingSuccessFunction: Malaise uses get_depression,
-Rebellion uses get_rebellion, and Love uses get_love. Declare only the externals
+Rebellion uses get_rebellion, Love uses get_love, and Conscience uses get_conscience.
+Declare only the externals
 for factions involved in the level. Each returns a float from 0 to 1: cities
 currently owned by that faction divided by all cities, including neutral cities.
 Pending captures count for the current owner; a level with no cities returns 0.
 TurnManager snapshots these scores at game over, and LevelEnding binds the values.
 
-Level 2 declares EXTERNAL get_depression() and reads it with:
+Level 2 declares EXTERNAL get_depression() and EXTERNAL get_conscience(), read with:
 
     ~ temp depression = get_depression()
+    ~ temp conscience = get_conscience()
