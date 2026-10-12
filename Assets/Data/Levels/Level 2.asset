@@ -50,6 +50,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9280e2cf6ee69b547be6e3389c7eabe9, type: 2}
   tutorial: {fileID: 11400000, guid: 927a821a8a9b4dd3b6bb68dbcf66c529, type: 2}
   turnLimit: 20
-  endingStory: {fileID: 4900000, guid: 85e9aed3dd4933340a335f53e45cc88d, type: 3}
+  endingStory: {fileID: 4900000, guid: f5b6db103cff44b4dbe8a2127207b0c3, type: 3}
   blockDiagonalsBetweenEnemies: 0
   blockDiagonalsBetweenImpassableTiles: 0

@@ -3,6 +3,8 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Faction", menuName = "Faction")]
 public class Faction : ScriptableObject
 {
+    [Tooltip("Ink external function for this faction's ending score. Leave empty if unused.")]
+    public string endingSuccessFunction;
     public Color color = Color.white;
     [Tooltip("Used for this faction's AI tactics and economy. If unset, uses TurnAI's fallback profile.")]
     public AIProfile aiProfile;

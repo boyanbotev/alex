@@ -22,7 +22,7 @@ public sealed class LevelEnding : MonoBehaviour
         return string.CompareOrdinal(a, b) <= 0 ? a + "_" + b : b + "_" + a;
     }
 
-    public void Show(TextAsset json, IEnumerable<string> pairKeys)
+    public void Show(TextAsset json, IEnumerable<string> pairKeys, IReadOnlyDictionary<string, float> factionSuccess)
     {
         BuildPanel();
         try
@@ -47,6 +47,11 @@ public sealed class LevelEnding : MonoBehaviour
             else Debug.LogWarning("Ending: declare LIST city_links in Ink to receive the active city pairs.");
 
             story.BindExternalFunction("get_links", () => new InkList(links), true);
+            foreach (var score in factionSuccess)
+            {
+                float value = score.Value;
+                story.BindExternalFunction(score.Key, () => value, true);
+            }
             ContinueStory();
         }
         catch (Exception exception)

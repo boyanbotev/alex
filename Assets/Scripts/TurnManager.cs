@@ -147,7 +147,29 @@ public class TurnManager : MonoBehaviour
         UIManager.Instance?.CloseBuildPanel();
         UIManager.Instance?.HideAllCaptureButtons();
         TurnChanged?.Invoke();
-        gameObject.AddComponent<LevelEnding>().Show(GameManager.Instance.Level.endingStory, links);
+        gameObject.AddComponent<LevelEnding>().Show(GameManager.Instance.Level.endingStory, links, GetFactionSuccess());
+    }
+
+    private Dictionary<string, float> GetFactionSuccess()
+    {
+        var scores = new Dictionary<string, float>();
+        foreach (Player player in players)
+            if (!string.IsNullOrWhiteSpace(player.faction.endingSuccessFunction))
+                scores.TryAdd(player.faction.endingSuccessFunction, 0f);
+
+        int total = 0;
+        foreach (City city in WorldPopulationManager.Instance.allCities)
+        {
+            if (city == null) continue;
+            total++;
+            string function = city.owner != null ? city.owner.faction.endingSuccessFunction : null;
+            if (function != null && scores.ContainsKey(function)) scores[function]++;
+        }
+
+        if (total > 0)
+            foreach (string function in new List<string>(scores.Keys))
+                scores[function] /= total;
+        return scores;
     }
 
     public void EndTurn()
