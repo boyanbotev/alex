@@ -9,6 +9,7 @@ public sealed class GameManager : MonoBehaviour
     public int LevelIndex { get; private set; }
     public Level Level { get; private set; }
     public bool HasNextLevel => LevelIndex + 1 < game.levels.Length && game.levels[LevelIndex + 1] != null;
+    public bool HasInterlude => Level.interludeStory != null;
 
     private void Awake()
     {
@@ -32,10 +33,26 @@ public sealed class GameManager : MonoBehaviour
     {
         var turns = TurnManager.Instance;
         if (turns == null || !turns.IsGameOver || !HasNextLevel) return;
+        if (HasInterlude)
+        {
+            SaveManager.Campaign.phase = CampaignPhase.Interlude;
+            SaveManager.Save();
+            LoadOverworld();
+            return;
+        }
         SaveManager.SetLevelIndex(LevelIndex + 1);
         LoadGame();
     }
 
     public static void LoadGame() => WorldLoadingOverlay.LoadGame(
         SceneUtility.GetBuildIndexByScenePath("Assets/Scenes/Game Scene.unity"));
+
+    public static void LoadOverworld() => WorldLoadingOverlay.LoadGame(
+        SceneUtility.GetBuildIndexByScenePath("Assets/Scenes/Overworld.unity"));
+
+    public static void ContinueCampaign()
+    {
+        if (SaveManager.Campaign.phase == CampaignPhase.Interlude) LoadOverworld();
+        else LoadGame();
+    }
 }

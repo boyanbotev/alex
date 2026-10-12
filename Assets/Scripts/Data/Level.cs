@@ -37,6 +37,9 @@ public class Level : ScriptableObject {
     [Header("Ending Story")]
     public TextAsset endingStory;
 
+    [Header("Interlude after this level")]
+    public TextAsset interludeStory;
+
     [Header("Movement")]
 
     [Tooltip("Prevent diagonal movement when both adjacent orthogonal tiles contain enemy units.")]
@@ -68,6 +71,7 @@ public class Level : ScriptableObject {
         if (factions == null || factions.Length == 0)
             throw new InvalidOperationException($"Level '{name}' needs at least one faction.");
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var factionIds = new HashSet<string>(StringComparer.Ordinal);
         int humanCount = 0;
         foreach (var entry in factions) {
             if (entry == null || entry.faction == null || entry.faction.cityPrefab == null ||
@@ -77,6 +81,8 @@ public class Level : ScriptableObject {
                 entry.startingStars < 0 || entry.startingCities == null || (entry.isAI && entry.startingCities.Length == 0))
                 throw new InvalidOperationException($"Level '{name}': each faction needs valid prefabs and non-negative stars; AI factions also need a starting city.");
             if (!entry.isAI) humanCount++;
+            if (!factionIds.Add(entry.faction.CampaignId))
+                throw new InvalidOperationException($"Level '{name}': factions need unique campaign IDs.");
             ValidateNames(entry.startingCities, names);
         }
         ValidateNames(neutralCities, names);

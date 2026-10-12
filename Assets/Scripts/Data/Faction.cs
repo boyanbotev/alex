@@ -3,6 +3,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Faction", menuName = "Faction")]
 public class Faction : ScriptableObject
 {
+    [Tooltip("Stable ID used by campaign saves and Ink. Do not rename after shipping.")]
+    public string campaignId;
+    public string CampaignId => string.IsNullOrWhiteSpace(campaignId) ? name : campaignId;
     [Tooltip("Ink external function for this faction's ending score. Leave empty if unused.")]
     public string endingSuccessFunction;
     public Color color = Color.white;

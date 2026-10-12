@@ -108,7 +108,8 @@ public sealed class LevelEnding : MonoBehaviour
         layout.childForceExpandHeight = true;
         buttons.Add(row.gameObject);
         if (GameManager.Instance.HasNextLevel)
-            AddButton("Next level", () => GameManager.Instance.LoadNextLevel(), row, true);
+            AddButton(GameManager.Instance.HasInterlude ? "Continue" : "Next level",
+                () => GameManager.Instance.LoadNextLevel(), row, true);
         AddButton("Main menu", () => SceneManager.LoadScene("Main Menu"), row);
     }
 

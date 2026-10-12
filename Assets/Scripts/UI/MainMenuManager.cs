@@ -2,5 +2,5 @@ using UnityEngine;
 
 public class MainMenuManager : MonoBehaviour
 {
-    public void StartGame() => GameManager.LoadGame();
+    public void StartGame() => GameManager.ContinueCampaign();
 }

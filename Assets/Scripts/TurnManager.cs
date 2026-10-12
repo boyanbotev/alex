@@ -97,6 +97,22 @@ public class TurnManager : MonoBehaviour
             players.Add(player);
         }
         activePlayerIndex = 0;
+        // Apply campaign defaults before the board is populated or match input begins.
+        var initialDiplomacy = new DiplomacyState(players);
+        foreach (var relation in SaveManager.Campaign.relations)
+        {
+            Player a = players.Find(p => p.faction.CampaignId == relation.a);
+            Player b = players.Find(p => p.faction.CampaignId == relation.b);
+            if (a == null || b == null || a == b) continue;
+            switch (relation.value)
+            {
+                case DiplomaticRelation.Peace: initialDiplomacy.MakePeace(a, b); break;
+                case DiplomaticRelation.Allied: initialDiplomacy.MakeAlliance(a, b); break;
+                case DiplomaticRelation.War: initialDiplomacy.DeclareWar(a, b); break;
+            }
+        }
+        diplomacy = initialDiplomacy;
+        diplomacy.RelationChanged += OnRelationChanged;
     }
 
     private IEnumerator Start()
@@ -147,7 +163,13 @@ public class TurnManager : MonoBehaviour
         UIManager.Instance?.CloseBuildPanel();
         UIManager.Instance?.HideAllCaptureButtons();
         TurnChanged?.Invoke();
-        gameObject.AddComponent<LevelEnding>().Show(GameManager.Instance.Level.endingStory, links, GetFactionSuccess());
+        var scores = GetFactionSuccess();
+        var campaign = SaveManager.Campaign;
+        campaign.cityLinks = new List<string>(links);
+        campaign.scores.Clear();
+        foreach (var score in scores) campaign.scores.Add(new CampaignScore { key = score.Key, value = score.Value });
+        // Results become durable when the player leaves the ending for the interlude.
+        gameObject.AddComponent<LevelEnding>().Show(GameManager.Instance.Level.endingStory, links, scores);
     }
 
     private Dictionary<string, float> GetFactionSuccess()

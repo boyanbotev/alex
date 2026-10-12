@@ -13,7 +13,7 @@ public sealed class SaveEditor : EditorWindow
     {
         if (game == null) game = AssetDatabase.LoadAssetAtPath<GameData>("Assets/Data/Game.asset");
         levelIndex = SaveManager.LevelIndex;
-        minSize = new Vector2(360, 160);
+        minSize = new Vector2(360, 220);
     }
 
     private void OnGUI()
@@ -26,11 +26,14 @@ public sealed class SaveEditor : EditorWindow
         }
 
         EditorGUILayout.LabelField("Saved level", LevelName(SaveManager.LevelIndex));
+        EditorGUILayout.LabelField("Saved phase", SaveManager.Campaign.phase.ToString());
         var names = new string[game.levels.Length];
         for (int i = 0; i < names.Length; i++) names[i] = LevelName(i);
         levelIndex = EditorGUILayout.Popup("Current level", Mathf.Clamp(levelIndex, 0, names.Length - 1), names);
         using (new EditorGUI.DisabledScope(game.levels[levelIndex] == null))
             if (GUILayout.Button("Set Level")) SaveManager.SetLevelIndex(levelIndex);
+
+        if (GUILayout.Button("Reset campaign")) SaveManager.ResetCampaign();
 
         EditorGUILayout.HelpBox("Applies the next time you start or restart the game.", MessageType.Info);
     }
