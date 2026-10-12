@@ -142,12 +142,12 @@ public class TurnManager : MonoBehaviour
         Bonds.Refresh();
         var links = new SortedSet<string>(System.StringComparer.Ordinal);
         foreach (CityBond bond in Bonds.All)
-            if (bond.Active) links.Add(GameEnding.PairKey(bond.a.cityName, bond.b.cityName));
+            if (bond.Active) links.Add(LevelEnding.PairKey(bond.a.cityName, bond.b.cityName));
         UIManager.Instance?.CloseSpawnPanel();
         UIManager.Instance?.CloseBuildPanel();
         UIManager.Instance?.HideAllCaptureButtons();
         TurnChanged?.Invoke();
-        gameObject.AddComponent<GameEnding>().Show(GameManager.Instance.Level.endingStory, links);
+        gameObject.AddComponent<LevelEnding>().Show(GameManager.Instance.Level.endingStory, links);
     }
 
     public void EndTurn()

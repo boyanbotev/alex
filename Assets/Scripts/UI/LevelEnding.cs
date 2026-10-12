@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public sealed class GameEnding : MonoBehaviour
+public sealed class LevelEnding : MonoBehaviour
 {
     private Story story;
     private TextMeshProUGUI text;
@@ -103,13 +103,13 @@ public sealed class GameEnding : MonoBehaviour
         layout.childForceExpandHeight = true;
         buttons.Add(row.gameObject);
         if (GameManager.Instance.HasNextLevel)
-            AddButton("Next level", () => GameManager.Instance.LoadNextLevel(), row);
+            AddButton("Next level", () => GameManager.Instance.LoadNextLevel(), row, true);
         AddButton("Main menu", () => SceneManager.LoadScene("Main Menu"), row);
     }
 
     private void BuildPanel()
     {
-        var root = new GameObject("Game ending", typeof(RectTransform), typeof(Canvas),
+        var root = new GameObject("Level ending", typeof(RectTransform), typeof(Canvas),
             typeof(CanvasScaler), typeof(GraphicRaycaster));
         root.transform.SetParent(transform, false);
         Canvas canvas = root.GetComponent<Canvas>();
@@ -122,11 +122,13 @@ public sealed class GameEnding : MonoBehaviour
 
         RectTransform background = Rect("Background", root.transform);
         Stretch(background, Vector2.zero, Vector2.zero);
-        background.gameObject.AddComponent<Image>().color = new Color(0.035f, 0.045f, 0.06f, 0.98f);
+        background.gameObject.AddComponent<Image>().color = new Color(0.035f, 0.045f, 0.06f, 1f);
         background.gameObject.AddComponent<UIInputBlocker>();
 
         RectTransform viewport = Rect("Reading area", background);
-        Stretch(viewport, new Vector2(120, 60), new Vector2(-120, -60));
+        Stretch(viewport, new Vector2(24, 72), new Vector2(-24, -72));
+        viewport.anchorMin = new Vector2(0.14f, 0);
+        viewport.anchorMax = new Vector2(0.86f, 1);
         viewport.gameObject.AddComponent<Image>().color = Color.clear;
         viewport.gameObject.AddComponent<RectMask2D>();
         scroll = viewport.gameObject.AddComponent<ScrollRect>();
@@ -140,7 +142,7 @@ public sealed class GameEnding : MonoBehaviour
         content.pivot = new Vector2(0.5f, 1);
         content.sizeDelta = Vector2.zero;
         VerticalLayoutGroup layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 24;
+        layout.spacing = 48;
         layout.padding = new RectOffset(12, 12, 12, 12);
         layout.childControlWidth = true;
         layout.childControlHeight = true;
@@ -153,12 +155,16 @@ public sealed class GameEnding : MonoBehaviour
         title.text = "Level complete";
         text = Label("Story", content, 26);
         text.richText = true;
+        text.lineSpacing = 8;
+        text.paragraphSpacing = 18;
     }
 
-    private void AddButton(string caption, UnityEngine.Events.UnityAction action, RectTransform parent = null)
+    private void AddButton(string caption, UnityEngine.Events.UnityAction action, RectTransform parent = null, bool primary = false)
     {
         RectTransform rect = Rect("Ending button", parent != null ? parent : content);
-        rect.gameObject.AddComponent<Image>().color = new Color(0.15f, 0.2f, 0.27f);
+        rect.gameObject.AddComponent<Image>().color = primary
+            ? new Color(0.24f, 0.34f, 0.46f)
+            : new Color(0.12f, 0.16f, 0.21f);
         LayoutElement size = rect.gameObject.AddComponent<LayoutElement>();
         size.preferredHeight = 56;
         size.flexibleWidth = 1;
