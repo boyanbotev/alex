@@ -13,8 +13,14 @@ MonoBehaviour:
   m_Name: Level 2 Tutorial
   m_EditorClassIdentifier: 
   stages:
-  - instruction: "You have 20 turns.\nFirst, capture two cities! \nBuild units to
-      protect them from enemies."
+  - instruction: 'Capture 2 cities!
+
+
+      You have 20 turns.'
+    condition: 0
+    unitType: {fileID: 0}
+    targetCount: 1
+  - instruction: There are enemies afoot, so build units!
     condition: 0
     unitType: {fileID: 0}
     targetCount: 2
@@ -25,13 +31,8 @@ MonoBehaviour:
       this perk with another city by creating a reinforced bond between them.
 
 
-      Protect
-      your cities and connect with neurons. Get light or heavy cavalry to attack
-      the enemy.'
+      Buy
+      units and connect your cities with neurons. Attack!'
     condition: 3
     unitType: {fileID: 11400000, guid: 8ac88eee0c6b49f45bee511e4e0431d7, type: 2}
-    targetCount: 1
-  - instruction: Destroy Malaise!
-    condition: 5
-    unitType: {fileID: 0}
     targetCount: 1
