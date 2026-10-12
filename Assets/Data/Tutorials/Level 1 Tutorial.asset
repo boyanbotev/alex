@@ -13,12 +13,13 @@ MonoBehaviour:
   m_Name: Level 1 Tutorial
   m_EditorClassIdentifier: 
   stages:
-  - instruction: 'Capture the two unclaimed cities!
+  - instruction: 'Capture 3 cities!
 
 
-      Press ''end turn'' if
-      you''ve run out of actions.'
+      Press ''end turn'' if you''ve run out
+      of actions.'
     condition: 0
+    unitType: {fileID: 0}
     targetCount: 3
   - instruction: 'Great work!
 
@@ -29,6 +30,7 @@ MonoBehaviour:
 
       Build neurons to connect all your cities.'
     condition: 1
+    unitType: {fileID: 0}
     targetCount: 1
   - instruction: 'Fantastic!
 
@@ -40,4 +42,5 @@ MonoBehaviour:
       Click on a city and reinforce a bond to another
       city.'
     condition: 2
+    unitType: {fileID: 0}
     targetCount: 1

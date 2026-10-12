@@ -13,18 +13,25 @@ MonoBehaviour:
   m_Name: Level 2 Tutorial
   m_EditorClassIdentifier: 
   stages:
-  - instruction: 'Adrenaline gives your units +1 movement in this city''s territory.
-      Level 1 unlocks light cavalry. Level 2 unlocks heavy cavalry.
-
-      Select
-      an empty city and recruit light cavalry.'
-    condition: 3
-    unitType: {fileID: 11400000, guid: 8f429f719567c9647b426f8f9872f96e, type: 2}
-    targetCount: 1
-  - instruction: With your own unit selected, click on an adjacent enemy to attack
-      it.
-    condition: 4
+  - instruction: "You have 20 turns.\nFirst, capture two cities! \nBuild units to
+      protect them from enemies."
+    condition: 0
     unitType: {fileID: 0}
+    targetCount: 2
+  - instruction: 'Adrenaline gives your units +1 movement in this city''s territory.
+
+
+      You
+      can share this perk with your other city by creating a reinforced bond between
+      them.
+
+
+      Protect your cities and try upgrading to level 2 and buying heavy
+      cavalry.
+
+'
+    condition: 3
+    unitType: {fileID: 11400000, guid: 8ac88eee0c6b49f45bee511e4e0431d7, type: 2}
     targetCount: 1
   - instruction: Destroy Malaise!
     condition: 5

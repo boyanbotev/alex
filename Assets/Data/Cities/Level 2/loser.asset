@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: loser
   m_EditorClassIdentifier: 
   cityName: loser
-  perk: {fileID: 11400000, guid: 78398eccc8f32e64699730c1239d0549, type: 2}
+  perk: {fileID: 0}
