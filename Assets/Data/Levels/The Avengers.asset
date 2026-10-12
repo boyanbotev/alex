@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 757080d81166d2b4e940f78d23b2f558, type: 3}
+  m_Name: The Avengers
+  m_EditorClassIdentifier: 
+  width: 15
+  height: 15
+  tileSize: 1
+  is3DIsometric: 1
+  noiseScale: 0.15
+  randomizeSeed: 1
+  seed: 0
+  terrainSource: 1
+  map: {fileID: 11400000, guid: df3858c347cb57444860f25c3e0c7536, type: 2}
+  cityPlacement: 1
+  minCityDistance: 3
+  minMargin: 1
+  factions:
+  - faction: {fileID: 11400000, guid: 8faff328133394f4db3022a2fdee83c7, type: 2}
+    isAI: 0
+    startingStars: 0
+    spawnCapitalUnit: 0
+    startingCities: []
+    desiredConnections: []
+  - faction: {fileID: 11400000, guid: f865075d944943a45a3acc769ddf00e7, type: 2}
+    isAI: 1
+    startingStars: 100
+    spawnCapitalUnit: 0
+    startingCities:
+    - {fileID: 11400000, guid: f50094fb6498a37409750709deda2006, type: 2}
+    desiredConnections: []
+  - faction: {fileID: 11400000, guid: 5999dffb9d250354b9adb70eb82d7bf2, type: 2}
+    isAI: 1
+    startingStars: 100
+    spawnCapitalUnit: 0
+    startingCities:
+    - {fileID: 11400000, guid: 4064bc33bf57ef748be2d498c5ee8511, type: 2}
+    desiredConnections: []
+  - faction: {fileID: 11400000, guid: 3c65617266f15f74198d98636dfaa38f, type: 2}
+    isAI: 1
+    startingStars: 100
+    spawnCapitalUnit: 0
+    startingCities:
+    - {fileID: 11400000, guid: 69cc90e1970afc94b9ceea9dc43db357, type: 2}
+    desiredConnections: []
+  neutralCities:
+  - {fileID: 11400000, guid: 7df0eb238a1e47eda5e229c98c4c6bd9, type: 2}
+  - {fileID: 11400000, guid: 01e77c9a6bcb4046b647e3d2a593f78e, type: 2}
+  - {fileID: 11400000, guid: 3798e56fb4594a2dbef9511e5a92028c, type: 2}
+  - {fileID: 11400000, guid: 794cf5d30baa4a0ca9c702eaaf44e702, type: 2}
+  - {fileID: 11400000, guid: 98630e9c345e4974b440173fd4520705, type: 2}
+  tutorial: {fileID: 0}
+  turnLimit: 20
+  endingStory: {fileID: 0}
+  blockDiagonalsBetweenEnemies: 1
+  blockDiagonalsBetweenImpassableTiles: 1

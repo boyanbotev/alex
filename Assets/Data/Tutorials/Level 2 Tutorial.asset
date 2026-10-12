@@ -13,14 +13,18 @@ MonoBehaviour:
   m_Name: Level 2 Tutorial
   m_EditorClassIdentifier: 
   stages:
-  - instruction: 'Capture 2 cities!
+  - instruction: 'You have 20 turns.
 
 
-      You have 20 turns.'
+      First capture 2 cities!'
     condition: 0
     unitType: {fileID: 0}
     targetCount: 1
-  - instruction: There are enemies afoot, so build units!
+  - instruction: 'There are enemies afoot, so build units!
+
+
+      With your unit
+      selected, click on an adjacent enemy to attack.'
     condition: 0
     unitType: {fileID: 0}
     targetCount: 2
