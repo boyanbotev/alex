@@ -8,6 +8,14 @@ using UnityEngine.UI;
 public sealed class OverworldController : MonoBehaviour
 {
     [SerializeField] private GameData game;
+    [SerializeField] private CharacterPortrait[] portraits = Array.Empty<CharacterPortrait>();
+
+    [Serializable]
+    private sealed class CharacterPortrait
+    {
+        public string speaker;
+        public Texture2D image;
+    }
     private InterludeConversation conversation;
     private RectTransform messages, replies;
     private ScrollRect scroll;
@@ -57,7 +65,7 @@ public sealed class OverworldController : MonoBehaviour
         }
         if (!conversation.Story.canContinue && conversation.Story.currentChoices.Count == 0)
         {
-            status.text = "Conversation complete";
+            if (status != null) status.text = "Conversation complete";
             bool hasNext = SaveManager.LevelIndex + 1 < game.levels.Length && game.levels[SaveManager.LevelIndex + 1] != null;
             Button(hasNext ? "Next level" : "Finish", replies, Finish);
         }
@@ -97,9 +105,9 @@ public sealed class OverworldController : MonoBehaviour
     private void ShowError(Exception exception)
     {
         failed = true;
-        status.text = "Conversation could not be loaded. See the Unity Console.";
         Debug.LogException(exception);
         foreach (Transform child in replies) child.gameObject.SetActive(false);
+        status = Label("Conversation could not be loaded. See the Unity Console.", replies, 18);
     }
 
     private void BuildUI()
@@ -131,7 +139,6 @@ public sealed class OverworldController : MonoBehaviour
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
         Label("Messages", panel, 30);
-        status = Label("Choose a reply to continue", panel, 18);
         var viewport = Rect("Message history", panel);
         viewport.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1;
         viewport.gameObject.AddComponent<Image>().color = Color.clear;
@@ -159,9 +166,31 @@ public sealed class OverworldController : MonoBehaviour
         var layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
         layout.padding = message.outgoing ? new RectOffset(100, 8, 0, 0) : new RectOffset(8, 100, 0, 0);
         layout.childControlWidth = layout.childControlHeight = true;
-        layout.childForceExpandWidth = true;
+        layout.childForceExpandWidth = false;
         layout.childForceExpandHeight = false;
+        layout.spacing = 12;
+        if (!message.outgoing)
+        {
+            var portrait = Array.Find(portraits, p => p != null &&
+                string.Equals(p.speaker, message.speaker, StringComparison.OrdinalIgnoreCase));
+            if (portrait?.image != null)
+            {
+                var frame = Rect("Portrait", row);
+                var size = frame.gameObject.AddComponent<LayoutElement>();
+                size.minWidth = size.preferredWidth = 64;
+                size.minHeight = size.preferredHeight = 64;
+                size.flexibleWidth = 0;
+                var icon = Rect("Image", frame);
+                var image = icon.gameObject.AddComponent<RawImage>();
+                image.texture = portrait.image;
+                image.raycastTarget = false;
+                var aspect = icon.gameObject.AddComponent<AspectRatioFitter>();
+                aspect.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+                aspect.aspectRatio = (float)portrait.image.width / portrait.image.height;
+            }
+        }
         var bubble = Rect("Bubble", row);
+        bubble.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1;
         bubble.gameObject.AddComponent<Image>().color = message.outgoing
             ? new Color(0.12f, 0.30f, 0.27f) : new Color(0.12f, 0.16f, 0.21f);
         Stack(bubble, 4).padding = new RectOffset(16, 16, 12, 12);

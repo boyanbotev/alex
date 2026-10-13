@@ -8,6 +8,8 @@ The example after Level 1 is placeholder dialogue for testing. Accepting the tru
 
 Each emitted Ink line becomes a message. Add `# speaker: Character name` to identify its sender. Add `# outgoing` to render a scripted player message on the right. Choices appear as reply buttons and the selected reply is added to the history automatically, so use bracketed choice text (`* [Reply]`) to avoid emitting it twice.
 
+Untagged lines retain the previous incoming speaker, including after a player reply and when resuming. Character portraits are configured in the Overworld controller's **Portraits** list, matched to speaker names without regard to case. Conscience is a separate incoming character; player replies remain **You** and have no portrait. Images keep their aspect ratio and do not need Sprite import settings.
+
 ## Campaign functions
 
 Declare the external functions used by your story:

@@ -164,6 +164,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   game: {fileID: 11400000, guid: 5fa0e5f142e8422b8ef7d07fe71e6ce2, type: 2}
+  portraits:
+  - speaker: Conscience
+    image: {fileID: 2800000, guid: 132ad55e28ddeaf4c98cd9b6db36fe1e, type: 3}
+  - speaker: Malaise
+    image: {fileID: 2800000, guid: 4748a2a62f8da09478da8553053a8d68, type: 3}
+  - speaker: Love
+    image: {fileID: 2800000, guid: 19c778b899ca0e54980a3e970eb8f848, type: 3}
+  - speaker: Rebellion
+    image: {fileID: 2800000, guid: f60daedb21895ea45b239419e983775a, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

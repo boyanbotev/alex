@@ -45,11 +45,11 @@ public sealed class InterludeConversation
 
     public void Advance()
     {
+        string speaker = campaign.messages.FindLast(message => !message.outgoing)?.speaker ?? "Contact";
         while (Story.canContinue)
         {
             string line = Story.Continue().Trim();
             if (line.Length == 0) continue;
-            string speaker = "Contact";
             bool outgoing = false;
             foreach (string tag in Story.currentTags)
             {
