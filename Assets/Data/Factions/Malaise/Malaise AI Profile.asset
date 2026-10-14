@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cityCaptureWeight: 40
   cityProgressWeight: 3
-  damageWeight: 1
+  damageWeight: 1.5
   killWeight: 5
   retaliationWeight: 1
   survivalWeight: 3
@@ -31,6 +31,8 @@ MonoBehaviour:
   buildingBaseWeight: 3
   neuronConstructionWeight: 24
   neuronMaxPaybackTurns: 12
+  desiredBondConstructionBonus: 2
+  bondUpgradeWeight: 6
   neuronRaidIncomeWeight: 10
   neuronRaidFriendlyLossWeight: 10
   neuronRaidRefundWeight: 1
