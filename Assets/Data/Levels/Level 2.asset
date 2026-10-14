@@ -27,7 +27,7 @@ MonoBehaviour:
   factions:
   - faction: {fileID: 11400000, guid: 8faff328133394f4db3022a2fdee83c7, type: 2}
     isAI: 0
-    startingStars: 10
+    startingStars: 20
     spawnCapitalUnit: 0
     startingCities: []
     desiredConnections: []

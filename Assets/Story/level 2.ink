@@ -16,7 +16,7 @@ A kind of malaise settled over Alex. The school day began but Alex no longer lis
 -depression < conscience:
 A kind of malaise started to settle over Alex, but then he suddenly thought 'what am I down about?' And then weirdly he felt fine.
 -depression == conscience:
-A kind of malaise setlled over Alex but something in him resisted it. The school day had begun, half of Alex was closed down but half was conscious to the wittering voices around.
+A kind of malaise settled over Alex but something in him resisted it. The school day had begun, half of Alex was closed down but half was conscious to the wittering voices around.
 }
 {links ? city_links.alex_loser:
 He was a loser, there was no getting around it.
