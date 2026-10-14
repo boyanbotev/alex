@@ -1,9 +1,9 @@
 What is Consciousness? #speaker: Conscience
-*[That's you, right?]
+*[You're Consciousness, right?]
 No. I'm Conscience.
 *[One of your friends? Another guy with a beard?]
 Ha ha.
-*[Thinking]
+*[It's thinking]
 That's Cognition.
 *[Experiences]
 Not bad.
@@ -26,7 +26,7 @@ Because he's not a robot. Exactly. A calculator doesn't experience anything, but
 === movie ===
 That is the great mystery. Why is there consciousness? The brain is just a bunch of cells talking to each other. How come Alex experiences anything at all?
 *[Because magic brain stuff?]
-That's what scientists believe.
+That's what many scientists believe.
 -> DONE
 *[Information processing. Anything that processes enough complex information is conscious]
 I see. So gaming laptops are definitely conscious, then.
