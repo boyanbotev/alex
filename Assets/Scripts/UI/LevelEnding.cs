@@ -13,6 +13,7 @@ public sealed class LevelEnding : MonoBehaviour
     private TextMeshProUGUI text;
     private RectTransform content;
     private ScrollRect scroll;
+    private Action onComplete;
     private readonly List<GameObject> buttons = new();
 
     public static string PairKey(string a, string b)
@@ -24,40 +25,58 @@ public sealed class LevelEnding : MonoBehaviour
 
     public void Show(TextAsset json, IEnumerable<string> pairKeys, IReadOnlyDictionary<string, float> factionSuccess)
     {
-        BuildPanel();
+        ShowStory(json, "Level complete", null, pairKeys, factionSuccess);
+    }
+
+    public void ShowPrelude(TextAsset json, Action beginLevel)
+    {
+        ShowStory(json, "Prelude", beginLevel);
+    }
+
+    private void ShowStory(TextAsset json, string title, Action completion,
+        IEnumerable<string> pairKeys = null, IReadOnlyDictionary<string, float> factionSuccess = null)
+    {
+        onComplete = completion;
+        BuildPanel(title);
         try
         {
-            if (json == null) throw new InvalidOperationException("Assign an exported Ink JSON to the Level's Ending Story.");
+            if (json == null) throw new InvalidOperationException("Assign an exported Ink JSON to the story.");
             story = new Story(json.text);
             story.onError += (message, type) =>
             {
                 if (type == Ink.ErrorType.Warning) Debug.LogWarning(message);
                 else throw new InvalidOperationException(message);
             };
-            var links = new InkList();
-            if (story.listDefinitions.TryListGetDefinition("city_links", out var definition))
+            if (pairKeys != null)
             {
-                links = new InkList("city_links", story);
-                foreach (string key in pairKeys)
+                var links = new InkList();
+                if (story.listDefinitions.TryListGetDefinition("city_links", out var definition))
                 {
-                    if (definition.ContainsItemWithName(key)) links.AddItem(key);
-                    else Debug.LogWarning($"Ending: active pair '{key}' is missing from Ink LIST city_links.");
+                    links = new InkList("city_links", story);
+                    foreach (string key in pairKeys)
+                    {
+                        if (definition.ContainsItemWithName(key)) links.AddItem(key);
+                        else Debug.LogWarning($"Ending: active pair '{key}' is missing from Ink LIST city_links.");
+                    }
                 }
-            }
-            else Debug.LogWarning("Ending: declare LIST city_links in Ink to receive the active city pairs.");
+                else Debug.LogWarning("Ending: declare LIST city_links in Ink to receive the active city pairs.");
 
-            story.BindExternalFunction("get_links", () => new InkList(links), true);
-            foreach (var score in factionSuccess)
+                story.BindExternalFunction("get_links", () => new InkList(links), true);
+            }
+            if (factionSuccess != null)
             {
-                float value = score.Value;
-                story.BindExternalFunction(score.Key, () => value, true);
+                foreach (var score in factionSuccess)
+                {
+                    float value = score.Value;
+                    story.BindExternalFunction(score.Key, () => value, true);
+                }
             }
             ContinueStory();
         }
         catch (Exception exception)
         {
-            Debug.LogError($"Could not play the Ink ending: {exception.Message}");
-            text.text = "The ending could not be loaded. Check the Unity Console for details.";
+            Debug.LogError($"Could not play the Ink story: {exception.Message}");
+            text.text = "The story could not be loaded. Check the Unity Console for details.";
             AddEndButtons();
         }
     }
@@ -90,8 +109,8 @@ public sealed class LevelEnding : MonoBehaviour
         }
         catch (Exception exception)
         {
-            Debug.LogError($"Ink ending error: {exception.Message}");
-            text.text = "The ending could not be read. Check the Unity Console for details.";
+            Debug.LogError($"Ink story error: {exception.Message}");
+            text.text = "The story could not be read. Check the Unity Console for details.";
             AddEndButtons();
         }
     }
@@ -107,15 +126,17 @@ public sealed class LevelEnding : MonoBehaviour
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = true;
         buttons.Add(row.gameObject);
-        if (GameManager.Instance.HasNextLevel)
+        if (onComplete != null)
+            AddButton("Begin level 1", () => onComplete(), row, true);
+        else if (GameManager.Instance.HasNextLevel)
             AddButton(GameManager.Instance.HasInterlude ? "Continue" : "Next level",
                 () => GameManager.Instance.LoadNextLevel(), row, true);
         AddButton("Main menu", () => SceneManager.LoadScene("Main Menu"), row);
     }
 
-    private void BuildPanel()
+    private void BuildPanel(string heading)
     {
-        var root = new GameObject("Level ending", typeof(RectTransform), typeof(Canvas),
+        var root = new GameObject(heading, typeof(RectTransform), typeof(Canvas),
             typeof(CanvasScaler), typeof(GraphicRaycaster));
         root.transform.SetParent(transform, false);
         Canvas canvas = root.GetComponent<Canvas>();
@@ -158,7 +179,7 @@ public sealed class LevelEnding : MonoBehaviour
         scroll.content = content;
 
         TextMeshProUGUI title = Label("Title", content, 40);
-        title.text = "Level complete";
+        title.text = heading;
         text = Label("Story", content, 26);
         text.richText = true;
         text.lineSpacing = 8;
