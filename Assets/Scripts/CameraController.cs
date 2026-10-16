@@ -3,7 +3,7 @@ public class CameraController : MonoBehaviour
 {
     [Header("Pan")]
     [SerializeField] private float panSmoothing = 0.1f;
-    [SerializeField, Min(0.01f)] private float inertiaDamping = 4f;
+    [SerializeField, Min(0.01f)] private float inertiaDamping = 3f;
     [SerializeField, Min(0f)] private float inertiaStopSpeed = 0.01f;
     [Tooltip("Maximum release speed in world units per second. Zero disables coasting.")]
     [SerializeField, Min(0f)] private float maxPanVelocity = 10f;
