@@ -9,6 +9,9 @@ public sealed class UnitAnimationSettings : ScriptableObject
     [Min(0f)] public float retaliationPauseSeconds = 0.08f;
 
     [Header("Melee")]
+    [Tooltip("Peak size relative to the unit's normal scale. Set to 1 to disable growth.")]
+    [Min(1f)] public float lungeScale = 1.1f;
+    [Min(1f)] public float advanceScale = 1.1f;
     [Range(0f, 1f)] public float lungeFraction = 0.3f;
     [Min(0f)] public float lungeOutSeconds = 0.08f;
     [Min(0f)] public float lungeBackSeconds = 0.10f;

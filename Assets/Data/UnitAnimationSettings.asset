@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   aiVisibleActionPauseSeconds: 0.3
   retaliationPauseSeconds: 0.08
+  lungeScale: 1.2
+  advanceScale: 1.2
   lungeFraction: 0.3
   lungeOutSeconds: 0.08
   lungeBackSeconds: 0.1

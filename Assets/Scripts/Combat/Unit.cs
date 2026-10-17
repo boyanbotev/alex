@@ -37,6 +37,7 @@ public class Unit : MonoBehaviour
     private Unit defeatedUnit;
     private GameObject arrowProjectile;
     private Vector3 originalScale;
+    private Vector3 originalVisualScale;
 
     [SerializeField] private Renderer render;
     private MaterialPropertyBlock visualProperties;
@@ -45,7 +46,21 @@ public class Unit : MonoBehaviour
     public Bounds VisualBounds => render != null ? render.bounds : new Bounds(transform.position, Vector3.zero);
     [SerializeField] HealthUI healthUI;
 
-    private void Awake() => originalScale = transform.localScale;
+    private void Awake()
+    {
+        originalScale = transform.localScale;
+        originalVisualScale = render != null ? render.transform.localScale : originalScale;
+    }
+
+    private Tween ScaleAttackVisual(float multiplier, float seconds, Ease ease) =>
+        (render != null ? render.transform : transform)
+            .DOScale(originalVisualScale * multiplier, seconds).SetEase(ease);
+
+    private void ResetAttackScale()
+    {
+        transform.localScale = originalScale;
+        if (render != null) render.transform.localScale = originalVisualScale;
+    }
 
     private void OnDisable()
     {
@@ -55,7 +70,7 @@ public class Unit : MonoBehaviour
         RemoveArrowProjectile();
         selectionAnimation?.Kill();
         selectionAnimation = null;
-        transform.localScale = originalScale;
+        ResetAttackScale();
         if (isAlive && currentTile != null) transform.position = currentTile.transform.position;
     }
 
@@ -129,6 +144,11 @@ public class Unit : MonoBehaviour
 
         Vector3 start = source.transform.position;
         Vector3 end = target.transform.position;
+        strike.AppendCallback(() =>
+        {
+            source.selectionAnimation?.Kill();
+            source.transform.localScale = source.originalScale;
+        });
         if (advance)
         {
             Vector3 direction = end - start;
@@ -146,16 +166,25 @@ public class Unit : MonoBehaviour
                 {
                     if (Vector3.Dot(source.transform.position - end, direction) >= 0f) Impact();
                 }));
+            strike.Join(source.ScaleAttackVisual(settings.advanceScale,
+                settings.advanceSeconds, settings.advanceEase));
             strike.AppendCallback(Impact);
+            float settleStart = strike.Duration();
             if (settings.advanceOvershootFraction > 0f)
                 strike.Append(source.transform.DOMove(end, settings.advanceSnapBackSeconds).SetEase(settings.advanceSnapBackEase));
+            strike.Insert(settleStart, source.ScaleAttackVisual(1f,
+                settings.advanceSnapBackSeconds, settings.advanceSnapBackEase));
         }
         else
         {
             strike.Append(source.transform.DOMove(Vector3.Lerp(start, end, settings.lungeFraction),
                 settings.lungeOutSeconds).SetEase(settings.lungeOutEase));
+            strike.Join(source.ScaleAttackVisual(settings.lungeScale,
+                settings.lungeOutSeconds, settings.lungeOutEase));
             strike.AppendCallback(() => onImpact());
             strike.Append(source.transform.DOMove(start, settings.lungeBackSeconds).SetEase(settings.lungeBackEase));
+            strike.Join(source.ScaleAttackVisual(1f,
+                settings.lungeBackSeconds, settings.lungeBackEase));
         }
         return strike;
     }
@@ -276,6 +305,11 @@ public class Unit : MonoBehaviour
             exchange.Append(CreateStrike(defender, this, false, RetaliationImpact));
         }
         exchange.OnComplete(RemoveDefeatedVisual);
+        exchange.OnKill(() =>
+        {
+            if (this != null) ResetAttackScale();
+            if (defender != null) defender.ResetAttackScale();
+        });
         AttackAnimation = exchange;
         TurnManager.Instance.TrackActionAnimation(exchange);
         return true;
