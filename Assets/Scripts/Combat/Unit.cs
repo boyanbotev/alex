@@ -246,7 +246,7 @@ public class Unit : MonoBehaviour
 
     public void Deactivate()
     {
-        SetBrightness(0.65f);
+        if (!owner.isAI) SetBrightness(0.65f);
         isActive = false;
     }
 
