@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 578be4679f754a2abbc782e9e2c1fdc4, type: 3}
   m_Name: UnitAnimationSettings
   m_EditorClassIdentifier: 
-  aiVisibleActionPauseSeconds: 0.3
+  aiVisibleActionPauseSeconds: 0.4
   retaliationPauseSeconds: 0.08
   lungeScale: 1.2
   advanceScale: 1.2
