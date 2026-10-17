@@ -83,7 +83,23 @@ public class Unit : MonoBehaviour
         transform.position = origin;
         Sequence sequence = DOTween.Sequence();
         if (advance)
-            sequence.Append(transform.DOMove(target, settings.advanceSeconds).SetEase(settings.advanceEase));
+        {
+            Camera camera = Camera.main;
+            if (defeatedUnit != null && camera != null)
+                defeatedUnit.transform.position += camera.transform.forward * settings.defeatedDepthOffset;
+
+            Vector3 direction = target - origin;
+            Vector3 overshoot = target + direction * settings.advanceOvershootFraction;
+            sequence.Append(transform.DOMove(overshoot, settings.advanceSeconds).SetEase(settings.advanceEase)
+                .OnUpdate(() =>
+                {
+                    // Remove the defender at impact, before the attacker finishes its overshoot.
+                    if (defeatedUnit != null && Vector3.Dot(transform.position - target, direction) >= 0f)
+                        RemoveDefeatedVisual();
+                }));
+            if (settings.advanceOvershootFraction > 0f)
+                sequence.Append(transform.DOMove(target, settings.advanceSnapBackSeconds).SetEase(settings.advanceSnapBackEase));
+        }
         else
         {
             sequence.Append(transform.DOMove(Vector3.Lerp(origin, target, settings.lungeFraction), settings.lungeOutSeconds)

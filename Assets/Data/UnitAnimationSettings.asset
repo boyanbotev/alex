@@ -16,9 +16,13 @@ MonoBehaviour:
   lungeOutSeconds: 0.08
   lungeBackSeconds: 0.1
   advanceSeconds: 0.15
+  advanceOvershootFraction: 0.126
+  advanceSnapBackSeconds: 0.03
+  defeatedDepthOffset: 0.05
   lungeOutEase: 6
   lungeBackEase: 6
   advanceEase: 6
+  advanceSnapBackEase: 6
   selectionScale: 1.1
   selectionGrowSeconds: 0.05
   selectionShrinkSeconds: 0.05
