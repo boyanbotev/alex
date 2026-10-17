@@ -28,4 +28,13 @@ public sealed class UnitAnimationSettings : ScriptableObject
     [Min(0f)] public float selectionShrinkSeconds = 0.08f;
     public Ease selectionGrowEase = Ease.OutQuad;
     public Ease selectionShrinkEase = Ease.InQuad;
+
+    [Header("Archer projectile")]
+    public UnitData archerType;
+    public Sprite arrowSprite;
+    [Min(0.01f)] public float arrowSize = 0.7f;
+    [Min(0f)] public float arrowArcHeight = 1.2f;
+    [Min(0.01f)] public float arrowMinSeconds = 0.3f;
+    [Min(0.01f)] public float arrowMaxSeconds = 0.5f;
+    [Min(0.01f)] public float arrowSpeed = 8f;
 }

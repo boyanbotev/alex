@@ -35,6 +35,7 @@ public class Unit : MonoBehaviour
     public Tween AttackAnimation { get; private set; }
     private Tween selectionAnimation;
     private Unit defeatedUnit;
+    private GameObject arrowProjectile;
     private Vector3 originalScale;
 
     [SerializeField] private Renderer render;
@@ -51,6 +52,7 @@ public class Unit : MonoBehaviour
         AttackAnimation?.Kill();
         AttackAnimation = null;
         RemoveDefeatedVisual();
+        RemoveArrowProjectile();
         selectionAnimation?.Kill();
         selectionAnimation = null;
         transform.localScale = originalScale;
@@ -61,6 +63,49 @@ public class Unit : MonoBehaviour
     {
         if (defeatedUnit != null) Destroy(defeatedUnit.gameObject);
         defeatedUnit = null;
+    }
+
+    private void RemoveArrowProjectile()
+    {
+        if (arrowProjectile != null) Destroy(arrowProjectile);
+        arrowProjectile = null;
+    }
+
+    private bool CanAnimateArrow(UnitAnimationSettings settings) => Application.isPlaying &&
+        settings != null && settings.archerType != null && data.CounterType == settings.archerType &&
+        settings.arrowSprite != null && Camera.main != null;
+
+    private void AnimateArrow(Vector3 origin, Vector3 target, System.Action onImpact)
+    {
+        var settings = TurnManager.Instance.unitAnimationSettings;
+        Camera camera = Camera.main;
+        arrowProjectile = new GameObject("Arrow projectile");
+        var sprite = arrowProjectile.AddComponent<SpriteRenderer>();
+        sprite.sprite = settings.arrowSprite;
+        Transform arrow = arrowProjectile.transform;
+        arrow.localScale = Vector3.one * (settings.arrowSize / settings.arrowSprite.bounds.size.x);
+        Quaternion facing = camera.transform.rotation;
+        Vector3 travel = target - origin;
+        float duration = Mathf.Clamp(travel.magnitude / Mathf.Max(0.01f, settings.arrowSpeed),
+            settings.arrowMinSeconds, Mathf.Max(settings.arrowMinSeconds, settings.arrowMaxSeconds));
+        void UpdateArrow(float progress)
+        {
+            arrow.position = Vector3.Lerp(origin, target, progress) +
+                Vector3.up * (4f * settings.arrowArcHeight * progress * (1f - progress));
+            Vector3 tangent = travel + Vector3.up * (4f * settings.arrowArcHeight * (1f - 2f * progress));
+            Vector3 localDirection = Quaternion.Inverse(facing) * tangent;
+            // The artwork points left; keep its tip aligned with the flight direction.
+            float angle = Mathf.Atan2(localDirection.y, localDirection.x) * Mathf.Rad2Deg + 180f;
+            arrow.rotation = facing * Quaternion.Euler(0f, 0f, angle);
+        }
+        UpdateArrow(0f);
+        AttackAnimation = DOVirtual.Float(0f, 1f, duration, UpdateArrow).SetEase(Ease.Linear)
+            .OnComplete(() =>
+            {
+                RemoveArrowProjectile();
+                onImpact();
+            });
+        TurnManager.Instance.TrackActionAnimation(AttackAnimation);
     }
 
     public void PulseSelection()
@@ -180,10 +225,33 @@ public class Unit : MonoBehaviour
         Tile targetTile = defender.currentTile;
         Vector3 attackOrigin = transform.position;
         Vector3 targetPosition = targetTile.transform.position;
+        bool animateArrow = CanAnimateArrow(TurnManager.Instance.unitAnimationSettings);
+        Vector3 arrowOrigin = VisualBounds.center;
+        Vector3 arrowTarget = defender.VisualBounds.center;
         var (attackDamage, retaliationDamage, advance) = CombatMath.PredictAttack(this, defender, BoardState.Live);
+        hasAttacked = true;
+        hasMoved = true;
+        if (animateArrow)
+        {
+            AnimateArrow(arrowOrigin, arrowTarget, () =>
+            {
+                if (defender == null || !defender.isAlive) return;
+                ApplyAttackDamage(defender, attackDamage, retaliationDamage);
+            });
+            return true;
+        }
+
         bool keepDefenderVisual = advance && Application.isPlaying && TurnManager.Instance.unitAnimationSettings != null;
         if (keepDefenderVisual) defeatedUnit = defender;
+        ApplyAttackDamage(defender, attackDamage, retaliationDamage, keepDefenderVisual);
 
+        if (advance) ApplyMove(targetTile);
+        AnimateMelee(attackOrigin, targetPosition, advance);
+        return true;
+    }
+
+    private void ApplyAttackDamage(Unit defender, int attackDamage, int retaliationDamage, bool keepDefenderVisual = false)
+    {
         CombatMath.CollectSplashTargets(this, defender, defender.currentTile, BoardState.Live, splashTargets);
         defender.TakeDamage(attackDamage, owner, keepDefenderVisual);
         foreach (Unit target in splashTargets) target.TakeDamage(data.splashDamage, owner);
@@ -194,11 +262,6 @@ public class Unit : MonoBehaviour
             TakeDamage(retaliationDamage, defender.owner);
         }
 
-        hasAttacked = true;
-        hasMoved = true;
-        if (advance) ApplyMove(targetTile);
-        AnimateMelee(attackOrigin, targetPosition, advance);
-        return true;
     }
 
     public bool TryReplaceGarrison(City city, FactionUnit recruit, Tile destination, Unit target = null)

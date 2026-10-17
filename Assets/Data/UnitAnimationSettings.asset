@@ -29,3 +29,10 @@ MonoBehaviour:
   selectionShrinkSeconds: 0.05
   selectionGrowEase: 6
   selectionShrinkEase: 5
+  archerType: {fileID: 11400000, guid: 69b1f1849c019a346969058b5c2df1fe, type: 2}
+  arrowSprite: {fileID: 21300000, guid: ea01a89ea956d14428a7e305afdcd67e, type: 3}
+  arrowSize: 0.5
+  arrowArcHeight: 0.8
+  arrowMinSeconds: 0.3
+  arrowMaxSeconds: 0.5
+  arrowSpeed: 8
