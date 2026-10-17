@@ -58,7 +58,7 @@ public class SelectionController : MonoBehaviour
             diplomacy = turnManager.Diplomacy;
             diplomacy.RelationChanged += OnRelationChanged;
         }
-        if (TurnManager.Instance.ActivePlayer.isAI)
+        if (TurnManager.Instance.ActivePlayer.isAI || TurnManager.Instance.IsAnimatingAction)
         {
             CancelPress();
             return;
@@ -181,6 +181,7 @@ public class SelectionController : MonoBehaviour
         if (clickedTile.currentUnit != null)
         {
             selectedUnit = clickedTile.currentUnit;
+            selectedUnit.PulseSelection();
             HighlightActions(selectedUnit);
             UIManager.Instance.ShowUnitInfo(selectedUnit);
             return;

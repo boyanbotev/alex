@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
 public class TacticsAI : MonoBehaviour
@@ -154,7 +155,10 @@ public class TacticsAI : MonoBehaviour
         {
             if (!action.unit.TryReplaceGarrison(action.recruitCity, action.recruit, action.moveTile,
                 action.outgoingKind == ActionKind.Attack ? action.target : null)) yield break;
-            yield return ActionAnimationWait;
+            Tween replacementAnimation = action.unit.AttackAnimation;
+            if (replacementAnimation != null && replacementAnimation.IsActive())
+                yield return replacementAnimation.WaitForCompletion();
+            else yield return ActionAnimationWait;
             yield break;
         }
         if (action.kind == ActionKind.DoNothing)
@@ -174,7 +178,9 @@ public class TacticsAI : MonoBehaviour
         };
         if (!executed) yield break;
 
-        if (visible) yield return ActionAnimationWait;
+        Tween animation = action.unit != null ? action.unit.AttackAnimation : null;
+        if (animation != null && animation.IsActive()) yield return animation.WaitForCompletion();
+        else if (visible) yield return ActionAnimationWait;
         else yield return new WaitForSeconds(0.2f);
     }
 

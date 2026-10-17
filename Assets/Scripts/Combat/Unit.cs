@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
 public class Unit : MonoBehaviour
@@ -25,11 +26,16 @@ public class Unit : MonoBehaviour
     private static readonly List<Tile> moveTiles = new(64);
     private static readonly System.Func<Tile, Unit> GetLiveOccupant = tile => tile.currentUnit;
     private bool CanAct => isAlive && isActive && data != null && owner != null &&
-        TurnManager.Instance != null && !TurnManager.Instance.IsGameOver && TurnManager.Instance.ActivePlayer == owner &&
+        TurnManager.Instance != null && !TurnManager.Instance.IsGameOver && !TurnManager.Instance.IsAnimatingAction && TurnManager.Instance.ActivePlayer == owner &&
         currentTile != null && currentTile.currentUnit == this;
     private bool IsStatic => data.skills != null && System.Array.IndexOf(data.skills, Skill.Static) >= 0;
 
     [Header("Animation")]
+
+    public Tween AttackAnimation { get; private set; }
+    private Tween selectionAnimation;
+    private Unit defeatedUnit;
+    private Vector3 originalScale;
 
     [SerializeField] private Renderer render;
     private MaterialPropertyBlock visualProperties;
@@ -37,6 +43,57 @@ public class Unit : MonoBehaviour
     private int colorProperty;
     public Bounds VisualBounds => render != null ? render.bounds : new Bounds(transform.position, Vector3.zero);
     [SerializeField] HealthUI healthUI;
+
+    private void Awake() => originalScale = transform.localScale;
+
+    private void OnDisable()
+    {
+        AttackAnimation?.Kill();
+        AttackAnimation = null;
+        RemoveDefeatedVisual();
+        selectionAnimation?.Kill();
+        selectionAnimation = null;
+        transform.localScale = originalScale;
+        if (isAlive && currentTile != null) transform.position = currentTile.transform.position;
+    }
+
+    private void RemoveDefeatedVisual()
+    {
+        if (defeatedUnit != null) Destroy(defeatedUnit.gameObject);
+        defeatedUnit = null;
+    }
+
+    public void PulseSelection()
+    {
+        var settings = TurnManager.Instance.unitAnimationSettings;
+        if (!Application.isPlaying || settings == null) return;
+        selectionAnimation?.Kill();
+        transform.localScale = originalScale;
+        selectionAnimation = DOTween.Sequence()
+            .Append(transform.DOScale(originalScale * settings.selectionScale, settings.selectionGrowSeconds)
+                .SetEase(settings.selectionGrowEase))
+            .Append(transform.DOScale(originalScale, settings.selectionShrinkSeconds)
+                .SetEase(settings.selectionShrinkEase));
+    }
+
+    private void AnimateMelee(Vector3 origin, Vector3 target, bool advance)
+    {
+        var settings = TurnManager.Instance.unitAnimationSettings;
+        if (!Application.isPlaying || !isAlive || data.attackRange != 1 || settings == null) return;
+        transform.position = origin;
+        Sequence sequence = DOTween.Sequence();
+        if (advance)
+            sequence.Append(transform.DOMove(target, settings.advanceSeconds).SetEase(settings.advanceEase));
+        else
+        {
+            sequence.Append(transform.DOMove(Vector3.Lerp(origin, target, settings.lungeFraction), settings.lungeOutSeconds)
+                .SetEase(settings.lungeOutEase));
+            sequence.Append(transform.DOMove(origin, settings.lungeBackSeconds).SetEase(settings.lungeBackEase));
+        }
+        AttackAnimation = sequence;
+        sequence.OnComplete(RemoveDefeatedVisual);
+        TurnManager.Instance.TrackActionAnimation(sequence);
+    }
 
     private void Start()
     {
@@ -105,10 +162,14 @@ public class Unit : MonoBehaviour
         if (from != null && from != currentTile) ApplyMove(from);
 
         Tile targetTile = defender.currentTile;
+        Vector3 attackOrigin = transform.position;
+        Vector3 targetPosition = targetTile.transform.position;
         var (attackDamage, retaliationDamage, advance) = CombatMath.PredictAttack(this, defender, BoardState.Live);
+        bool keepDefenderVisual = advance && Application.isPlaying && TurnManager.Instance.unitAnimationSettings != null;
+        if (keepDefenderVisual) defeatedUnit = defender;
 
         CombatMath.CollectSplashTargets(this, defender, defender.currentTile, BoardState.Live, splashTargets);
-        defender.TakeDamage(attackDamage, owner);
+        defender.TakeDamage(attackDamage, owner, keepDefenderVisual);
         foreach (Unit target in splashTargets) target.TakeDamage(data.splashDamage, owner);
         splashTargets.Clear();
 
@@ -120,6 +181,7 @@ public class Unit : MonoBehaviour
         hasAttacked = true;
         hasMoved = true;
         if (advance) ApplyMove(targetTile);
+        AnimateMelee(attackOrigin, targetPosition, advance);
         return true;
     }
 
@@ -158,14 +220,14 @@ public class Unit : MonoBehaviour
         return false;
     }
 
-    public void TakeDamage(int damage, Player attacker = null)
+    public void TakeDamage(int damage, Player attacker = null, bool keepVisualUntilImpact = false)
     {
         currentHealth -= damage;
         healthUI?.Set(currentHealth);
 
         if (currentHealth <= 0)
         {
-            Die(attacker);
+            Die(attacker, keepVisualUntilImpact);
         }
     }
 
@@ -209,7 +271,7 @@ public class Unit : MonoBehaviour
         return (damage, retaliation);
     }
 
-    private void Die(Player attacker)
+    private void Die(Player attacker, bool keepVisualUntilImpact)
     {
         isAlive = false;
         if (currentTile != null)
@@ -226,7 +288,13 @@ public class Unit : MonoBehaviour
         if (homeCity != null) homeCity.units.Remove(this);
         TurnManager.Instance?.RequestGameOverCheck();
         if (attacker != null) UnitKilled?.Invoke(attacker, owner);
-        if (Application.isPlaying) Destroy(gameObject);
+        if (keepVisualUntilImpact)
+        {
+            selectionAnimation?.Kill();
+            transform.localScale = originalScale;
+            if (healthUI != null) healthUI.gameObject.SetActive(false);
+        }
+        else if (Application.isPlaying) Destroy(gameObject);
         else DestroyImmediate(gameObject);
     }
 

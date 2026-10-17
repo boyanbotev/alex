@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
 public class TurnManager : MonoBehaviour
@@ -19,6 +20,10 @@ public class TurnManager : MonoBehaviour
     private bool matchStarted;
     private bool checkEnding;
     public CombatSettings combatSettings;
+    public UnitAnimationSettings unitAnimationSettings;
+    private Tween actionAnimation;
+    public bool IsAnimatingAction => actionAnimation != null && actionAnimation.IsActive() && !actionAnimation.IsComplete();
+
     [Min(0)] public int neuronStarsPerConnection = 1;
     private NeuronNetwork neurons;
     public NeuronNetwork Neurons => neurons ??= new NeuronNetwork(this);
@@ -42,6 +47,17 @@ public class TurnManager : MonoBehaviour
             }
             return diplomacy;
         }
+    }
+
+    public void TrackActionAnimation(Tween animation)
+    {
+        actionAnimation = animation;
+        if (endTurnButton != null) endTurnButton.interactable = false;
+        animation.OnKill(() =>
+        {
+            actionAnimation = null;
+            if (endTurnButton != null) endTurnButton.interactable = !enemyTurnsInProgress && !IsGameOver;
+        });
     }
 
     private void OnDestroy()
@@ -128,7 +144,7 @@ public class TurnManager : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (!matchStarted || IsGameOver || !checkEnding) return;
+        if (!matchStarted || IsGameOver || !checkEnding || IsAnimatingAction) return;
         checkEnding = false;
         CheckGameOver();
     }
@@ -138,6 +154,7 @@ public class TurnManager : MonoBehaviour
     public bool CheckGameOver()
     {
         if (IsGameOver) return true;
+        if (IsAnimatingAction) return false;
         if (!matchStarted) return false;
         Player human = players.Find(p => !p.isAI);
         if (human != null && !human.IsAlive())
@@ -196,7 +213,7 @@ public class TurnManager : MonoBehaviour
 
     public void EndTurn()
     {
-        if (!matchStarted || enemyTurnsInProgress || ActivePlayer.isAI) return;
+        if (!matchStarted || enemyTurnsInProgress || ActivePlayer.isAI || IsAnimatingAction) return;
         AdvanceTurn();
     }
 

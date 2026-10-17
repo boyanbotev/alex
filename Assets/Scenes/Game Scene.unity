@@ -5057,6 +5057,7 @@ MonoBehaviour:
   ai: {fileID: 750415854}
   endTurnButton: {fileID: 1392321453}
   combatSettings: {fileID: 11400000, guid: 6e035c1779224cb59b430d62e734aef1, type: 2}
+  unitAnimationSettings: {fileID: 11400000, guid: b66957d35faa4544a4e975beb2d960d2, type: 2}
   neuronStarsPerConnection: 1
   maxBondsPerCity: 1
   bondUpgradeCost: 5

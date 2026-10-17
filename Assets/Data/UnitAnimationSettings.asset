@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 578be4679f754a2abbc782e9e2c1fdc4, type: 3}
+  m_Name: UnitAnimationSettings
+  m_EditorClassIdentifier: 
+  lungeFraction: 0.3
+  lungeOutSeconds: 0.08
+  lungeBackSeconds: 0.1
+  advanceSeconds: 0.15
+  lungeOutEase: 6
+  lungeBackEase: 6
+  advanceEase: 6
+  selectionScale: 1.1
+  selectionGrowSeconds: 0.05
+  selectionShrinkSeconds: 0.05
+  selectionGrowEase: 6
+  selectionShrinkEase: 5
