@@ -32,6 +32,9 @@ public class Unit : MonoBehaviour
     [Header("Animation")]
 
     [SerializeField] private Renderer render;
+    private MaterialPropertyBlock visualProperties;
+    private Color activeColor;
+    private int colorProperty;
     public Bounds VisualBounds => render != null ? render.bounds : new Bounds(transform.position, Vector3.zero);
     [SerializeField] HealthUI healthUI;
 
@@ -237,20 +240,31 @@ public class Unit : MonoBehaviour
 
     public void Activate()
     {
-        Color color = render.material.color;
-        color.a = 1f;
-        render.material.color = color;
+        SetBrightness(1f);
         isActive = true;
     }
 
     public void Deactivate()
     {
-        if (render != null)
-        {
-            Color color = render.material.color;
-            color.a = 0.7f;
-            render.material.color = color;
-        }
+        SetBrightness(0.65f);
         isActive = false;
+    }
+
+    private void SetBrightness(float brightness)
+    {
+        if (render == null || render.sharedMaterial == null) return;
+        if (visualProperties == null)
+        {
+            colorProperty = Shader.PropertyToID(render.sharedMaterial.HasProperty("_BaseColor") ? "_BaseColor" : "_Color");
+            activeColor = render.sharedMaterial.GetColor(colorProperty);
+            visualProperties = new MaterialPropertyBlock();
+        }
+        Color color = activeColor;
+        color.r *= brightness;
+        color.g *= brightness;
+        color.b *= brightness;
+        render.GetPropertyBlock(visualProperties);
+        visualProperties.SetColor(colorProperty, color);
+        render.SetPropertyBlock(visualProperties);
     }
 }

@@ -346,7 +346,7 @@ MonoBehaviour:
   isAlive: 0
   isActive: 0
   hasCaptured: 0
-  render: {fileID: 2402580100796224181}
+  render: {fileID: 9133612789304319999}
   healthUI: {fileID: 3322806743453022592}
 --- !u!1 &3859753992418993034
 GameObject:
