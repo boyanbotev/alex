@@ -260,6 +260,10 @@ public class UIManager : MonoBehaviour
         });
 
         button.transform.position = city.centerTile.transform.position + new Vector3(0f, 1f, 0f);
+        // Orthographic depth offset keeps the screen position while clearing units.
+        Camera uiCamera = captureButtonHolder.GetComponentInParent<Canvas>().worldCamera;
+        if (uiCamera != null)
+            button.transform.position -= uiCamera.transform.forward * 3f;
     }
 
     public void HideCaptureButton(City city)
