@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: UnitAnimationSettings
   m_EditorClassIdentifier: 
   aiVisibleActionPauseSeconds: 0.2
+  retaliationPauseSeconds: 0.08
   lungeFraction: 0.3
   lungeOutSeconds: 0.08
   lungeBackSeconds: 0.1
@@ -33,6 +34,6 @@ MonoBehaviour:
   arrowSprite: {fileID: 21300000, guid: ea01a89ea956d14428a7e305afdcd67e, type: 3}
   arrowSize: 0.5
   arrowArcHeight: 0.8
-  arrowMinSeconds: 0.3
+  arrowMinSeconds: 0.2
   arrowMaxSeconds: 0.5
   arrowSpeed: 8

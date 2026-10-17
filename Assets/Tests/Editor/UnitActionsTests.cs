@@ -1,4 +1,5 @@
 using System.Collections;
+using DG.Tweening;
 using NUnit.Framework;
 
 public class UnitActionsTests : TacticsTestFixture
@@ -15,6 +16,63 @@ public class UnitActionsTests : TacticsTestFixture
 
     [TearDown]
     public void TearDownActions() => FogOfWarManager.Instance = previousFog;
+
+    [Test]
+    public void MeleeExchangeAppliesEachHitAtItsOwnImpact()
+    {
+        turns.unitAnimationSettings = Asset<UnitAnimationSettings>();
+        var settings = turns.unitAnimationSettings;
+        var attacker = Unit(player, Tile(0));
+        var defender = Unit(enemy, Tile(1));
+        Sequence exchange = DOTween.Sequence().Pause();
+        try
+        {
+            exchange.Append((Tween)Call(attacker, "CreateStrike", attacker, defender, false,
+                (System.Action)(() => defender.TakeDamage(2))));
+            exchange.AppendInterval(settings.retaliationPauseSeconds);
+            exchange.Append((Tween)Call(attacker, "CreateStrike", defender, attacker, false,
+                (System.Action)(() => attacker.TakeDamage(3))));
+            exchange.Goto(settings.lungeOutSeconds * 0.5f);
+            Assert.That(defender.currentHealth, Is.EqualTo(10));
+            exchange.Goto(settings.lungeOutSeconds + 0.001f);
+            Assert.That(defender.currentHealth, Is.EqualTo(8));
+            Assert.That(attacker.currentHealth, Is.EqualTo(10));
+            float retaliationStart = settings.lungeOutSeconds + settings.lungeBackSeconds + settings.retaliationPauseSeconds;
+            exchange.Goto(retaliationStart + settings.lungeOutSeconds * 0.5f);
+            Assert.That(attacker.currentHealth, Is.EqualTo(10));
+            exchange.Goto(retaliationStart + settings.lungeOutSeconds + 0.001f);
+            Assert.That(attacker.currentHealth, Is.EqualTo(7));
+            exchange.Goto(exchange.Duration());
+            Assert.That(defender.currentHealth, Is.EqualTo(8));
+            Assert.That(attacker.currentHealth, Is.EqualTo(7));
+            Assert.That(defender.hasAttacked, Is.False);
+        }
+        finally { exchange.Kill(); }
+    }
+
+    [Test]
+    public void MeleeAdvanceOnlyHitsOnceAcrossOvershootAndSnapBack()
+    {
+        turns.unitAnimationSettings = Asset<UnitAnimationSettings>();
+        var attacker = Unit(player, Tile(0));
+        var defender = Unit(enemy, Tile(1));
+        defender.transform.position = UnityEngine.Vector3.right;
+        int impacts = 0;
+        var strike = (Tween)Call(attacker, "CreateStrike", attacker, defender, true,
+            (System.Action)(() => impacts++));
+        strike.Pause();
+        try
+        {
+            strike.Goto(0.01f);
+            Assert.That(impacts, Is.Zero);
+            strike.Goto(turns.unitAnimationSettings.advanceSeconds);
+            Assert.That(impacts, Is.EqualTo(1));
+            strike.Goto(strike.Duration());
+            Assert.That(impacts, Is.EqualTo(1));
+            Assert.That(attacker.transform.position, Is.EqualTo(UnityEngine.Vector3.right));
+        }
+        finally { strike.Kill(); }
+    }
 
     [TestCase(1, 1, 4, 8)]
     [TestCase(2, 1, 7, 7)]
