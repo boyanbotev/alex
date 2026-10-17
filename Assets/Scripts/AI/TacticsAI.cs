@@ -14,6 +14,7 @@ public class TacticsAI : MonoBehaviour
     private readonly List<CandidateAction> _shortlist = new List<CandidateAction>(32);
     private readonly System.Diagnostics.Stopwatch _frameBudgetTimer = new System.Diagnostics.Stopwatch();
     private static readonly WaitForSeconds ActionAnimationWait = new WaitForSeconds(0.3f);
+    private WaitForSeconds visibleActionPause;
 
     public IEnumerator PlayTurn(Player player, AIProfile profile)
     {
@@ -75,6 +76,9 @@ public class TacticsAI : MonoBehaviour
         this.profile = profile;
         controlledPlayer = player;
         humanPlayer = TurnManager.Instance.players.Find(p => !p.isAI);
+        var animationSettings = TurnManager.Instance.unitAnimationSettings;
+        float pauseSeconds = animationSettings != null ? animationSettings.aiVisibleActionPauseSeconds : 0f;
+        visibleActionPause = pauseSeconds > 0f ? new WaitForSeconds(pauseSeconds) : null;
         _scorer.Configure(profile, TurnManager.Instance.players, WorldPopulationManager.Instance.allCities);
         _candidates.Configure(GridManager.Instance, _scorer);
     }
@@ -150,6 +154,7 @@ public class TacticsAI : MonoBehaviour
     private IEnumerator Execute(CandidateAction action, int diplomacyRevision)
     {
         if (TurnManager.Instance.CheckGameOver() || TurnManager.Instance.Diplomacy.Revision != diplomacyRevision || action.unit == null) yield break;
+        bool visible = action.kind != ActionKind.DoNothing && IsVisibleToLocalPlayer(action);
         
         if (action.kind == ActionKind.ReplaceGarrison)
         {
@@ -159,6 +164,7 @@ public class TacticsAI : MonoBehaviour
             if (replacementAnimation != null && replacementAnimation.IsActive())
                 yield return replacementAnimation.WaitForCompletion();
             else yield return ActionAnimationWait;
+            if (visible && visibleActionPause != null) yield return visibleActionPause;
             yield break;
         }
         if (action.kind == ActionKind.DoNothing)
@@ -168,7 +174,6 @@ public class TacticsAI : MonoBehaviour
             yield break;
         }
 
-        bool visible = IsVisibleToLocalPlayer(action);
         bool executed = action.kind switch
         {
             ActionKind.MoveOnly => action.unit.MoveTo(action.moveTile),
@@ -182,6 +187,7 @@ public class TacticsAI : MonoBehaviour
         if (animation != null && animation.IsActive()) yield return animation.WaitForCompletion();
         else if (visible) yield return ActionAnimationWait;
         else yield return new WaitForSeconds(0.2f);
+        if (visible && visibleActionPause != null) yield return visibleActionPause;
     }
 
     private bool IsVisibleToLocalPlayer(CandidateAction action)
@@ -190,7 +196,10 @@ public class TacticsAI : MonoBehaviour
         if (humanPlayer.visibleTiles.IsVisible(action.unit.currentTile))
             return true;
 
-        if (humanPlayer.visibleTiles.IsVisible(action.moveTile))
+        if (action.moveTile != null && humanPlayer.visibleTiles.IsVisible(action.moveTile))
+            return true;
+
+        if (action.target != null && humanPlayer.visibleTiles.IsVisible(action.target.currentTile))
             return true;
 
         return false;

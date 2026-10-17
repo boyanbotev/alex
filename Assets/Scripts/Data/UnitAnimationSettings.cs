@@ -4,6 +4,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "UnitAnimationSettings", menuName = "Game/Unit Animation Settings")]
 public sealed class UnitAnimationSettings : ScriptableObject
 {
+    [Header("AI pacing")]
+    [Min(0f)] public float aiVisibleActionPauseSeconds = 0.1f;
+
     [Header("Melee")]
     [Range(0f, 1f)] public float lungeFraction = 0.3f;
     [Min(0f)] public float lungeOutSeconds = 0.08f;
