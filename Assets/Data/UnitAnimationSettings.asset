@@ -37,3 +37,9 @@ MonoBehaviour:
   arrowMinSeconds: 0.2
   arrowMaxSeconds: 0.5
   arrowSpeed: 8
+  cannonType: {fileID: 11400000, guid: b3fdb3d1aafce3c46b0d909f04baa13a, type: 2}
+  cannonSize: 0.2
+  cannonArcHeight: 0.5
+  cannonMinSeconds: 0.2
+  cannonMaxSeconds: 0.4
+  cannonSpeed: 8

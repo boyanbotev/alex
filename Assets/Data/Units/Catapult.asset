@@ -20,6 +20,7 @@ MonoBehaviour:
   defensePower: 0
   moveRange: 1
   attackRange: 3
+  projectileSprite: {fileID: 21300000, guid: 55eba3438afcf6742802a08c52b27898, type: 3}
   splashDamage: 2
   splashRadius: 1
   skills: 00000000

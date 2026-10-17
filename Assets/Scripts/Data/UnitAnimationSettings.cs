@@ -38,4 +38,12 @@ public sealed class UnitAnimationSettings : ScriptableObject
     [Min(0.01f)] public float arrowMinSeconds = 0.3f;
     [Min(0.01f)] public float arrowMaxSeconds = 0.5f;
     [Min(0.01f)] public float arrowSpeed = 8f;
+
+    [Header("Cannon projectile")]
+    public UnitData cannonType;
+    [Min(0.01f)] public float cannonSize = 0.5f;
+    [Min(0f)] public float cannonArcHeight = 0.8f;
+    [Min(0.01f)] public float cannonMinSeconds = 0.2f;
+    [Min(0.01f)] public float cannonMaxSeconds = 0.5f;
+    [Min(0.01f)] public float cannonSpeed = 8f;
 }

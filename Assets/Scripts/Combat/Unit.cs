@@ -84,13 +84,19 @@ public class Unit : MonoBehaviour
         Camera camera = Camera.main;
         if (artwork != null && camera != null)
         {
+            bool cannon = settings.cannonType != null && source.data.CounterType == settings.cannonType;
+            float size = cannon ? settings.cannonSize : settings.arrowSize;
+            float arcHeight = cannon ? settings.cannonArcHeight : settings.arrowArcHeight;
+            float speed = cannon ? settings.cannonSpeed : settings.arrowSpeed;
+            float minSeconds = cannon ? settings.cannonMinSeconds : settings.arrowMinSeconds;
+            float maxSeconds = cannon ? settings.cannonMaxSeconds : settings.arrowMaxSeconds;
             Vector3 origin = source.VisualBounds.center;
             Vector3 destination = target.VisualBounds.center;
             Vector3 travel = destination - origin;
             Quaternion facing = camera.transform.rotation;
             Transform arrow = null;
-            float duration = Mathf.Clamp(travel.magnitude / Mathf.Max(0.01f, settings.arrowSpeed),
-                settings.arrowMinSeconds, Mathf.Max(settings.arrowMinSeconds, settings.arrowMaxSeconds));
+            float duration = Mathf.Clamp(travel.magnitude / Mathf.Max(0.01f, speed),
+                minSeconds, Mathf.Max(minSeconds, maxSeconds));
             return DOTween.Sequence()
                 .AppendCallback(() =>
                 {
@@ -99,14 +105,14 @@ public class Unit : MonoBehaviour
                     sprite.sprite = artwork;
                     arrow = arrowProjectile.transform;
                     arrow.position = origin;
-                    arrow.localScale = Vector3.one * (settings.arrowSize / artwork.bounds.size.x);
+                    arrow.localScale = Vector3.one * (size / artwork.bounds.size.x);
                 })
                 .Append(DOVirtual.Float(0f, 1f, duration, progress =>
                 {
                     if (arrow == null) return;
                     arrow.position = Vector3.Lerp(origin, destination, progress) +
-                        Vector3.up * (4f * settings.arrowArcHeight * progress * (1f - progress));
-                    Vector3 tangent = travel + Vector3.up * (4f * settings.arrowArcHeight * (1f - 2f * progress));
+                        Vector3.up * (4f * arcHeight * progress * (1f - progress));
+                    Vector3 tangent = travel + Vector3.up * (4f * arcHeight * (1f - 2f * progress));
                     Vector3 localDirection = Quaternion.Inverse(facing) * tangent;
                     float angle = Mathf.Atan2(localDirection.y, localDirection.x) * Mathf.Rad2Deg + 180f;
                     arrow.rotation = facing * Quaternion.Euler(0f, 0f, angle);
