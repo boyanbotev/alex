@@ -43,7 +43,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] GameObject captureButtonPrefab;
 
     public static UIManager Instance;
-    private Player techPlayer;
     private City displayedCity;
     private readonly Vector3[] unitPanelCorners = new Vector3[4];
     [SerializeField] private CityBondView bondView;
@@ -84,6 +83,7 @@ public class UIManager : MonoBehaviour
 
     private void OnDisable()
     {
+        HideUnitStatsPopup();
         if (turns != null) turns.TurnChanged -= RefreshTurnCounter;
         if (bondView != null) bondView.SelectionChanged -= RefreshCityPanel;
         Player.OnUpdateStars -= SetStars;
@@ -108,6 +108,7 @@ public class UIManager : MonoBehaviour
 
             itemPurchaseButton.AddText("Spawn " + unit.unitData.name);
             itemPurchaseButton.AddCost(unit.unitData.cost);
+            itemPurchaseButton.SetHoverUnit(unit);
             itemPurchaseButton.AddListener(() => {
                 city.SpawnUnit(unit, unit.unitData.cost);
                 CloseSpawnPanel();
@@ -301,6 +302,7 @@ public class UIManager : MonoBehaviour
 
     public void CloseSpawnPanel()
     {
+        HideUnitStatsPopup();
         displayedCity = null;
         if (bondView != null) bondView.Hide();
         ClearSpawnButtons();
@@ -328,13 +330,21 @@ public class UIManager : MonoBehaviour
 
     public void ShowUnitStatsPopup(UnitData unit)
     {
+        unitStatsPopup.transform.SetParent(spawnPanel.parent, false);
+        unitStatsPopup.transform.SetAsLastSibling();
         unitStatsPopup.gameObject.SetActive(true);
         unitStatsPopup.Populate(unit);
+        Canvas.ForceUpdateCanvases();
+        spawnPanel.GetWorldCorners(unitPanelCorners);
+        RectTransform popup = (RectTransform)unitStatsPopup.transform;
+        popup.pivot = new Vector2(0.5f, 0f);
+        popup.position = (unitPanelCorners[1] + unitPanelCorners[2]) * 0.5f;
+        popup.anchoredPosition += Vector2.up * 12f;
     }
 
     public void HideUnitStatsPopup()
     {
-        unitStatsPopup.gameObject.SetActive(false);
+        if (unitStatsPopup != null) unitStatsPopup.gameObject.SetActive(false);
     }
 
     public void SetStars(int value)
@@ -351,6 +361,11 @@ public class UIManager : MonoBehaviour
             ? $"{displayedCity.cityName} · Units {displayedCity.units.Count}/{displayedCity.UnitCapacity}"
             : displayedCity.cityName;
         spawnButtonHolder.gameObject.SetActive(recruiting);
+        if (recruiting)
+        {
+            foreach (var button in spawnButtonHolder.GetComponentsInChildren<ItemPurchaseButton>())
+                button.RefreshSpawnAvailability(displayedCity);
+        }
         cantSpawnText.gameObject.SetActive(recruiting && displayedCity.units.Count >= displayedCity.UnitCapacity);
         if (bondView != null) bondView.Refresh();
     }

@@ -33,12 +33,12 @@ public sealed class LevelEnding : MonoBehaviour
         bool hasBonds = false;
         foreach (string pair in cityPairs)
         {
-            if (!hasBonds) summary.AppendLine("Strong bonds");
+            if (!hasBonds) summary.AppendLine("Strong bonds:");
             summary.AppendLine(pair);
             hasBonds = true;
         }
         if (hasBonds) summary.AppendLine();
-        summary.AppendLine("Faction scores");
+        summary.AppendLine("Faction scores:");
         foreach (var score in factionScores)
             summary.AppendLine($"{score.Key.name}: {score.Value:P0}");
         text.text = summary.ToString().TrimEnd();
