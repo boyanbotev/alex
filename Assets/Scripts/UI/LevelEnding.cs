@@ -14,6 +14,7 @@ public sealed class LevelEnding : MonoBehaviour
     private RectTransform content;
     private ScrollRect scroll;
     private Action onComplete;
+    private GameObject panel;
     private readonly List<GameObject> buttons = new();
 
     public static string PairKey(string a, string b)
@@ -23,9 +24,25 @@ public sealed class LevelEnding : MonoBehaviour
         return string.CompareOrdinal(a, b) <= 0 ? a + "_" + b : b + "_" + a;
     }
 
-    public void Show(TextAsset json, IEnumerable<string> pairKeys, IReadOnlyDictionary<string, float> factionSuccess)
+    public void Show(TextAsset json, IEnumerable<string> pairKeys, IReadOnlyDictionary<string, float> factionSuccess,
+        IEnumerable<string> cityPairs, IReadOnlyDictionary<Faction, float> factionScores)
     {
-        ShowStory(json, "Level complete", null, pairKeys, factionSuccess);
+        BuildPanel("Level completed");
+        text.richText = false;
+        var summary = new StringBuilder();
+        bool hasBonds = false;
+        foreach (string pair in cityPairs)
+        {
+            if (!hasBonds) summary.AppendLine("Strong bonds");
+            summary.AppendLine(pair);
+            hasBonds = true;
+        }
+        if (hasBonds) summary.AppendLine();
+        summary.AppendLine("Faction scores");
+        foreach (var score in factionScores)
+            summary.AppendLine($"{score.Key.name}: {score.Value:P0}");
+        text.text = summary.ToString().TrimEnd();
+        AddButton("Continue", () => ShowStory(json, null, null, pairKeys, factionSuccess), primary: true);
     }
 
     public void ShowPrelude(TextAsset json, Action beginLevel)
@@ -136,8 +153,15 @@ public sealed class LevelEnding : MonoBehaviour
 
     private void BuildPanel(string heading)
     {
-        var root = new GameObject(heading, typeof(RectTransform), typeof(Canvas),
+        if (panel != null)
+        {
+            panel.SetActive(false);
+            Destroy(panel);
+        }
+        buttons.Clear();
+        var root = new GameObject(heading ?? "Ending story", typeof(RectTransform), typeof(Canvas),
             typeof(CanvasScaler), typeof(GraphicRaycaster));
+        panel = root;
         root.transform.SetParent(transform, false);
         Canvas canvas = root.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -178,8 +202,11 @@ public sealed class LevelEnding : MonoBehaviour
         content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         scroll.content = content;
 
-        TextMeshProUGUI title = Label("Title", content, 40);
-        title.text = heading;
+        if (!string.IsNullOrEmpty(heading))
+        {
+            TextMeshProUGUI title = Label("Title", content, 40);
+            title.text = heading;
+        }
         text = Label("Story", content, 26);
         text.richText = true;
         text.lineSpacing = 8;

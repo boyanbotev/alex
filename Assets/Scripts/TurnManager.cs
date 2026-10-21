@@ -174,40 +174,50 @@ public class TurnManager : MonoBehaviour
         StopAllCoroutines();
         Bonds.Refresh();
         var links = new SortedSet<string>(System.StringComparer.Ordinal);
+        var cityPairs = new SortedSet<string>(System.StringComparer.Ordinal);
         foreach (CityBond bond in Bonds.All)
-            if (bond.Active) links.Add(LevelEnding.PairKey(bond.a.cityName, bond.b.cityName));
+        {
+            if (!bond.Active) continue;
+            links.Add(LevelEnding.PairKey(bond.a.cityName, bond.b.cityName));
+            string a = bond.a.cityName, b = bond.b.cityName;
+            cityPairs.Add(System.StringComparer.Ordinal.Compare(a, b) <= 0 ? $"{a} — {b}" : $"{b} — {a}");
+        }
         UIManager.Instance?.CloseSpawnPanel();
         UIManager.Instance?.CloseBuildPanel();
         UIManager.Instance?.HideAllCaptureButtons();
         TurnChanged?.Invoke();
-        var scores = GetFactionSuccess();
+        var factionScores = GetFactionSuccess();
+        var scores = new Dictionary<string, float>();
+        foreach (var score in factionScores)
+            if (!string.IsNullOrWhiteSpace(score.Key.endingSuccessFunction))
+                scores.TryAdd(score.Key.endingSuccessFunction, score.Value);
         var campaign = SaveManager.Campaign;
         campaign.cityLinks = new List<string>(links);
         campaign.scores.Clear();
         foreach (var score in scores) campaign.scores.Add(new CampaignScore { key = score.Key, value = score.Value });
         // Results become durable when the player leaves the ending for the interlude.
-        gameObject.AddComponent<LevelEnding>().Show(GameManager.Instance.Level.endingStory, links, scores);
+        gameObject.AddComponent<LevelEnding>().Show(GameManager.Instance.Level.endingStory, links, scores,
+            cityPairs, factionScores);
     }
 
-    private Dictionary<string, float> GetFactionSuccess()
+    private Dictionary<Faction, float> GetFactionSuccess()
     {
-        var scores = new Dictionary<string, float>();
-        foreach (Player player in players)
-            if (!string.IsNullOrWhiteSpace(player.faction.endingSuccessFunction))
-                scores.TryAdd(player.faction.endingSuccessFunction, 0f);
+        var scores = new Dictionary<Faction, float>();
+        foreach (LevelFaction entry in GameManager.Instance.Level.factions)
+            scores.TryAdd(entry.faction, 0f);
 
         int total = 0;
         foreach (City city in WorldPopulationManager.Instance.allCities)
         {
             if (city == null) continue;
             total++;
-            string function = city.owner != null ? city.owner.faction.endingSuccessFunction : null;
-            if (function != null && scores.ContainsKey(function)) scores[function]++;
+            Faction faction = city.owner != null ? city.owner.faction : null;
+            if (faction != null && scores.ContainsKey(faction)) scores[faction]++;
         }
 
         if (total > 0)
-            foreach (string function in new List<string>(scores.Keys))
-                scores[function] /= total;
+            foreach (Faction faction in new List<Faction>(scores.Keys))
+                scores[faction] /= total;
         return scores;
     }
 
