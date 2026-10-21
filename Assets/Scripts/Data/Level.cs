@@ -33,6 +33,8 @@ public class Level : ScriptableObject {
 
     [Header("Turns")]
     [Min(1)] public int turnLimit = 20;
+    [Tooltip("Complete the level at the end of a faction's turn when only the player and their allies remain alive.")]
+    public bool endWhenOnlyPlayerAndAlliesRemain = false;
 
     [Header("Ending Story")]
     public TextAsset endingStory;

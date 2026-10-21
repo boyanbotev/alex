@@ -235,6 +235,12 @@ public class TurnManager : MonoBehaviour
 
         HealUnusedUnits(ActivePlayer);
 
+        if (GameManager.Instance.Level.endWhenOnlyPlayerAndAlliesRemain && OnlyPlayerAndAlliesRemain())
+        {
+            EndGame();
+            return;
+        }
+
         do
         {
             activePlayerIndex = (activePlayerIndex + 1) % players.Count;
@@ -252,6 +258,17 @@ public class TurnManager : MonoBehaviour
 
         TurnChanged?.Invoke();
         StartTurn(ActivePlayer);
+    }
+
+    private bool OnlyPlayerAndAlliesRemain()
+    {
+        Player human = players.Find(p => !p.isAI);
+        if (human == null || !human.IsAlive()) return false;
+        foreach (Player player in players)
+            if (player != human && player.IsAlive() &&
+                Diplomacy.GetRelation(human, player) != DiplomaticRelation.Allied)
+                return false;
+        return true;
     }
 
     private void StartTurn(Player player)
