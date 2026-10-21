@@ -257,3 +257,8 @@ MonoBehaviour:
   currentBuilding: {fileID: 0}
   territoryCity: {fileID: 0}
   highlight: {fileID: 3370032277258827821}
+  highlightExpandedScale: 1.15
+  highlightGrowSeconds: 0.6
+  highlightShrinkSeconds: 0.6
+  highlightGrowEase: 4
+  highlightShrinkEase: 4

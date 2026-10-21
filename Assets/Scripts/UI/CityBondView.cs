@@ -94,13 +94,13 @@ public sealed class CityBondView : MonoBehaviour
     {
         GridManager.Instance.ClearAllHighlights();
         Player actor = TurnManager.Instance.ActivePlayer;
-        foreach (var city in WorldPopulationManager.Instance.allCities)
-            if (actor.visibleTiles.IsVisible(city.centerTile) && Bonds.CanCreate(actor, source, city, out _))
-                city.centerTile.SetHighlight(true, new Color(.2f, .9f, .8f));
         if (target != null && Bonds.CanCreate(actor, source, target, out _) &&
             TurnManager.Instance.Neurons.TryGetRoute(source, target, route))
             foreach (var tile in route)
                 if (actor.visibleTiles.IsVisible(tile)) tile.SetHighlight(true, new Color(1f, .75f, .2f));
+        foreach (var city in WorldPopulationManager.Instance.allCities)
+            if (actor.visibleTiles.IsVisible(city.centerTile) && Bonds.CanCreate(actor, source, city, out _))
+                city.centerTile.SetExpandingHighlight(true, new Color(.2f, .9f, .8f));
     }
     public void Refresh()
     {

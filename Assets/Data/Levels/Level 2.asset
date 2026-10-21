@@ -29,7 +29,8 @@ MonoBehaviour:
     isAI: 0
     startingStars: 20
     spawnCapitalUnit: 0
-    startingCities: []
+    startingCities:
+    - {fileID: 11400000, guid: 9280e2cf6ee69b547be6e3389c7eabe9, type: 2}
     desiredConnections: []
   - faction: {fileID: 11400000, guid: 3c65617266f15f74198d98636dfaa38f, type: 2}
     isAI: 1
@@ -47,7 +48,6 @@ MonoBehaviour:
   neutralCities:
   - {fileID: 11400000, guid: 4064bc33bf57ef748be2d498c5ee8511, type: 2}
   - {fileID: 11400000, guid: 23efdd988d9d5d242ae6af96a6dba214, type: 2}
-  - {fileID: 11400000, guid: 9280e2cf6ee69b547be6e3389c7eabe9, type: 2}
   tutorial: {fileID: 11400000, guid: 927a821a8a9b4dd3b6bb68dbcf66c529, type: 2}
   turnLimit: 20
   endingStory: {fileID: 4900000, guid: f5b6db103cff44b4dbe8a2127207b0c3, type: 3}
