@@ -11,21 +11,21 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca8a77fb90a74f48af41b716f5cab7bc, type: 3}
   m_Name: Map UI Style
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   textColor: {r: 1, g: 1, b: 1, a: 1}
   showUnderlay: 1
-  underlayColor: {r: 0.06, g: 0.08, b: 0.12, a: 0.85}
+  underlayColor: {r: 0.06, g: 0.08, b: 0.12, a: 0.60784316}
   cityFontSize: 1.7
   cityNameScale: 1.15
-  cityDetailsScale: 0.9
+  cityDetailsScale: 1.2
   coinColor: {r: 1, g: 0.827451, b: 0.301961, a: 1}
   cityLineSpacing: 0
   cityElementSpacing: 0.25
-  cityMaxSize: {x: 0.9, y: 0.3}
+  cityMaxSize: {x: 0.9, y: 0.32}
   cityUnderlayPadding: {x: 0.045, y: 0.025}
   cityMarkerGap: 0.07
-  cityOffset: {x: 0, y: 0}
+  cityOffset: {x: 0, y: 0.2}
   healthFontSize: 1.65
   healthUnderlayPadding: {x: 0.025, y: 0.015}
   healthWorldHeight: 1
-  healthOffset: {x: 0.24, y: 0.35}
+  healthOffset: {x: 0.24, y: 0.05}
