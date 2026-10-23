@@ -15,6 +15,9 @@ public sealed class LevelEnding : MonoBehaviour
     private ScrollRect scroll;
     private Action onComplete;
     private GameObject panel;
+    private TextMeshProUGUI pageNumber;
+    private TMP_FontAsset readingFont;
+    private bool reading;
     private readonly List<GameObject> buttons = new();
 
     public static string PairKey(string a, string b)
@@ -54,7 +57,8 @@ public sealed class LevelEnding : MonoBehaviour
         IEnumerable<string> pairKeys = null, IReadOnlyDictionary<string, float> factionSuccess = null)
     {
         onComplete = completion;
-        BuildPanel(title);
+        reading = true;
+        BuildPanel(title ?? "Placeholder title");
         try
         {
             if (json == null) throw new InvalidOperationException("Assign an exported Ink JSON to the story.");
@@ -100,17 +104,46 @@ public sealed class LevelEnding : MonoBehaviour
 
     private void ContinueStory()
     {
+        try
+        {
+            var output = new StringBuilder();
+            while (story.canContinue) output.Append(story.Continue());
+            text.text = output.ToString().Trim();
+            text.pageToDisplay = 1;
+            Canvas.ForceUpdateCanvases();
+            text.ForceMeshUpdate();
+            ShowPage();
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError($"Ink story error: {exception.Message}");
+            text.text = "The story could not be read. Check the Unity Console for details.";
+            ClearButtons();
+            AddEndButtons();
+        }
+    }
+
+    private void ClearButtons()
+    {
         foreach (GameObject button in buttons)
         {
             button.SetActive(false);
             Destroy(button);
         }
         buttons.Clear();
-        try
+    }
+
+    private void ShowPage()
+    {
+        ClearButtons();
+        int pages = Mathf.Max(1, text.textInfo.pageCount);
+        pageNumber.text = pages > 1 ? $"{text.pageToDisplay} / {pages}" : "";
+        if (text.pageToDisplay > 1)
+            AddButton("Previous", () => { text.pageToDisplay--; ShowPage(); });
+        if (text.pageToDisplay < pages)
+            AddButton("Next", () => { text.pageToDisplay++; ShowPage(); }, primary: true);
+        else
         {
-            var output = new StringBuilder();
-            while (story.canContinue) output.Append(story.Continue());
-            text.text = output.ToString().Trim();
             if (story.currentChoices.Count == 0) AddEndButtons();
             else foreach (Choice choice in story.currentChoices)
             {
@@ -121,15 +154,9 @@ public sealed class LevelEnding : MonoBehaviour
                     ContinueStory();
                 });
             }
-            Canvas.ForceUpdateCanvases();
-            scroll.verticalNormalizedPosition = 1f;
         }
-        catch (Exception exception)
-        {
-            Debug.LogError($"Ink story error: {exception.Message}");
-            text.text = "The story could not be read. Check the Unity Console for details.";
-            AddEndButtons();
-        }
+        Canvas.ForceUpdateCanvases();
+        scroll.verticalNormalizedPosition = 1f;
     }
 
     private void AddEndButtons()
@@ -173,11 +200,11 @@ public sealed class LevelEnding : MonoBehaviour
 
         RectTransform background = Rect("Background", root.transform);
         Stretch(background, Vector2.zero, Vector2.zero);
-        background.gameObject.AddComponent<Image>().color = new Color(0.035f, 0.045f, 0.06f, 1f);
+        background.gameObject.AddComponent<Image>().color = new Color(0.99f, 0.985f, 0.97f, 1f);
         background.gameObject.AddComponent<UIInputBlocker>();
 
         RectTransform viewport = Rect("Reading area", background);
-        Stretch(viewport, new Vector2(24, 72), new Vector2(-24, -72));
+        Stretch(viewport, new Vector2(24, 40), new Vector2(-24, -40));
         viewport.anchorMin = new Vector2(0.14f, 0);
         viewport.anchorMax = new Vector2(0.86f, 1);
         viewport.gameObject.AddComponent<Image>().color = Color.clear;
@@ -193,7 +220,7 @@ public sealed class LevelEnding : MonoBehaviour
         content.pivot = new Vector2(0.5f, 1);
         content.sizeDelta = Vector2.zero;
         VerticalLayoutGroup layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 48;
+        layout.spacing = 24;
         layout.padding = new RectOffset(12, 12, 12, 12);
         layout.childControlWidth = true;
         layout.childControlHeight = true;
@@ -204,13 +231,35 @@ public sealed class LevelEnding : MonoBehaviour
 
         if (!string.IsNullOrEmpty(heading))
         {
-            TextMeshProUGUI title = Label("Title", content, 40);
+            TextMeshProUGUI title = Label("Title", content, 44);
             title.text = heading;
+            title.alignment = TextAlignmentOptions.Center;
         }
-        text = Label("Story", content, 26);
+        text = Label("Story", content, 32);
         text.richText = true;
-        text.lineSpacing = 8;
-        text.paragraphSpacing = 18;
+        text.lineSpacing = 10;
+        text.paragraphSpacing = 22;
+        if (reading)
+        {
+            Canvas.ForceUpdateCanvases();
+            var source = Resources.Load<Font>("Fonts/EBGaramond");
+            if (source != null && readingFont == null) readingFont = TMP_FontAsset.CreateFontAsset(source);
+            foreach (var label in content.GetComponentsInChildren<TextMeshProUGUI>())
+                if (readingFont != null) label.font = readingFont;
+            text.overflowMode = TextOverflowModes.Page;
+            text.gameObject.AddComponent<LayoutElement>().preferredHeight = Mathf.Max(180, viewport.rect.height - 220);
+            pageNumber = Label("Page number", content, 20);
+            pageNumber.alignment = TextAlignmentOptions.Center;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (readingFont == null) return;
+        foreach (Texture2D atlas in readingFont.atlasTextures)
+            if (atlas != null) Destroy(atlas);
+        Destroy(readingFont.material);
+        Destroy(readingFont);
     }
 
     private void AddButton(string caption, UnityEngine.Events.UnityAction action, RectTransform parent = null, bool primary = false)
@@ -218,7 +267,7 @@ public sealed class LevelEnding : MonoBehaviour
         RectTransform rect = Rect("Ending button", parent != null ? parent : content);
         rect.gameObject.AddComponent<Image>().color = primary
             ? new Color(0.24f, 0.34f, 0.46f)
-            : new Color(0.12f, 0.16f, 0.21f);
+            : new Color(0.9f, 0.89f, 0.86f);
         LayoutElement size = rect.gameObject.AddComponent<LayoutElement>();
         size.preferredHeight = 56;
         size.flexibleWidth = 1;
@@ -227,6 +276,7 @@ public sealed class LevelEnding : MonoBehaviour
         Stretch(label.rectTransform, new Vector2(12, 4), new Vector2(-12, -4));
         label.alignment = TextAlignmentOptions.Center;
         label.text = caption;
+        label.color = primary ? Color.white : new Color(0.17f, 0.16f, 0.14f);
         if (parent == null) buttons.Add(rect.gameObject);
     }
 
@@ -234,7 +284,7 @@ public sealed class LevelEnding : MonoBehaviour
     {
         var label = Rect(name, parent).gameObject.AddComponent<TextMeshProUGUI>();
         label.fontSize = size;
-        label.color = new Color(0.94f, 0.93f, 0.9f);
+        label.color = new Color(0.17f, 0.16f, 0.14f);
         label.raycastTarget = false;
         return label;
     }
