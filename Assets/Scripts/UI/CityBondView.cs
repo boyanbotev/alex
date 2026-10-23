@@ -114,7 +114,7 @@ public sealed class CityBondView : MonoBehaviour
         int cost = Mathf.Max(0, TurnManager.Instance.bondUpgradeCost);
         action.gameObject.SetActive(CanManage);
         cancel.gameObject.SetActive(Selecting);
-        actionLabel.text = Selecting ? $"Confirm bond · {cost} stars" : $"Reinforce bond · {cost} stars";
+        actionLabel.text = Selecting ? $"Confirm bond · {CurrencyUI.Amount(cost)}" : $"Reinforce bond · {CurrencyUI.Amount(cost)}";
         var text = new StringBuilder();
         text.AppendLine($"Bonds {Bonds.Count(source)}/{TurnManager.Instance.maxBondsPerCity}");
         text.AppendLine($"Native perk: {Perk(source)}");
@@ -142,7 +142,7 @@ public sealed class CityBondView : MonoBehaviour
                 text.AppendLine($"{target.cityName} receives: {Perk(source)}");
             }
             bool affordable = TurnManager.Instance.ActivePlayer.stars >= cost;
-            if (valid && !affordable) text.Append($"\nRequires {cost} stars.");
+            if (valid && !affordable) text.Append($"\nRequires {CurrencyUI.Amount(cost)}.");
             action.interactable = valid && affordable;
         }
         label.text = text.ToString();
@@ -200,7 +200,7 @@ public sealed class CityBondView : MonoBehaviour
             CityPerkKind.Healing => $"+{perk.amount} healing when friendly/allied units rest here; archers" + (city.PerkLevel >= 2 ? " and catapults" : "; level 2 adds catapults"),
             CityPerkKind.Adrenaline => $"+{perk.amount} movement for friendly/allied units starting here; cavalry" + (city.PerkLevel >= 2 ? " and knights" : "; level 2 adds knights"),
             CityPerkKind.Fortification => $"+{perk.amount} defence for friendly/allied units here; defenders" + (city.PerkLevel >= 2 ? " and Colossus" : "; level 2 adds Colossus"),
-            CityPerkKind.Dopamine => $"Units created here earn +{perk.amount} stars for severing enemy neurons",
+            CityPerkKind.Dopamine => $"Units created here earn +{perk.amount} coins for severing enemy neurons",
             _ => perk.description
         };
         return $"{perk.IconTag}{(string.IsNullOrEmpty(perk.perkName) ? perk.kind.ToString() : perk.perkName)} (level {city.PerkLevel}) — {effect}" +

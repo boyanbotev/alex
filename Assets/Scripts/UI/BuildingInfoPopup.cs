@@ -11,6 +11,6 @@ public class BuildingInfoPopup : MonoBehaviour
     {
         buildingNameText.text = building.buildingName;
         descriptionText.text = building.description;
-        costText.text = building.cost + " stars";
+        costText.text = CurrencyUI.Amount(building.cost);
     }
 }

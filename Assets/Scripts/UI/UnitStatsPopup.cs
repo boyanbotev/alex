@@ -54,7 +54,7 @@ public class UnitStatsPopup : MonoBehaviour
     {
         PrepareHoverLayout();
         unitNameText.text = unit.name;
-        costText.text = unit.cost + " stars";
+        costText.text = CurrencyUI.Amount(unit.cost);
         healthText.text = "HP: " + unit.maxHealth;
         attackText.text = "Attack: " + unit.attackPower;
         defenseText.text = "Defense: " + unit.defensePower;

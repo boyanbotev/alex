@@ -81,7 +81,7 @@ public class Level : ScriptableObject {
                  (entry.faction.startingUnit == null || entry.faction.startingUnit.unitData == null || entry.faction.startingUnit.prefab == null ||
                   entry.faction.startingUnit.prefab.GetComponent<Unit>() == null)) ||
                 entry.startingStars < 0 || entry.startingCities == null || (entry.isAI && entry.startingCities.Length == 0))
-                throw new InvalidOperationException($"Level '{name}': each faction needs valid prefabs and non-negative stars; AI factions also need a starting city.");
+                throw new InvalidOperationException($"Level '{name}': each faction needs valid prefabs and non-negative coins; AI factions also need a starting city.");
             if (!entry.isAI) humanCount++;
             if (!factionIds.Add(entry.faction.CampaignId))
                 throw new InvalidOperationException($"Level '{name}': factions need unique campaign IDs.");

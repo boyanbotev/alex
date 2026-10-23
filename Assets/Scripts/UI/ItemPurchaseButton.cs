@@ -44,7 +44,7 @@ public class ItemPurchaseButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     public void AddCost(int cost) 
     { 
-        CostText.text = cost + " stars";
+        CostText.text = CurrencyUI.Amount(cost);
     }
 
     public void AddListener(UnityAction action)
@@ -56,6 +56,6 @@ public class ItemPurchaseButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     public void AddRefund(int amount)
     {
-        CostText.text = "+" + amount + " stars";
+        CostText.text = CurrencyUI.Refund(amount);
     }
 }

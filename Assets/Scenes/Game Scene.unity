@@ -1156,7 +1156,7 @@ GameObject:
   - component: {fileID: 425520716}
   - component: {fileID: 425520715}
   m_Layer: 5
-  m_Name: Not enough stars text
+  m_Name: Not enough coins text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1201,7 +1201,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: You don't have enough stars to research this technology
+  m_text: You don't have enough coins to research this technology
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5198,7 +5198,7 @@ GameObject:
   - component: {fileID: 1558460882}
   - component: {fileID: 1558460881}
   m_Layer: 5
-  m_Name: Stars counter
+  m_Name: Coins counter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5243,7 +5243,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '358 Stars
+  m_text: '<sprite="Currency" index=0> 358
 
 '
   m_isRightToLeft: 0
@@ -6084,7 +6084,7 @@ GameObject:
   - component: {fileID: 1943797931}
   - component: {fileID: 1943797930}
   m_Layer: 5
-  m_Name: Stars per turn counter
+  m_Name: Coins per turn counter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

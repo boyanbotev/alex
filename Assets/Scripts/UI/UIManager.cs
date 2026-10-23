@@ -30,7 +30,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] Button researchButton;
     [SerializeField] BuildingInfoPopup buildingInfoPopup;
     [SerializeField] UnitStatsPopup unitStatsPopup;
-    [Header("Stars")]
+    [Header("Coins")]
     [SerializeField] TextMeshProUGUI starsCounter;
     [SerializeField] TextMeshProUGUI starsPerTurnCounter;
     [SerializeField] TextMeshProUGUI turnCounter;
@@ -350,7 +350,7 @@ public class UIManager : MonoBehaviour
     public void SetStars(int value)
     {
         RefreshCityPanel();
-        starsCounter.text = value + " stars";
+        starsCounter.text = CurrencyUI.Amount(value);
     }
 
     private void RefreshCityPanel()

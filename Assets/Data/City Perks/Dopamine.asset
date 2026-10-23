@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Dopamine
   m_EditorClassIdentifier: 
   perkName: Dopamine
-  description: Units created here earn 2 extra stars when severing enemy neurons.
+  description: Units created here earn 2 extra coins when severing enemy neurons.
   icon: {fileID: 0}
   kind: 1
   amount: 3
