@@ -15,6 +15,8 @@ MonoBehaviour:
   textColor: {r: 1, g: 1, b: 1, a: 1}
   showUnderlay: 1
   underlayColor: {r: 0.06, g: 0.08, b: 0.12, a: 0.60784316}
+  underlayCornerRadius: 0.035
+  underlayEdgeSoftness: 0.015
   cityFontSize: 1.7
   cityNameScale: 1.15
   cityDetailsScale: 1.2

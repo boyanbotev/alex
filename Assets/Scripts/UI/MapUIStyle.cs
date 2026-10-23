@@ -11,6 +11,10 @@ public sealed class MapUIStyle : ScriptableObject
     public Color textColor = Color.white;
     public bool showUnderlay = true;
     public Color underlayColor = new Color(.06f, .08f, .12f, .85f);
+    [Tooltip("Rounded corner radius in world units. Zero gives square corners.")]
+    [Min(0)] public float underlayCornerRadius = .035f;
+    [Tooltip("Inward edge fade in world units. Zero gives a crisp antialiased edge.")]
+    [Min(0)] public float underlayEdgeSoftness = .015f;
 
     [Header("City labels")]
     [Min(.1f)] public float cityFontSize = 1.7f;

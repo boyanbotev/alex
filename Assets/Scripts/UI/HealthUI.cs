@@ -10,6 +10,7 @@ public class HealthUI : MonoBehaviour
     private Transform backing;
     private int currentHealth;
     private int styleRevision = -1;
+    private bool backingShapeDirty;
 
     private void Awake()
     {
@@ -29,6 +30,7 @@ public class HealthUI : MonoBehaviour
         text.ForceMeshUpdate(true);
         if (backing == null) backing = MapLabelStyle.CreateBacking(text.transform);
         MapLabelStyle.FitBacking(backing, text.textBounds, style.healthUnderlayPadding);
+        backingShapeDirty = true;
     }
 
     private void LateUpdate()
@@ -48,8 +50,14 @@ public class HealthUI : MonoBehaviour
         // One fixed slot relative to the unit root, independent of artwork bounds,
         // nearby labels, and selection/attack scaling.
         Vector3 parentScale = text.transform.parent.lossyScale;
-        text.transform.localScale = new Vector3(1f / Mathf.Max(.001f, parentScale.x),
+        Vector3 labelScale = new Vector3(1f / Mathf.Max(.001f, parentScale.x),
             1f / Mathf.Max(.001f, parentScale.y), 1f / Mathf.Max(.001f, parentScale.z));
+        if (backingShapeDirty || text.transform.localScale != labelScale)
+        {
+            text.transform.localScale = labelScale;
+            MapLabelStyle.UpdateBackingShape(backing);
+            backingShapeDirty = false;
+        }
         text.transform.rotation = mainCamera.transform.rotation;
         Vector3 anchor = unit.transform.position + Vector3.up * style.healthWorldHeight +
             mainCamera.transform.right * style.healthOffset.x + mainCamera.transform.up * style.healthOffset.y;

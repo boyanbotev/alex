@@ -63,6 +63,7 @@ public class CityStarsUI : MonoBehaviour
                 camera.transform.up * (style.cityOffset.y - style.cityMarkerGap - halfHeight);
             text.transform.position = anchor - text.transform.TransformVector(bounds.center);
         }
+        MapLabelStyle.UpdateBackingShape(backing);
     }
 
     private void ApplyIconOverlays(TMP_TextInfo _)

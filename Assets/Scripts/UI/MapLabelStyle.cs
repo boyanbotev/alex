@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -9,6 +8,10 @@ public static class MapLabelStyle
     private static readonly Dictionary<Material, Material> overlays = new();
     private static Sprite backgroundSprite;
     private static Material backgroundMaterial;
+    private static readonly MaterialPropertyBlock backingProperties = new();
+    private static readonly int sizeId = Shader.PropertyToID("_Size");
+    private static readonly int radiusId = Shader.PropertyToID("_CornerRadius");
+    private static readonly int softnessId = Shader.PropertyToID("_EdgeSoftness");
 
     public static Material Overlay(Material source)
     {
@@ -27,9 +30,9 @@ public static class MapLabelStyle
             var texture = Texture2D.whiteTexture;
             backgroundSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
                 Vector2.one * .5f, texture.width);
-            var source = Resources.Load<TMP_SpriteAsset>("Sprite Assets/Currency").material;
-            backgroundMaterial = new Material(Overlay(source)) { name = "Map Label Backing", renderQueue = 3999 };
-            backgroundMaterial.mainTexture = texture;
+            // Resources keeps the shader available in player builds too.
+            backgroundMaterial = new Material(Resources.Load<Shader>("MapLabelUnderlay"))
+                { name = "Map Label Backing", renderQueue = 3999 };
         }
         var backing = new GameObject("Label Backing").AddComponent<SpriteRenderer>();
         backing.transform.SetParent(parent, false);
@@ -46,6 +49,18 @@ public static class MapLabelStyle
         var renderer = backing.GetComponent<SpriteRenderer>();
         renderer.color = MapUIStyle.Shared.underlayColor;
         renderer.enabled = MapUIStyle.Shared.showUnderlay;
+        UpdateBackingShape(backing);
     }
 
+    public static void UpdateBackingShape(Transform backing)
+    {
+        var renderer = backing.GetComponent<SpriteRenderer>();
+        var style = MapUIStyle.Shared;
+        Vector3 size = backing.lossyScale;
+        renderer.GetPropertyBlock(backingProperties);
+        backingProperties.SetVector(sizeId, new Vector4(Mathf.Abs(size.x), Mathf.Abs(size.y), 0, 0));
+        backingProperties.SetFloat(radiusId, style.underlayCornerRadius);
+        backingProperties.SetFloat(softnessId, style.underlayEdgeSoftness);
+        renderer.SetPropertyBlock(backingProperties);
+    }
 }
