@@ -40,6 +40,7 @@ public class Unit : MonoBehaviour
     private Vector3 originalVisualScale;
 
     [SerializeField] private Renderer render;
+    private Player viewer;
     private MaterialPropertyBlock visualProperties;
     private Color activeColor;
     private int colorProperty;
@@ -50,6 +51,18 @@ public class Unit : MonoBehaviour
     {
         originalScale = transform.localScale;
         originalVisualScale = render != null ? render.transform.localScale : originalScale;
+    }
+
+    private void LateUpdate()
+    {
+        if (render == null) return;
+        if (viewer == null && TurnManager.Instance != null)
+            viewer = TurnManager.Instance.players.Find(player => player != null && !player.isAI);
+
+        // Gate the whole artwork by its tile, rather than clipping it against fog geometry.
+        // Dying units keep their artwork until the attack animation removes them.
+        render.enabled = currentTile != null && viewer != null && viewer.visibleTiles != null &&
+            viewer.visibleTiles.IsVisible(currentTile);
     }
 
     private Tween ScaleAttackVisual(float multiplier, float seconds, Ease ease) =>
