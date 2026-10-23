@@ -17,7 +17,7 @@ public static class CityPerkIcons
         return "";
     }
 
-    public static string Row(City city)
+    public static string Row(City city, string spacing = " ")
     {
         var text = new StringBuilder();
         int shown = 0;
@@ -36,7 +36,7 @@ public static class CityPerkIcons
             int bit = 1 << (int)perk.kind;
             if ((shown & bit) != 0) return;
             shown |= bit;
-            if (text.Length > 0) text.Append("  ");
+            if (text.Length > 0) text.Append(spacing);
             text.Append(perk.icon != null ? perk.IconTag.TrimEnd() : perk.perkName);
             text.Append($"<sup>{bonds.GetLevel(city, perk.kind)}</sup>");
         }
