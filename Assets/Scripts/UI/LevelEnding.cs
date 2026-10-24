@@ -198,7 +198,7 @@ public sealed class LevelEnding : MonoBehaviour
 
         RectTransform background = Rect("Background", root.transform);
         Stretch(background, Vector2.zero, Vector2.zero);
-        background.gameObject.AddComponent<Image>().color = new Color(0.99f, 0.985f, 0.97f, 1f);
+        background.gameObject.AddComponent<Image>().color = UIStyle.Shared.light.background;
         background.gameObject.AddComponent<UIInputBlocker>();
 
         RectTransform viewport = Rect("Reading area", background);
@@ -241,9 +241,10 @@ public sealed class LevelEnding : MonoBehaviour
         {
             Canvas.ForceUpdateCanvases();
             var source = Resources.Load<Font>("Fonts/EBGaramond");
-            if (source != null && readingFont == null) readingFont = TMP_FontAsset.CreateFontAsset(source);
+            if (UIStyle.Shared.narrativeFont == null && source != null && readingFont == null) readingFont = TMP_FontAsset.CreateFontAsset(source);
             foreach (var label in content.GetComponentsInChildren<TextMeshProUGUI>())
-                if (readingFont != null) label.font = readingFont;
+                if (UIStyle.Shared.narrativeFont != null) label.font = UIStyle.Shared.narrativeFont;
+                else if (readingFont != null) label.font = readingFont;
             text.overflowMode = TextOverflowModes.Page;
             text.gameObject.AddComponent<LayoutElement>().preferredHeight = Mathf.Max(180, viewport.rect.height - 220);
             pageNumber = Label("Page number", content, 20);
@@ -263,18 +264,17 @@ public sealed class LevelEnding : MonoBehaviour
     private void AddButton(string caption, UnityEngine.Events.UnityAction action, RectTransform parent = null, bool primary = false)
     {
         RectTransform rect = Rect("Ending button", parent != null ? parent : content);
-        rect.gameObject.AddComponent<Image>().color = primary
-            ? new Color(0.24f, 0.34f, 0.46f)
-            : new Color(0.9f, 0.89f, 0.86f);
+        rect.gameObject.AddComponent<Image>();
         LayoutElement size = rect.gameObject.AddComponent<LayoutElement>();
         size.preferredHeight = 56;
         size.flexibleWidth = 1;
-        rect.gameObject.AddComponent<Button>().onClick.AddListener(action);
+        var button = rect.gameObject.AddComponent<Button>();
+        button.onClick.AddListener(action);
         TextMeshProUGUI label = Label("Label", rect, 24);
         Stretch(label.rectTransform, new Vector2(12, 4), new Vector2(-12, -4));
         label.alignment = TextAlignmentOptions.Center;
         label.text = caption;
-        label.color = primary ? Color.white : new Color(0.17f, 0.16f, 0.14f);
+        UIStyle.Shared.Button(button, UIStyle.Shared.light, primary);
         if (parent == null) buttons.Add(rect.gameObject);
     }
 
@@ -282,7 +282,7 @@ public sealed class LevelEnding : MonoBehaviour
     {
         var label = Rect(name, parent).gameObject.AddComponent<TextMeshProUGUI>();
         label.fontSize = size;
-        label.color = new Color(0.17f, 0.16f, 0.14f);
+        UIStyle.Shared.Text(label, UIStyle.Shared.light);
         label.raycastTarget = false;
         return label;
     }

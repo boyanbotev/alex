@@ -54,8 +54,22 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        ApplyStyle();
     }
 
+    [ContextMenu("Apply UI Style")]
+    public void ApplyStyle()
+    {
+        var style = UIStyle.Shared;
+        if (style == null) return;
+        var palette = style.Gameplay;
+        foreach (var panel in new Component[] { spawnPanel, unitInfoPanel, buildPanel, techPanel,
+            techPurchasePanel, buildingInfoPopup, unitStatsPopup, bondView })
+            style.Surface(panel, palette);
+        if (bondView != null) bondView.ApplyStyle();
+        foreach (var capture in captureButtons.Values)
+            if (capture != null) style.CaptureButton(capture.GetComponent<Button>(), palette);
+    }
     private IEnumerator Start()
     {
         while (GridGenerator.Instance == null || !GridGenerator.Instance.IsReady)
@@ -240,6 +254,7 @@ public class UIManager : MonoBehaviour
         captureButtons[city] = button;
 
         Button buttonComponent = button.GetComponent<Button>();
+        if (UIStyle.Shared != null) UIStyle.Shared.CaptureButton(buttonComponent, UIStyle.Shared.Gameplay);
         TextMeshProUGUI buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
 
         if (buttonText != null) buttonText.text = "Capture";

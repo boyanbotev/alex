@@ -6,6 +6,11 @@ using UnityEngine.EventSystems;
 
 public class ItemPurchaseButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
+    private void Awake()
+    {
+        var style = UIStyle.Shared;
+        if (style != null) style.Button(GetComponent<Button>(), style.Gameplay);
+    }
     private FactionUnit hoverUnit;
     private bool showingUnit;
 

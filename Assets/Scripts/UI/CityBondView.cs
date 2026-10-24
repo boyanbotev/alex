@@ -30,6 +30,13 @@ public sealed class CityBondView : MonoBehaviour
         action.onClick.AddListener(Act);
         cancel.onClick.AddListener(Cancel);
     }
+    public void ApplyStyle()
+    {
+        var style = UIStyle.Shared;
+        if (style == null) return;
+        style.Surface(panel, style.Gameplay);
+        style.Button(cancel, style.Gameplay, false);
+    }
     public void Show(City city)
     {
         RestoreLayout();
