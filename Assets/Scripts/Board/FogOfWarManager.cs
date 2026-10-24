@@ -10,6 +10,11 @@ public class FogOfWarManager : MonoBehaviour
     public GameObject fogTilePrefab;
 
     private Dictionary<Vector2Int, GameObject> fogTiles = new Dictionary<Vector2Int, GameObject>();
+    private readonly Dictionary<Vector2Int, Renderer> fogRenderers = new();
+    private MaterialPropertyBlock fogProperties;
+    private static readonly int boundsId = Shader.PropertyToID("_FogBounds");
+    private static readonly int sidesId = Shader.PropertyToID("_FogSides");
+    private static readonly int cornersId = Shader.PropertyToID("_FogCorners");
 
     private void Awake() => Instance = this;
 
@@ -27,7 +32,18 @@ public class FogOfWarManager : MonoBehaviour
             using (creationMarker.Auto())
                 fogObj = Instantiate(fogTilePrefab, tile.transform.position, Quaternion.identity, tile.transform);
             fogTiles[tile.gridPosition] = fogObj;
+            fogRenderers[tile.gridPosition] = fogObj.GetComponentInChildren<Renderer>();
             tile.city?.Hide();
+        }
+
+        foreach (var position in fogTiles.Keys)
+        {
+            if (budget.ShouldYield())
+            {
+                yield return null;
+                budget.ShouldYield();
+            }
+            RefreshFog(position);
         }
 
         foreach (Player player in TurnManager.Instance.players)
@@ -63,10 +79,36 @@ public class FogOfWarManager : MonoBehaviour
         player.visibleTiles.SetVisible(tile.gridPosition);
         if (!player.isAI && newlyVisible) NeuronSegmentVisual.RefreshAround(tile);
 
-        if (!player.isAI && fogTiles.TryGetValue(tile.gridPosition, out GameObject fogObj))
+        if (!player.isAI && newlyVisible && fogTiles.TryGetValue(tile.gridPosition, out GameObject fogObj))
         {
             fogObj.SetActive(false);
+            for (int x = -1; x <= 1; x++)
+                for (int y = -1; y <= 1; y++)
+                    if (x != 0 || y != 0)
+                        RefreshFog(tile.gridPosition + new Vector2Int(x, y));
             tile.city?.Reveal();
         }
+    }
+
+    private float IsCovered(Vector2Int position, int x, int y)
+    {
+        return fogTiles.TryGetValue(position + new Vector2Int(x, y), out var fog)
+            && fog.activeSelf ? 1f : 0f;
+    }
+
+    private void RefreshFog(Vector2Int position)
+    {
+        if (!fogRenderers.TryGetValue(position, out var renderer) || renderer == null
+            || !renderer.gameObject.activeInHierarchy) return;
+
+        fogProperties ??= new MaterialPropertyBlock();
+        renderer.GetPropertyBlock(fogProperties);
+        Bounds bounds = renderer.bounds;
+        fogProperties.SetVector(boundsId, new Vector4(bounds.min.x, bounds.min.z, bounds.size.x, bounds.size.z));
+        fogProperties.SetVector(sidesId, new Vector4(IsCovered(position,-1,0), IsCovered(position,1,0),
+            IsCovered(position,0,-1), IsCovered(position,0,1)));
+        fogProperties.SetVector(cornersId, new Vector4(IsCovered(position,-1,-1), IsCovered(position,1,-1),
+            IsCovered(position,-1,1), IsCovered(position,1,1)));
+        renderer.SetPropertyBlock(fogProperties);
     }
 }
