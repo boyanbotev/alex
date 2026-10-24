@@ -14,6 +14,8 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
     private readonly List<Vector3> uvs = new(208);
     private readonly List<Vector3> acrossDirections = new(208);
     private readonly List<int> triangles = new(324);
+    private static readonly int widthScaleId = Shader.PropertyToID("_WidthScale");
+    private static readonly int curveAmountId = Shader.PropertyToID("_CurveAmount");
 
     public static void RefreshAround(Tile tile)
     {
@@ -50,7 +52,6 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
             visual.AddComponent<MeshFilter>().sharedMesh = mesh;
             var shadow = new GameObject("Neuron contact shadow");
             shadow.transform.SetParent(transform, false);
-            shadow.transform.position += new Vector3(0.025f, -0.015f, -0.025f);
             shadowRenderer = shadow.AddComponent<MeshRenderer>();
             shadowRenderer.sharedMaterial = Resources.Load<Material>("NeuronShadow");
             shadowRenderer.shadowCastingMode = ShadowCastingMode.Off;
@@ -69,7 +70,10 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
         acrossDirections.Clear();
         triangles.Clear();
         Vector3 centre = SurfacePosition(building.tile, building.data.neuronHeight);
-        float radius = Mathf.Max(0.01f, building.data.neuronWidth) * 0.5f;
+        Material appearanceMaterial = meshRenderer.sharedMaterial;
+        float widthScale = appearanceMaterial != null && appearanceMaterial.HasProperty(widthScaleId) ? appearanceMaterial.GetFloat(widthScaleId) : 1f;
+        float curveAmount = appearanceMaterial != null && appearanceMaterial.HasProperty(curveAmountId) ? appearanceMaterial.GetFloat(curveAmountId) : 0.045f;
+        float radius = Mathf.Max(0.01f, building.data.neuronWidth * widthScale) * 0.5f;
         int connections = 0;
         for (int dx = -1; dx <= 1; dx++)
         for (int dy = -1; dy <= 1; dy++)
@@ -80,7 +84,7 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
             Building other = next.currentBuilding;
             if (next.city == null && (other == null || !other.IsPlacedNeuron)) continue;
             Vector3 end = SurfacePosition(next, next.city == null ? other.data.neuronHeight : building.data.neuronHeight);
-            AddConnection(centre, end, radius, next.city == null);
+            AddConnection(centre, end, radius, next.city == null, Mathf.Max(0, curveAmount));
             connections++;
         }
         if (connections > 1) AddJunction(centre, radius);
@@ -91,6 +95,12 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
         mesh.SetTriangles(triangles, 0);
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
+        // The contact-shadow shader can shift vertices by up to 0.1 on each world axis.
+        Bounds bounds = mesh.bounds;
+        Vector3 scale = transform.lossyScale;
+        float minScale = Mathf.Max(0.001f, Mathf.Min(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z)));
+        bounds.Expand(0.2f / minScale);
+        mesh.bounds = bounds;
     }
 
     private void AddJunction(Vector3 centre, float radius)
@@ -114,7 +124,7 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
         }
     }
 
-    private void AddConnection(Vector3 start, Vector3 end, float radius, bool halfConnection)
+    private void AddConnection(Vector3 start, Vector3 end, float radius, bool halfConnection, float curveAmount)
     {
         // Evaluate both halves on the same curve so neighbours meet without a kink.
         bool reverse = start.x > end.x || (start.x == end.x && start.z > end.z);
@@ -122,7 +132,7 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
         Vector3 b = reverse ? start : end;
         Vector3 direction = b - a;
         Vector3 bend = Vector3.Cross(Vector3.up, direction).normalized;
-        float amplitude = Mathf.Min(direction.magnitude * 0.045f, radius * 0.8f);
+        float amplitude = Mathf.Min(direction.magnitude * curveAmount, radius * 0.8f);
         float from = reverse ? 1f : 0f;
         float to = halfConnection ? 0.5f : 1f - from;
         Vector3 previous = start;
