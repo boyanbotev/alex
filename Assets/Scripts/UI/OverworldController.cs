@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public sealed class OverworldController : MonoBehaviour
+public sealed class OverworldController : MonoBehaviour, IUIStyleTarget
 {
     [SerializeField] private GameData game;
     [SerializeField] private CharacterPortrait[] portraits = Array.Empty<CharacterPortrait>();
@@ -23,6 +23,13 @@ public sealed class OverworldController : MonoBehaviour
     private int renderedMessages;
     private bool failed;
     private bool leaving;
+    private Camera viewCamera;
+
+    public void ApplyStyle()
+    {
+        if (viewCamera != null && UIStyle.Shared != null)
+            viewCamera.backgroundColor = UIStyle.Shared.dark.background;
+    }
 
     private void Start()
     {
@@ -113,9 +120,10 @@ public sealed class OverworldController : MonoBehaviour
     private void BuildUI()
     {
         var camera = new GameObject("Overworld Camera", typeof(Camera)).GetComponent<Camera>();
+        viewCamera = camera;
         camera.transform.SetParent(transform, false);
         camera.clearFlags = CameraClearFlags.SolidColor;
-        camera.backgroundColor = new Color(0.035f, 0.045f, 0.06f);
+        camera.backgroundColor = UIStyle.Shared.dark.background;
         if (EventSystem.current == null)
             new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
         var root = new GameObject("Messenger", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -127,7 +135,8 @@ public sealed class OverworldController : MonoBehaviour
         scaler.matchWidthOrHeight = 0.5f;
         var background = Rect("Background", root.transform);
         Stretch(background, Vector2.zero, Vector2.zero);
-        background.gameObject.AddComponent<Image>().color = new Color(0.035f, 0.045f, 0.06f);
+        background.gameObject.AddComponent<Image>();
+        UIStyleBinding.Bind(background, UIStyleBinding.Role.Background, dark: true);
         var panel = Rect("Conversation", background);
         panel.anchorMin = new Vector2(0.18f, 0);
         panel.anchorMax = new Vector2(0.82f, 1);
@@ -157,7 +166,7 @@ public sealed class OverworldController : MonoBehaviour
         scroll.content = messages;
         replies = Rect("Replies", panel);
         Stack(replies, 8);
-        Button("Main menu", panel, () => SceneManager.LoadScene("Main Menu"));
+        Button("Main menu", panel, () => SceneManager.LoadScene("Main Menu"), primary: false);
     }
 
     private void AddMessage(CampaignMessage message)
@@ -191,10 +200,10 @@ public sealed class OverworldController : MonoBehaviour
         }
         var bubble = Rect("Bubble", row);
         bubble.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1;
-        bubble.gameObject.AddComponent<Image>().color = message.outgoing
-            ? new Color(0.12f, 0.30f, 0.27f) : new Color(0.12f, 0.16f, 0.21f);
+        bubble.gameObject.AddComponent<Image>();
+        UIStyleBinding.Bind(bubble, message.outgoing ? UIStyleBinding.Role.OutgoingMessage : UIStyleBinding.Role.IncomingMessage, dark: true);
         Stack(bubble, 4).padding = new RectOffset(16, 16, 12, 12);
-        Label(message.speaker, bubble, 17).color = new Color(0.55f, 0.8f, 0.75f);
+        UIStyleBinding.Bind(Label(message.speaker, bubble, 17), UIStyleBinding.Role.SpeakerName, dark: true);
         Label(message.text, bubble, 23);
     }
 
@@ -213,22 +222,23 @@ public sealed class OverworldController : MonoBehaviour
         var label = Rect("Text", parent).gameObject.AddComponent<TextMeshProUGUI>();
         label.text = value;
         label.fontSize = size;
-        label.color = new Color(0.94f, 0.95f, 0.96f);
+        UIStyleBinding.Bind(label, UIStyleBinding.Role.Text, dark: true);
         label.richText = false;
         label.raycastTarget = false;
         return label;
     }
 
-    private static void Button(string caption, Transform parent, UnityEngine.Events.UnityAction action)
+    private static void Button(string caption, Transform parent, UnityEngine.Events.UnityAction action, bool primary = true)
     {
         var rect = Rect("Button", parent);
-        rect.gameObject.AddComponent<Image>().color = new Color(0.18f, 0.26f, 0.32f);
+        rect.gameObject.AddComponent<Image>();
         var size = rect.gameObject.AddComponent<LayoutElement>();
         size.minHeight = 52;
         var layout = Stack(rect, 0);
         layout.padding = new RectOffset(14, 14, 10, 10);
         Label(caption, rect, 22).alignment = TextAlignmentOptions.Center;
         rect.gameObject.AddComponent<UnityEngine.UI.Button>().onClick.AddListener(action);
+        UIStyleBinding.Bind(rect, primary ? UIStyleBinding.Role.PrimaryButton : UIStyleBinding.Role.SecondaryButton, dark: true);
     }
 
     private static RectTransform Rect(string name, Transform parent)

@@ -3,6 +3,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+public interface IUIStyleTarget { void ApplyStyle(); }
+
 [CreateAssetMenu(menuName = "Game/UI Style", fileName = "UI Style")]
 public sealed class UIStyle : ScriptableObject
 {
@@ -25,7 +27,21 @@ public sealed class UIStyle : ScriptableObject
     public bool darkGameplay;
     public TMP_FontAsset interfaceFont;
     public TMP_FontAsset narrativeFont;
+    public Color hudOverlayColor = new Color(0.06f, 0.09f, 0.13f, 0.65f);
     public Palette Gameplay => darkGameplay ? dark : light;
+
+    [ContextMenu("Apply to Loaded UI")]
+    public void ApplyToLoadedUI()
+    {
+        // Explicit refresh only; no per-frame scene searches or palette polling.
+        var behaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var behaviour in behaviours)
+            if (!(behaviour is UIStyleBinding) && behaviour is IUIStyleTarget target) target.ApplyStyle();
+        foreach (var behaviour in behaviours)
+            if (behaviour is UIStyleBinding binding && !binding.TryGetComponent<Button>(out _)) binding.Apply();
+        foreach (var behaviour in behaviours)
+            if (behaviour is UIStyleBinding binding && binding.TryGetComponent<Button>(out _)) binding.Apply();
+    }
 
     public void Text(TMP_Text label, Palette palette, bool narrative = false)
     {
@@ -46,6 +62,9 @@ public sealed class UIStyle : ScriptableObject
             Text(label, palette);
             label.color = primary ? palette.primaryButtonText : palette.secondaryButtonText;
         }
+        // Close buttons use a shaped icon as their target graphic, rather than a filled rectangle.
+        if (button.name == "Close" && button.GetComponentInChildren<TMP_Text>(true) == null && button.targetGraphic != null)
+            button.targetGraphic.color = palette.secondaryButtonText;
     }
 
     public void CaptureButton(Button button, Palette palette)
@@ -62,6 +81,7 @@ public sealed class UIStyle : ScriptableObject
         if (root == null) return;
         if (root.TryGetComponent<Image>(out var image)) image.color = palette.panel;
         foreach (var label in root.GetComponentsInChildren<TextMeshProUGUI>(true)) Text(label, palette);
-        foreach (var button in root.GetComponentsInChildren<Button>(true)) Button(button, palette);
+        foreach (var button in root.GetComponentsInChildren<Button>(true))
+            Button(button, palette, button.name != "Close" && button.name != "Cancel");
     }
 }

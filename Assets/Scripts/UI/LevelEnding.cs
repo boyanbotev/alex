@@ -198,7 +198,8 @@ public sealed class LevelEnding : MonoBehaviour
 
         RectTransform background = Rect("Background", root.transform);
         Stretch(background, Vector2.zero, Vector2.zero);
-        background.gameObject.AddComponent<Image>().color = UIStyle.Shared.light.background;
+        background.gameObject.AddComponent<Image>();
+        UIStyleBinding.Bind(background, UIStyleBinding.Role.Background);
         background.gameObject.AddComponent<UIInputBlocker>();
 
         RectTransform viewport = Rect("Reading area", background);
@@ -245,9 +246,12 @@ public sealed class LevelEnding : MonoBehaviour
             foreach (var label in content.GetComponentsInChildren<TextMeshProUGUI>())
                 if (UIStyle.Shared.narrativeFont != null) label.font = UIStyle.Shared.narrativeFont;
                 else if (readingFont != null) label.font = readingFont;
+            foreach (var label in content.GetComponentsInChildren<TextMeshProUGUI>())
+                UIStyleBinding.Bind(label, UIStyleBinding.Role.NarrativeText);
             text.overflowMode = TextOverflowModes.Page;
             text.gameObject.AddComponent<LayoutElement>().preferredHeight = Mathf.Max(180, viewport.rect.height - 220);
             pageNumber = Label("Page number", content, 20);
+            UIStyleBinding.Bind(pageNumber, UIStyleBinding.Role.MutedText);
             pageNumber.alignment = TextAlignmentOptions.Center;
         }
     }
@@ -274,7 +278,7 @@ public sealed class LevelEnding : MonoBehaviour
         Stretch(label.rectTransform, new Vector2(12, 4), new Vector2(-12, -4));
         label.alignment = TextAlignmentOptions.Center;
         label.text = caption;
-        UIStyle.Shared.Button(button, UIStyle.Shared.light, primary);
+        UIStyleBinding.Bind(button, primary ? UIStyleBinding.Role.PrimaryButton : UIStyleBinding.Role.SecondaryButton);
         if (parent == null) buttons.Add(rect.gameObject);
     }
 
@@ -282,7 +286,7 @@ public sealed class LevelEnding : MonoBehaviour
     {
         var label = Rect(name, parent).gameObject.AddComponent<TextMeshProUGUI>();
         label.fontSize = size;
-        UIStyle.Shared.Text(label, UIStyle.Shared.light);
+        UIStyleBinding.Bind(label, UIStyleBinding.Role.Text);
         label.raycastTarget = false;
         return label;
     }

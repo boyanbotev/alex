@@ -63,3 +63,4 @@ MonoBehaviour:
   darkGameplay: 1
   interfaceFont: {fileID: 0}
   narrativeFont: {fileID: 0}
+  hudOverlayColor: {r: 0.06, g: 0.09, b: 0.13, a: 0.65}

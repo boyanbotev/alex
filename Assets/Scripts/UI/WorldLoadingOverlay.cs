@@ -4,12 +4,30 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public sealed class WorldLoadingOverlay : MonoBehaviour
+public sealed class WorldLoadingOverlay : MonoBehaviour, IUIStyleTarget
 {
     private static WorldLoadingOverlay instance;
     private RectTransform spinner;
     private TextMeshProUGUI label;
     private Image background;
+    private bool compact;
+
+    public void ApplyStyle()
+    {
+        var style = UIStyle.Shared;
+        if (style == null || background == null || label == null) return;
+        var color = compact ? style.Gameplay.panel : style.dark.background;
+        color.a = compact ? 0.9f : 1f;
+        background.color = color;
+        style.Text(label, compact ? style.Gameplay : style.dark);
+        var segments = spinner.GetComponentsInChildren<Image>();
+        for (int i = 0; i < segments.Length; i++)
+        {
+            color = style.dark.accent;
+            color.a = (i + 1f) / segments.Length;
+            segments[i].color = color;
+        }
+    }
 
     public static void Show(string message, bool compact = false)
     {
@@ -44,7 +62,6 @@ public sealed class WorldLoadingOverlay : MonoBehaviour
                 segmentRect.sizeDelta = new Vector2(7, 14);
                 segmentRect.localRotation = Quaternion.Euler(0, 0, -i * 45);
                 var graphic = segment.GetComponent<Image>();
-                graphic.color = new Color(1, 1, 1, (i + 1) / 8f);
                 graphic.raycastTarget = false;
             }
             instance.label = new GameObject("Status", typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
@@ -60,12 +77,13 @@ public sealed class WorldLoadingOverlay : MonoBehaviour
         panel.anchorMax = compact ? new Vector2(0.5f, 0.5f) : Vector2.one;
         panel.offsetMin = panel.offsetMax = Vector2.zero;
         if (compact) panel.sizeDelta = new Vector2(380, 130);
-        instance.background.color = new Color(0.04f, 0.06f, 0.09f, compact ? 0.55f : 1f);
+        instance.compact = compact;
         instance.spinner.anchoredPosition = new Vector2(0, compact ? 20 : 35);
         instance.label.rectTransform.anchoredPosition = new Vector2(0, compact ? -30 : -40);
         instance.label.rectTransform.sizeDelta = new Vector2(compact ? 360 : 700, 60);
         instance.label.fontSize = compact ? 24 : 28;
         instance.label.text = message;
+        instance.ApplyStyle();
     }
 
     public static void Hide()

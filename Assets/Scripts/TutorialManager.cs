@@ -107,7 +107,8 @@ public sealed class TutorialManager : MonoBehaviour
         rect.anchoredPosition = new Vector2(0, -80);
         rect.sizeDelta = new Vector2(560, 160);
         panel = rect.gameObject;
-        panel.AddComponent<Image>().color = new Color(0.07f, 0.1f, 0.14f, 0.97f);
+        panel.AddComponent<Image>();
+        UIStyleBinding.Bind(rect, UIStyleBinding.Role.Panel, gameplay: true);
         panel.AddComponent<UIInputBlocker>();
 
         instruction = Rect("Text", rect).gameObject.AddComponent<TextMeshProUGUI>();
@@ -119,7 +120,7 @@ public sealed class TutorialManager : MonoBehaviour
         instruction.enableAutoSizing = true;
         instruction.fontSizeMin = 18;
         instruction.fontSizeMax = 26;
-        instruction.color = new Color(0.94f, 0.93f, 0.9f);
+        UIStyleBinding.Bind(instruction, UIStyleBinding.Role.Text, gameplay: true);
         instruction.alignment = TextAlignmentOptions.MidlineLeft;
         instruction.raycastTarget = false;
 
@@ -128,7 +129,7 @@ public sealed class TutorialManager : MonoBehaviour
         close.pivot = new Vector2(1, 1);
         close.anchoredPosition = new Vector2(-8, -8);
         close.sizeDelta = new Vector2(44, 44);
-        close.gameObject.AddComponent<Image>().color = new Color(0.15f, 0.2f, 0.27f);
+        close.gameObject.AddComponent<Image>();
         close.gameObject.AddComponent<Button>().onClick.AddListener(() => panel.SetActive(false));
         var caption = Rect("Label", close).gameObject.AddComponent<TextMeshProUGUI>();
         caption.rectTransform.anchorMin = Vector2.zero;
@@ -138,6 +139,7 @@ public sealed class TutorialManager : MonoBehaviour
         caption.fontSize = 24;
         caption.alignment = TextAlignmentOptions.Center;
         caption.raycastTarget = false;
+        UIStyleBinding.Bind(close, UIStyleBinding.Role.SecondaryButton, gameplay: true);
     }
 
     private static RectTransform Rect(string name, Transform parent)

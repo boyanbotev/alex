@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class UIManager : MonoBehaviour
+public class UIManager : MonoBehaviour, IUIStyleTarget
 {
     [Header("Spawn")]
     [SerializeField] RectTransform spawnButtonHolder;
@@ -63,10 +63,19 @@ public class UIManager : MonoBehaviour
         var style = UIStyle.Shared;
         if (style == null) return;
         var palette = style.Gameplay;
+        var canvas = spawnPanel.GetComponentInParent<Canvas>();
+        foreach (var image in canvas.GetComponentsInChildren<Image>(true))
+            if (image.name == "HUD Contrast Overlay") image.color = style.hudOverlayColor;
+        foreach (var label in canvas.GetComponentsInChildren<TextMeshProUGUI>(true)) style.Text(label, palette);
+        foreach (var button in canvas.GetComponentsInChildren<Button>(true))
+            style.Button(button, palette, button.name != "Close" && button.name != "Cancel");
         foreach (var panel in new Component[] { spawnPanel, unitInfoPanel, buildPanel, techPanel,
             techPurchasePanel, buildingInfoPopup, unitStatsPopup, bondView })
             style.Surface(panel, palette);
         if (bondView != null) bondView.ApplyStyle();
+        // HUD sits over the board, so it retains light text even with light panels.
+        foreach (var label in new[] { starsCounter, starsPerTurnCounter, turnCounter })
+            if (label != null) style.Text(label, style.dark);
         foreach (var capture in captureButtons.Values)
             if (capture != null) style.CaptureButton(capture.GetComponent<Button>(), palette);
     }

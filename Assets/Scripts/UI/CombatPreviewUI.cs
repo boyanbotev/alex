@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 
 /// <summary>Two reusable, non-interactive indicators for a held attack preview.</summary>
-public sealed class CombatPreviewUI : MonoBehaviour
+public sealed class CombatPreviewUI : MonoBehaviour, IUIStyleTarget
 {
     private sealed class Indicator
     {
@@ -22,6 +22,14 @@ public sealed class CombatPreviewUI : MonoBehaviour
     private readonly List<Unit> splashTargets = new();
     private readonly List<Indicator> splashIndicators = new();
     private int splashCount;
+
+    public void ApplyStyle()
+    {
+        var style = UIStyle.Shared;
+        if (style == null || style.interfaceFont == null) return;
+        // Damage and defence retain their semantic colours on the board.
+        foreach (var label in GetComponentsInChildren<TextMeshProUGUI>(true)) label.font = style.interfaceFont;
+    }
 
     private void Awake()
     {
@@ -62,6 +70,8 @@ public sealed class CombatPreviewUI : MonoBehaviour
         defense.outlineColor = Color.black;
         defense.outlineWidth = .25f;
         defense.raycastTarget = false;
+        if (UIStyle.Shared != null && UIStyle.Shared.interfaceFont != null)
+            text.font = defense.font = UIStyle.Shared.interfaceFont;
         return new Indicator { root = root, text = text, skull = skull, defense = defense };
     }
 
