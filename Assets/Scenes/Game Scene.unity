@@ -370,7 +370,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   borderMaterial: {fileID: 2100000, guid: ac162a625388dac408e2eb3a2b97371c, type: 2}
-  lineWidth: 0.175
+  lineWidth: 0.16
   yOffset: 0.55
 --- !u!1 &117826607
 GameObject:
