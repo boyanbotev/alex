@@ -74,6 +74,7 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
         float widthScale = appearanceMaterial != null && appearanceMaterial.HasProperty(widthScaleId) ? appearanceMaterial.GetFloat(widthScaleId) : 1f;
         float curveAmount = appearanceMaterial != null && appearanceMaterial.HasProperty(curveAmountId) ? appearanceMaterial.GetFloat(curveAmountId) : 0.045f;
         float radius = Mathf.Max(0.01f, building.data.neuronWidth * widthScale) * 0.5f;
+        float junctionRadius = radius;
         int connections = 0;
         for (int dx = -1; dx <= 1; dx++)
         for (int dy = -1; dy <= 1; dy++)
@@ -84,10 +85,12 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
             Building other = next.currentBuilding;
             if (next.city == null && (other == null || !other.IsPlacedNeuron)) continue;
             Vector3 end = SurfacePosition(next, next.city == null ? other.data.neuronHeight : building.data.neuronHeight);
-            AddConnection(centre, end, radius, next.city == null, Mathf.Max(0, curveAmount));
+            float armRadius = TurnManager.Instance.Bonds.IsReinforced(building.tile, next) ? radius * 1.8f : radius;
+            AddConnection(centre, end, armRadius, next.city == null, Mathf.Max(0, curveAmount));
+            junctionRadius = Mathf.Max(junctionRadius, armRadius);
             connections++;
         }
-        if (connections > 1) AddJunction(centre, radius);
+        if (connections > 1) AddJunction(centre, junctionRadius);
         mesh.Clear();
         mesh.SetVertices(vertices);
         mesh.SetUVs(0, uvs);
