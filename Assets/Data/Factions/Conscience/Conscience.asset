@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   campaignId: conscience
   endingSuccessFunction: get_conscience
-  color: {r: 0.14465398, g: 0.66666657, b: 0.29554823, a: 1}
+  color: {r: 0.13571446, g: 0.59119487, b: 0.26585177, a: 1}
   aiProfile: {fileID: 11400000, guid: 8d694e4a6efa46f99ccd498fd4889f8e, type: 2}
   cityPrefab: {fileID: 4072920081775810972, guid: 5fb05adc26f0823449293f965bbbecb6, type: 3}
   startingUnit: {fileID: 11400000, guid: abf8ff4417c380c4980e374f20455c08, type: 2}
