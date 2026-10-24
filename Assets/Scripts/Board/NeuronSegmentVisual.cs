@@ -9,8 +9,11 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
     private Building building;
     private Mesh mesh;
     private MeshRenderer meshRenderer;
-    private readonly List<Vector3> vertices = new(36);
-    private readonly List<int> triangles = new(54);
+    private MeshRenderer shadowRenderer;
+    private readonly List<Vector3> vertices = new(208);
+    private readonly List<Vector3> uvs = new(208);
+    private readonly List<Vector3> acrossDirections = new(208);
+    private readonly List<int> triangles = new(324);
 
     public static void RefreshAround(Tile tile)
     {
@@ -45,20 +48,29 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
             meshRenderer.receiveShadows = false;
             mesh = new Mesh { name = "Neuron segment" };
             visual.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var shadow = new GameObject("Neuron contact shadow");
+            shadow.transform.SetParent(transform, false);
+            shadow.transform.position += new Vector3(0.025f, -0.015f, -0.025f);
+            shadowRenderer = shadow.AddComponent<MeshRenderer>();
+            shadowRenderer.sharedMaterial = Resources.Load<Material>("NeuronShadow");
+            shadowRenderer.shadowCastingMode = ShadowCastingMode.Off;
+            shadowRenderer.receiveShadows = false;
+            shadow.AddComponent<MeshFilter>().sharedMesh = mesh;
         }
 
         Player viewer = TurnManager.Instance.players.Find(p => p != null && !p.isAI);
         bool visible = viewer != null && viewer.visibleTiles != null && viewer.visibleTiles.IsVisible(building.tile);
         meshRenderer.enabled = visible;
+        shadowRenderer.enabled = visible;
         if (!visible) return;
 
         vertices.Clear();
+        uvs.Clear();
+        acrossDirections.Clear();
         triangles.Clear();
         Vector3 centre = SurfacePosition(building.tile, building.data.neuronHeight);
         float radius = Mathf.Max(0.01f, building.data.neuronWidth) * 0.5f;
-        AddQuad(centre + new Vector3(-radius, 0, -radius), centre + new Vector3(-radius, 0, radius),
-            centre + new Vector3(radius, 0, radius), centre + new Vector3(radius, 0, -radius));
-
+        int connections = 0;
         for (int dx = -1; dx <= 1; dx++)
         for (int dy = -1; dy <= 1; dy++)
         {
@@ -68,16 +80,65 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
             Building other = next.currentBuilding;
             if (next.city == null && (other == null || !other.IsPlacedNeuron)) continue;
             Vector3 end = SurfacePosition(next, next.city == null ? other.data.neuronHeight : building.data.neuronHeight);
-            if (next.city == null) end = (centre + end) * 0.5f;
-            float armRadius = TurnManager.Instance.Bonds.IsReinforced(building.tile, next) ? radius * 1.8f : radius;
-            Vector3 side = Vector3.Cross(Vector3.up, end - centre).normalized * armRadius;
-            AddQuad(centre - side, end - side, end + side, centre + side);
+            AddConnection(centre, end, radius, next.city == null);
+            connections++;
         }
+        if (connections > 1) AddJunction(centre, radius);
         mesh.Clear();
         mesh.SetVertices(vertices);
+        mesh.SetUVs(0, uvs);
+        mesh.SetUVs(1, acrossDirections);
         mesh.SetTriangles(triangles, 0);
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
+    }
+
+    private void AddJunction(Vector3 centre, float radius)
+    {
+        // A round fill only at branching/bending tiles; endpoints remain plain strips.
+        const int sides = 12;
+        int start = vertices.Count;
+        vertices.Add(transform.InverseTransformPoint(centre));
+        uvs.Add(new Vector3(0.5f, 0.5f, 1));
+        acrossDirections.Add(Vector3.zero);
+        for (int i = 0; i < sides; i++)
+        {
+            float angle = i * Mathf.PI * 2 / sides;
+            Vector3 offset = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle));
+            vertices.Add(transform.InverseTransformPoint(centre + offset * radius));
+            uvs.Add(new Vector3(offset.x * 0.5f + 0.5f, offset.z * 0.5f + 0.5f, 1));
+            acrossDirections.Add(Vector3.zero);
+            triangles.Add(start);
+            triangles.Add(start + 1 + i);
+            triangles.Add(start + 1 + (i + 1) % sides);
+        }
+    }
+
+    private void AddConnection(Vector3 start, Vector3 end, float radius, bool halfConnection)
+    {
+        // Evaluate both halves on the same curve so neighbours meet without a kink.
+        bool reverse = start.x > end.x || (start.x == end.x && start.z > end.z);
+        Vector3 a = reverse ? end : start;
+        Vector3 b = reverse ? start : end;
+        Vector3 direction = b - a;
+        Vector3 bend = Vector3.Cross(Vector3.up, direction).normalized;
+        float amplitude = Mathf.Min(direction.magnitude * 0.045f, radius * 0.8f);
+        float from = reverse ? 1f : 0f;
+        float to = halfConnection ? 0.5f : 1f - from;
+        Vector3 previous = start;
+        Vector3 previousSide = Vector3.Cross(Vector3.up, direction).normalized * radius;
+        const int steps = 6;
+        for (int i = 1; i <= steps; i++)
+        {
+            float t = Mathf.Lerp(from, to, i / (float)steps);
+            float wave = Mathf.Sin(Mathf.PI * t);
+            Vector3 point = Vector3.Lerp(a, b, t) + bend * (amplitude * wave * wave);
+            Vector3 tangent = direction + bend * (amplitude * Mathf.PI * Mathf.Sin(2f * Mathf.PI * t));
+            Vector3 side = Vector3.Cross(Vector3.up, tangent).normalized * radius;
+            AddQuad(previous - previousSide, point - side, point + side, previous + previousSide);
+            previous = point;
+            previousSide = side;
+        }
     }
 
     private void AddQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
@@ -87,6 +148,17 @@ public sealed class NeuronSegmentVisual : MonoBehaviour
         vertices.Add(transform.InverseTransformPoint(b));
         vertices.Add(transform.InverseTransformPoint(c));
         vertices.Add(transform.InverseTransformPoint(d));
+        // Z distinguishes strip edges from a radial junction edge in the shader.
+        uvs.Add(new Vector3(0, 0, 0));
+        uvs.Add(new Vector3(0, 1, 0));
+        uvs.Add(new Vector3(1, 1, 0));
+        uvs.Add(new Vector3(1, 0, 0));
+        Vector3 startAcross = (d - a).normalized;
+        Vector3 endAcross = (c - b).normalized;
+        acrossDirections.Add(startAcross);
+        acrossDirections.Add(endAcross);
+        acrossDirections.Add(endAcross);
+        acrossDirections.Add(startAcross);
         triangles.Add(start); triangles.Add(start + 1); triangles.Add(start + 2);
         triangles.Add(start); triangles.Add(start + 2); triangles.Add(start + 3);
     }

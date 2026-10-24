@@ -134,3 +134,5 @@ MonoBehaviour:
   data: {fileID: 11400000, guid: 41342e08a6456534fa22e5e8895988ee, type: 2}
   tile: {fileID: 0}
   parentCity: {fileID: 0}
+  owner: {fileID: 0}
+  paidCost: 0
