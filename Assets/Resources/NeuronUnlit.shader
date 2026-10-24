@@ -27,6 +27,7 @@ Shader "Game/Neuron Frosted Unlit"
         [Header(Geometry Requires Mesh Refresh or Play Restart)]
         _WidthScale ("Width Multiplier", Range(0.1,3)) = 1
         _CurveAmount ("Curve Amount", Range(0,0.1)) = 0.045
+        [HideInInspector] _LineRendererMode ("Line Renderer Mode", Float) = 0
     }
     SubShader
     {
@@ -65,8 +66,9 @@ Shader "Game/Neuron Frosted Unlit"
                 half4 _HighlightColor;
                 float _WidthScale;
                 float _CurveAmount;
+                float _LineRendererMode;
             CBUFFER_END
-            struct Attributes { float4 positionOS : POSITION; float3 uv : TEXCOORD0; float3 across : TEXCOORD1; };
+            struct Attributes { float4 positionOS : POSITION; float3 uv : TEXCOORD0; float3 across : TEXCOORD1; float3 normalOS : NORMAL; float4 tangentOS : TANGENT; };
             struct Varyings { float4 positionCS : SV_POSITION; float2 grainUV : TEXCOORD0; float3 profile : TEXCOORD1; float3 across : TEXCOORD2; };
             Varyings Vert(Attributes input)
             {
@@ -76,6 +78,15 @@ Shader "Game/Neuron Frosted Unlit"
                 output.grainUV = world.xz;
                 output.profile = input.uv;
                 output.across = input.across;
+                if (_LineRendererMode > 0.5)
+                {
+                    // LineRenderer uses V across the width and U along the loop.
+                    output.profile = float3(input.uv.y, 0, 0);
+                    float3 normal = TransformObjectToWorldNormal(input.normalOS);
+                    float3 tangent = TransformObjectToWorldDir(input.tangentOS.xyz);
+                    float3 across = cross(normal, tangent);
+                    output.across = across / max(length(across), 0.001);
+                }
                 return output;
             }
             float FrostNoise(float2 position)

@@ -369,8 +369,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 996b4a9bdda2d1a4d85c3c425aa26b78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dashedBorderMaterial: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
-  lineWidth: 0.08
+  borderMaterial: {fileID: 2100000, guid: ac162a625388dac408e2eb3a2b97371c, type: 2}
+  lineWidth: 0.175
   yOffset: 0.55
 --- !u!1 &117826607
 GameObject:

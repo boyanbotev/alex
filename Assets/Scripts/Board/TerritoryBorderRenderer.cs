@@ -1,14 +1,16 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Serialization;
 
 public class TerritoryBorderManager : MonoBehaviour
 {
     public static TerritoryBorderManager Instance;
 
     [Header("Visuals")]
-    [Tooltip("Unlit/Transparent material with an alpha-cutout dash texture, Wrap Mode = Repeat")]
-    [SerializeField] private Material dashedBorderMaterial;
+    [Tooltip("Shared neuron material. Each territory overrides its colour without copying the material.")]
+    [FormerlySerializedAs("dashedBorderMaterial")]
+    [SerializeField] private Material borderMaterial;
     [SerializeField] private float lineWidth = 0.08f;
     [SerializeField] private float yOffset = 0.05f;
 
@@ -16,6 +18,9 @@ public class TerritoryBorderManager : MonoBehaviour
     // own outline. Grouping key type is intentionally loose (object) so both
     // share the same clear/rebuild machinery.
     private readonly Dictionary<object, List<LineRenderer>> linesByGroup = new Dictionary<object, List<LineRenderer>>();
+    private MaterialPropertyBlock borderProperties;
+    private static readonly int baseColorId = Shader.PropertyToID("_BaseColor");
+    private static readonly int lineRendererModeId = Shader.PropertyToID("_LineRendererMode");
 
     private static readonly Vector2Int[] Directions =
     {
@@ -24,6 +29,7 @@ public class TerritoryBorderManager : MonoBehaviour
 
     private void Awake()
     {
+        borderProperties = new MaterialPropertyBlock();
         Instance = this;
     }
 
@@ -159,17 +165,27 @@ public class TerritoryBorderManager : MonoBehaviour
     {
         GameObject lineObj = new GameObject("BorderLine");
         lineObj.transform.SetParent(transform, false);
+        // Keep the ribbons on the board rather than facing the camera.
+        lineObj.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
         LineRenderer lr = lineObj.AddComponent<LineRenderer>();
-        lr.material = dashedBorderMaterial;
+        lr.sharedMaterial = borderMaterial;
+        lr.alignment = LineAlignment.TransformZ;
+        lr.generateLightingData = true;
         lr.widthMultiplier = lineWidth;
         lr.loop = true;
         lr.useWorldSpace = true;
         lr.textureMode = LineTextureMode.Tile;
         lr.numCornerVertices = 0; // keep corners sharp/blocky, matching the reference look
         lr.numCapVertices = 0;
-        lr.startColor = color;
-        lr.endColor = color;
+        // Also initialise after a script reload during Play mode, when Awake may not rerun.
+        borderProperties ??= new MaterialPropertyBlock();
+        borderProperties.Clear();
+        borderProperties.SetColor(baseColorId, color);
+        borderProperties.SetFloat(lineRendererModeId, 1f);
+        lr.SetPropertyBlock(borderProperties);
+        lr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        lr.receiveShadows = false;
         lr.sortingLayerName = "bg";
 
         Vector3[] raised = points.Select(p => p + Vector3.up * yOffset).ToArray();

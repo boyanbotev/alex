@@ -105,7 +105,7 @@ Material:
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BlendOp: 0
-    - _Brightness: 0.97
+    - _Brightness: 0.9
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
@@ -131,6 +131,7 @@ Material:
     - _GrainStrength: 1
     - _HighlightSharpness: 64
     - _HighlightStrength: 0
+    - _LineRendererMode: 0
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
