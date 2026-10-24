@@ -40,6 +40,7 @@ public class Unit : MonoBehaviour
     private Vector3 originalVisualScale;
 
     [SerializeField] private Renderer render;
+    private Collider selectionCollider;
     private Player viewer;
     private MaterialPropertyBlock visualProperties;
     private Color activeColor;
@@ -51,6 +52,11 @@ public class Unit : MonoBehaviour
     {
         originalScale = transform.localScale;
         originalVisualScale = render != null ? render.transform.localScale : originalScale;
+        if (render != null)
+        {
+            selectionCollider = render.GetComponent<Collider>();
+            if (selectionCollider != null) selectionCollider.enabled = false;
+        }
     }
 
     private void LateUpdate()
@@ -63,6 +69,9 @@ public class Unit : MonoBehaviour
         // Dying units keep their artwork until the attack animation removes them.
         render.enabled = currentTile != null && viewer != null && viewer.visibleTiles != null &&
             viewer.visibleTiles.IsVisible(currentTile);
+        bool selectable = render.enabled && isAlive && currentTile.currentUnit == this;
+        if (selectionCollider != null && selectionCollider.enabled != selectable)
+            selectionCollider.enabled = selectable;
     }
 
     private Tween ScaleAttackVisual(float multiplier, float seconds, Ease ease) =>
@@ -430,6 +439,7 @@ public class Unit : MonoBehaviour
     private void Die(Player attacker, bool keepVisualUntilImpact)
     {
         isAlive = false;
+        if (selectionCollider != null) selectionCollider.enabled = false;
         if (currentTile != null)
         {
             if (currentTile.city && currentTile.city.pendingCapturer != null)

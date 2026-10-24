@@ -373,9 +373,10 @@ public class SelectionController : MonoBehaviour
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-        // 1. Try 3D Physics Raycast (For 3D Isometric setup)
         if (Physics.Raycast(ray, out RaycastHit hit3D))
         {
+            Unit unit = hit3D.collider.GetComponentInParent<Unit>();
+            if (unit != null) return unit.currentTile;
             return hit3D.collider.GetComponent<Tile>();
         }
 
