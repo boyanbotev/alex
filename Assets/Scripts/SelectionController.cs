@@ -19,6 +19,7 @@ public class SelectionController : MonoBehaviour
     private bool previewShown;
     private bool pressedOnEnemy;
     private Unit pressedEnemy;
+    private Unit hoveredEnemy;
     private CombatPreviewUI combatPreview;
     private CameraController cameraController;
     private const float DragThreshold = 10f;
@@ -85,7 +86,11 @@ public class SelectionController : MonoBehaviour
             }
         }
 
-        if (!trackingPress) return;
+        if (!trackingPress)
+        {
+            UpdateHoverPreview();
+            return;
+        }
         pointerDistance += Vector3.Distance(lastPointerPosition, Input.mousePosition);
         lastPointerPosition = Input.mousePosition;
         float threshold = cameraController != null ? cameraController.DragThreshold : DragThreshold;
@@ -104,9 +109,7 @@ public class SelectionController : MonoBehaviour
             if (!previewShown && Time.unscaledTime - pressTime >= previewHoldSeconds)
             {
                 previewShown = true;
-                if (combatPreview == null)
-                    combatPreview = new GameObject("Combat Preview").AddComponent<CombatPreviewUI>();
-                combatPreview.Show(selectedUnit, pressedEnemy, previewSkull);
+                ShowPreview(pressedEnemy);
             }
         }
         else if (previewShown)
@@ -124,9 +127,32 @@ public class SelectionController : MonoBehaviour
         else if (!Input.GetMouseButton(0)) CancelPress();
     }
 
+    private void ShowPreview(Unit target)
+    {
+        if (combatPreview == null)
+            combatPreview = new GameObject("Combat Preview").AddComponent<CombatPreviewUI>();
+        combatPreview.Show(selectedUnit, target, previewSkull);
+    }
+
+    // With a mouse, hovering an attackable enemy shows the same preview as a touch hold.
+    private void UpdateHoverPreview()
+    {
+        Unit target = null;
+        if (Input.mousePresent && Input.touchCount == 0 && !Input.GetMouseButton(0) &&
+            !UIRaycastUtility.IsPointerOverBlockingUI(Input.mousePosition))
+        {
+            Tile tile = GetClickedTile();
+            if (tile != null && CanPreview(tile.currentUnit)) target = tile.currentUnit;
+        }
+        if (target == hoveredEnemy) return;
+        hoveredEnemy = target;
+        if (target != null) ShowPreview(target);
+        else if (combatPreview != null) combatPreview.Hide();
+    }
+
     private bool CanPreview(Unit target)
     {
-        if (UIManager.Instance.SelectingBond) return false;
+        if (target == null || UIManager.Instance.SelectingBond) return false;
         return selectedUnit != null && selectedUnit.CanAttack(target) &&
             highlightedTiles.Contains(target.currentTile) &&
             selectedUnit.owner.visibleTiles.IsVisible(target.currentTile);
@@ -137,6 +163,7 @@ public class SelectionController : MonoBehaviour
         trackingPress = false;
         previewShown = false;
         pressedEnemy = null;
+        hoveredEnemy = null;
         pressedOnEnemy = false;
         pointerDistance = 0f;
         if (combatPreview != null) combatPreview.Hide();
