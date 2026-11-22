@@ -80,13 +80,19 @@ public class UnitStatsPopup : MonoBehaviour
             text.gameObject.SetActive(false);
         Place(unitNameText, 20, 16, 340, 32);
         Place(costText, 360, 16, 120, 32);
-        Place(healthText, 20, 52, 460, 26);
         costText.alignment = TextAlignmentOptions.TopRight;
         unitNameText.text = title;
         costText.text = level;
-        healthText.text = origin;
         skillsText.text = unlocks ?? "";
-        LayoutBody(effect, 88);
+        // Without an origin line the body moves up beneath the title.
+        bool hasOrigin = !string.IsNullOrEmpty(origin);
+        if (hasOrigin)
+        {
+            Place(healthText, 20, 52, 460, 26);
+            healthText.text = origin;
+        }
+        else healthText.gameObject.SetActive(false);
+        LayoutBody(effect, hasOrigin ? 88 : 56);
     }
 
     private void LayoutBody(string description, float top)

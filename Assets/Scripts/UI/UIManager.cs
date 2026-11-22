@@ -184,6 +184,11 @@ public class UIManager : MonoBehaviour, IUIStyleTarget
         var button = Instantiate(itemPurchaseButtonPrefab, spawnButtonHolder).GetComponent<ItemPurchaseButton>();
         button.AddText($"{city.data.perk.IconTag}Upgrade to Lv 2");
         button.AddCost(City.PerkUpgradeCost);
+        var perk = city.data.perk;
+        string unlocks = CityBondView.UnitsUnlocked(actor.faction, perk.kind, 2);
+        button.SetHoverPopup(() => ShowPerkPopup(
+            $"{(string.IsNullOrEmpty(perk.perkName) ? perk.kind.ToString() : perk.perkName)} level 2", "", "",
+            unlocks.Length > 0 ? $"Unlocks: {unlocks}" : "No new units for your faction.", ""));
         button.GetComponent<Button>().interactable = city.CanUpgradePerk(actor);
         button.AddListener(() => {
             if (city.TryUpgradePerk(actor))

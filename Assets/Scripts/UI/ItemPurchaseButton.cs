@@ -14,7 +14,11 @@ public class ItemPurchaseButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     private FactionUnit hoverUnit;
     private bool showingUnit;
 
+    private System.Action hoverPopup;
+
     public void SetHoverUnit(FactionUnit unit) => hoverUnit = unit;
+    // For buttons that are not units, e.g. the perk upgrade; hidden with the unit popup.
+    public void SetHoverPopup(System.Action show) => hoverPopup = show;
 
     public void RefreshSpawnAvailability(City city)
     {
@@ -24,9 +28,10 @@ public class ItemPurchaseButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (hoverUnit == null) return;
+        if (hoverUnit == null && hoverPopup == null) return;
         showingUnit = true;
-        UIManager.Instance.ShowUnitStatsPopup(hoverUnit.unitData);
+        if (hoverUnit != null) UIManager.Instance.ShowUnitStatsPopup(hoverUnit.unitData);
+        else hoverPopup();
     }
 
     public void OnPointerExit(PointerEventData eventData) => HideUnit();

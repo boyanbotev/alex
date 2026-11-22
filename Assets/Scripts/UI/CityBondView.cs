@@ -263,6 +263,16 @@ public sealed class CityBondView : MonoBehaviour
     };
 
     // Unlocks come from the recruiting city's faction data, so each faction lists its own units.
+    public static string UnitsUnlocked(Faction faction, CityPerkKind kind, int level)
+    {
+        if (faction == null || faction.availableUnits == null) return "";
+        var names = new List<string>();
+        foreach (var unit in faction.availableUnits)
+            if (unit != null && unit.unitData != null && unit.unitData.requiredPerk == kind &&
+                unit.unitData.requiredPerkLevel == level) names.Add(unit.unitData.name);
+        return string.Join(", ", names);
+    }
+
     private string Unlocks(CityPerkData perk, int perkLevel)
     {
         var faction = source.owner != null ? source.owner.faction : null;
@@ -272,12 +282,9 @@ public sealed class CityBondView : MonoBehaviour
         var text = new StringBuilder();
         for (int level = 1; level <= 2; level++)
         {
-            var names = new List<string>();
-            foreach (var unit in faction.availableUnits)
-                if (unit != null && unit.unitData != null && unit.unitData.requiredPerk == perk.kind &&
-                    unit.unitData.requiredPerkLevel == level) names.Add(unit.unitData.name);
-            if (names.Count == 0) continue;
-            string line = $"{(level == 1 ? "Unlocks" : "Level 2 unlocks")}: {string.Join(", ", names)}";
+            string names = UnitsUnlocked(faction, perk.kind, level);
+            if (names.Length == 0) continue;
+            string line = $"{(level == 1 ? "Unlocks" : "Level 2 unlocks")}: {names}";
             if (level > perkLevel) line = $"<color=#{muted}>{line}</color>";
             if (text.Length > 0) text.Append('\n');
             text.Append(line);
