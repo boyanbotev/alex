@@ -16,7 +16,6 @@ public sealed class CityBondView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI actionLabel;
 
 
-    private readonly List<Tile> route = new();
     private readonly List<Vector3> candidates = new();
     private RectTransform cityPanel;
     private Vector2 normalCitySize, normalPanelSize, normalPanelPosition;
@@ -80,13 +79,24 @@ public sealed class CityBondView : MonoBehaviour
             else Refresh();
         }
     }
+    // Clicks on cities that cannot share are consumed but ignored.
     public bool Select(Tile tile)
     {
         if (!Selecting) return false;
-        target = tile != null ? tile.city : null;
-        if (target != null && !TurnManager.Instance.ActivePlayer.visibleTiles.IsVisible(target.centerTile)) target = null;
+        City city = tile != null ? tile.city : null;
+        if (city == null || !IsCandidate(city)) return true;
+        target = city;
         Highlight(); Refresh();
         return true;
+    }
+    private bool IsCandidate(City city) =>
+        viewer.visibleTiles != null && viewer.visibleTiles.IsVisible(city.centerTile) &&
+        Bonds.CanCreate(viewer, source, city, out _);
+    private bool HasCandidate()
+    {
+        foreach (var city in WorldPopulationManager.Instance.allCities)
+            if (IsCandidate(city)) return true;
+        return false;
     }
     private void Cancel()
     {
@@ -100,30 +110,26 @@ public sealed class CityBondView : MonoBehaviour
     private void Highlight()
     {
         GridManager.Instance.ClearAllHighlights();
-        Player actor = TurnManager.Instance.ActivePlayer;
-        if (target != null && Bonds.CanCreate(actor, source, target, out _))
+        if (target != null && IsCandidate(target))
         {
-            if (TurnManager.Instance.Neurons.TryGetRoute(source, target, route))
-                foreach (var tile in route)
-                    if (actor.visibleTiles.IsVisible(tile) &&
-                        (tile.city == null || tile.city == source || tile.city == target))
-                        tile.SetHighlight(true, new Color(1f, .75f, .2f));
             target.centerTile.SetHighlight(true, new Color(.2f, .9f, .8f));
             return;
         }
         foreach (var city in WorldPopulationManager.Instance.allCities)
-            if (actor.visibleTiles.IsVisible(city.centerTile) && Bonds.CanCreate(actor, source, city, out _))
+            if (IsCandidate(city))
                 city.centerTile.SetExpandingHighlight(true, new Color(.2f, .9f, .8f));
     }
     public void Refresh()
     {
         if (source == null) return;
         int cost = Mathf.Max(0, TurnManager.Instance.bondUpgradeCost);
-        action.gameObject.SetActive(CanManage);
+        bool affordable = TurnManager.Instance.ActivePlayer.stars >= cost;
+        // Sharing UI only appears when some visible city can actually share perks.
+        action.gameObject.SetActive(CanManage && (Selecting || HasCandidate()));
         cancel.gameObject.SetActive(Selecting);
-        actionLabel.text = Selecting ? $"Confirm bond · {CurrencyUI.Amount(cost)}" : $"Reinforce bond · {CurrencyUI.Amount(cost)}";
+        actionLabel.text = Selecting ? $"Confirm sharing · {CurrencyUI.Amount(cost)}" : $"Share perks · {CurrencyUI.Amount(cost)}";
         var text = new StringBuilder();
-        text.AppendLine($"Bonds {Bonds.Count(source)}/{TurnManager.Instance.maxBondsPerCity}");
+        text.AppendLine($"Perk sharing {Bonds.Count(source)}/{TurnManager.Instance.maxBondsPerCity}");
         text.AppendLine($"Native perk: {Perk(source)}");
         if (!Selecting)
         {
@@ -135,20 +141,17 @@ public sealed class CityBondView : MonoBehaviour
                     ? partner.cityName : "Unrevealed city";
                 text.AppendLine($"Shared from {partnerName} ({(bond.Active ? "active" : "suspended")}): {Perk(partner)}");
             }
-            action.interactable = Bonds.Count(source) < TurnManager.Instance.maxBondsPerCity && !source.HasPendingCapture;
+            action.interactable = affordable;
         }
         else
         {
-            string reason = null;
-            bool valid = target != null && Bonds.CanCreate(TurnManager.Instance.ActivePlayer, source, target, out reason);
-            if (target == null) text.Append("Choose a highlighted connected city.");
-            else if (!valid) text.Append(reason);
+            bool valid = target != null && IsCandidate(target);
+            if (!valid) text.Append("Choose a highlighted city to share perks with.");
             else
             {
                 text.AppendLine($"{source.cityName} receives: {Perk(target)}");
                 text.AppendLine($"{target.cityName} receives: {Perk(source)}");
             }
-            bool affordable = TurnManager.Instance.ActivePlayer.stars >= cost;
             if (valid && !affordable) text.Append($"\nRequires {CurrencyUI.Amount(cost)}.");
             action.interactable = valid && affordable;
         }
@@ -187,7 +190,7 @@ public sealed class CityBondView : MonoBehaviour
         candidates.Clear();
         candidates.Add(source.centerTile.transform.position);
         foreach (var city in WorldPopulationManager.Instance.allCities)
-            if (viewer.visibleTiles.IsVisible(city.centerTile) && Bonds.CanCreate(viewer, source, city, out _))
+            if (IsCandidate(city))
                 candidates.Add(city.centerTile.transform.position);
         if (candidates.Count < 2 || cityPanel == null) return;
         Canvas.ForceUpdateCanvases();

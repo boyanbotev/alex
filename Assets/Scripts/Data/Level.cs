@@ -129,7 +129,7 @@ public class LevelFaction {
     public bool spawnCapitalUnit = true;
     [Tooltip("The first city is the capital. Human factions may start without cities if they have placed units.")]
     public CityData[] startingCities = Array.Empty<CityData>();
-    [Tooltip("AI only creates strong bonds between these city pairs. Order breaks ties between upgrades.")]
+    [Tooltip("AI only shares perks between these city pairs. Order breaks ties between them.")]
     public DesiredConnection[] desiredConnections = Array.Empty<DesiredConnection>();
 }
 

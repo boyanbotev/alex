@@ -201,35 +201,17 @@ public class CityBondTests : TacticsTestFixture
         Assert.That(player.stars, Is.Zero);
         b.owner = enemy; turns.Neurons.Invalidate();
         Assert.That(turns.Bonds.All, Is.Empty);
-        Assert.That(turns.Bonds.IsReinforced(first.tile), Is.False);
     }
     [Test]
-    public void ReinforcementFollowsLinksAndPreservesSharedRoute()
+    public void CitiesWithoutPerksCannotSharePerks()
     {
-        player.stars = 30;
-        var a = City(Tile(0), player);
-        var first = Segment(1).tile;
-        var junction = Segment(2).tile;
-        var b = City(Tile(3), player);
-        var c = City(Tile(3, 1), player);
-        var branch = Segment(2, 1).tile;
+        player.stars = 20;
+        var a = City(Tile(0), player); Segment(1); var b = City(Tile(2), player);
+        Assert.That(turns.Bonds.CanCreate(player, a, b, out _), Is.False);
+        Assert.That(turns.Bonds.TryCreate(player, a, b), Is.False);
+        Assert.That(player.stars, Is.EqualTo(20));
+        Perk(b, CityPerkKind.Healing, 1);
         Assert.That(turns.Bonds.TryCreate(player, a, b), Is.True);
-        Assert.That(turns.Bonds.IsReinforced(a.centerTile, first), Is.True);
-        Assert.That(turns.Bonds.IsReinforced(first, junction), Is.True);
-        Assert.That(turns.Bonds.IsReinforced(junction, first), Is.True);
-        Assert.That(turns.Bonds.IsReinforced(junction, b.centerTile), Is.True);
-        Assert.That(turns.Bonds.IsReinforced(junction, c.centerTile), Is.False);
-        Assert.That(turns.Bonds.IsReinforced(junction, branch), Is.False);
-
-        Assert.That(turns.Bonds.TryCreate(player, a, c), Is.True);
-        turns.Bonds.RemoveCity(b);
-        Assert.That(turns.Bonds.IsReinforced(first, junction), Is.True);
-        Assert.That(turns.Bonds.IsReinforced(junction, c.centerTile), Is.True);
-        Assert.That(turns.Bonds.IsReinforced(junction, b.centerTile), Is.False);
-        Assert.That(turns.Bonds.IsReinforced(junction, branch), Is.False);
-        turns.Bonds.RemoveCity(c);
-        Assert.That(turns.Bonds.IsReinforced(first, junction), Is.False);
-        Assert.That(turns.Bonds.IsReinforced(a.centerTile, first), Is.False);
     }
 
     [Test]
@@ -237,6 +219,7 @@ public class CityBondTests : TacticsTestFixture
     {
         player.stars = 5;
         var a = City(Tile(0), player); Segment(1); var b = City(Tile(2), player);
+        Perk(a, CityPerkKind.Healing, 1);
         Assert.That(turns.Bonds.TryCreate(player, a, b), Is.False);
         Assert.That(turns.Bonds.Count(a), Is.Zero);
         Assert.That(player.stars, Is.EqualTo(5));

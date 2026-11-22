@@ -39,9 +39,9 @@ public class AIProfile : ScriptableObject
     [Min(0f)] public float neuronConstructionWeight = 24f;
     [Tooltip("Only start or continue routes whose remaining cost can be earned back within this many income turns.")]
     [Min(0f)] public float neuronMaxPaybackTurns = 12f;
-    [Tooltip("Small additive construction score for desired city pairs currently eligible for a strong bond. Zero disables the bonus.")]
+    [Tooltip("Small additive construction score for desired city pairs currently eligible to share perks. Zero disables the bonus.")]
     [Min(0f)] public float desiredBondConstructionBonus = 2f;
-    [Tooltip("Score for upgrading a configured desired connection to a strong bond. Zero disables AI upgrades.")]
+    [Tooltip("Score for sharing perks along a configured desired connection. Zero disables AI upgrades.")]
     [Min(0f)] public float bondUpgradeWeight = 6f;
     [Header("Tactics - Neurons")]
     [Min(0f)] public float neuronRaidIncomeWeight = 6f;

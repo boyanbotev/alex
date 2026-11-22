@@ -39,7 +39,7 @@ MonoBehaviour:
   - instruction: 'Fantastic!
 
 
-      Click on a city and reinforce a bond to another
+      Click on a city and share its perks with another
       city.'
     condition: 2
     unitType: {fileID: 0}

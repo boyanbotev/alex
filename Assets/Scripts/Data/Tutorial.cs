@@ -7,7 +7,7 @@ public sealed class Tutorial : ScriptableObject
     public TutorialStage[] stages = Array.Empty<TutorialStage>();
 }
 
-public enum TutorialCondition { OwnedCities, ConnectAllCities, StrongBonds, RecruitUnit, KillEnemyUnit, Instruction }
+public enum TutorialCondition { OwnedCities, ConnectAllCities, SharedPerks, RecruitUnit, KillEnemyUnit, Instruction }
 
 [Serializable]
 public sealed class TutorialStage
@@ -28,7 +28,7 @@ public sealed class TutorialStage
                 for (int i = 1; i < player.cities.Count; i++)
                     if (!turns.Neurons.AreConnected(player.cities[0], player.cities[i])) return false;
                 return true;
-            case TutorialCondition.StrongBonds:
+            case TutorialCondition.SharedPerks:
                 int count = 0;
                 foreach (CityBond bond in turns.Bonds.All)
                     if (bond.Active && (bond.a.owner == player || bond.b.owner == player)) count++;

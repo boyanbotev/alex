@@ -17,13 +17,8 @@ public sealed class CityBondManager
     public event System.Action Changed;
     private readonly TurnManager turns;
     private readonly List<CityBond> bonds = new();
-    private readonly HashSet<Tile> reinforced = new();
-    private readonly HashSet<(Tile, Tile)> reinforcedLinks = new();
     public IReadOnlyList<CityBond> All => bonds;
     public CityBondManager(TurnManager turns) { this.turns = turns; }
-    public bool IsReinforced(Tile tile) => reinforced.Contains(tile);
-    public bool IsReinforced(Tile from, Tile to) =>
-        reinforcedLinks.Contains((from, to)) || reinforcedLinks.Contains((to, from));
     public int Count(City city)
     {
         int count = 0;
@@ -47,8 +42,9 @@ public sealed class CityBondManager
             reason = "Select another city from your own city.";
         else if (!Friendly(a.owner, b.owner)) reason = "Choose your own or an allied city.";
         else if (a.HasPendingCapture || b.HasPendingCapture) reason = "A city is under siege.";
-        else if (bonds.Exists(x => x.Other(a) == b)) reason = "These cities already share a bond.";
-        else if (Count(a) >= turns.maxBondsPerCity || Count(b) >= turns.maxBondsPerCity) reason = "A city has no free bond slots.";
+        else if (bonds.Exists(x => x.Other(a) == b)) reason = "These cities already share perks.";
+        else if (!HasPerk(a) && !HasPerk(b)) reason = "Neither city has a perk to share.";
+        else if (Count(a) >= turns.maxBondsPerCity || Count(b) >= turns.maxBondsPerCity) reason = "A city has no free perk-sharing slots.";
         else if (requireConnection && !turns.Neurons.AreConnected(a, b)) reason = "Build a neuron connection first.";
         return reason == null;
     }
@@ -62,6 +58,9 @@ public sealed class CityBondManager
         Refresh();
         return true;
     }
+
+    private static bool HasPerk(City city) =>
+        city.data != null && city.data.perk != null && city.data.perk.kind != CityPerkKind.None;
 
     public int GetLevel(City city, CityPerkKind kind)
     {
@@ -101,31 +100,12 @@ public sealed class CityBondManager
     {
         var affectedCities = new HashSet<City>();
         foreach (var bond in bonds) { affectedCities.Add(bond.a); affectedCities.Add(bond.b); }
-        var changed = new HashSet<Tile>(reinforced);
-        reinforced.Clear();
-        reinforcedLinks.Clear();
         bonds.RemoveAll(x => x.a == null || x.b == null || x.a.owner != x.ownerA || x.b.owner != x.ownerB);
         foreach (var bond in bonds)
         {
             bond.Active = Friendly(bond.a.owner, bond.b.owner);
             if (bond.Active && !RouteIntact(bond))
                 bond.Active = turns.Neurons.TryGetRoute(bond.a, bond.b, bond.route);
-            if (!bond.Active) continue;
-            Tile previous = bond.a.centerTile;
-            foreach (var tile in bond.route)
-            {
-                if (tile.city == null) reinforced.Add(tile);
-                reinforcedLinks.Add((previous, tile));
-                previous = tile;
-            }
-            reinforcedLinks.Add((previous, bond.b.centerTile));
-        }
-        changed.UnionWith(reinforced);
-        foreach (var tile in changed)
-        {
-            if (tile == null || tile.currentBuilding == null) continue;
-            var visual = tile.currentBuilding.GetComponent<NeuronSegmentVisual>();
-            if (visual != null) visual.Refresh();
         }
         foreach (City city in affectedCities)
             if (city != null) city.RefreshIncomeLabel();
