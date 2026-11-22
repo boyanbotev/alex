@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 
+// Hover popup for recruitment buttons and city perk slots.
 public class UnitStatsPopup : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI unitNameText;
@@ -24,13 +25,6 @@ public class UnitStatsPopup : MonoBehaviour
         group.interactable = false;
         descriptionText = Instantiate(skillsText, transform);
         descriptionText.name = "Description";
-        Place(unitNameText, 20, 16, 310, 32);
-        Place(costText, 350, 16, 130, 32);
-        Place(healthText, 20, 60, 220, 26);
-        Place(attackText, 260, 60, 220, 26);
-        Place(defenseText, 20, 90, 220, 26);
-        Place(moveRangeText, 260, 90, 220, 26);
-        Place(attackRangeText, 20, 120, 460, 26);
     }
 
     private void Place(TextMeshProUGUI text, float x, float y, float width, float height)
@@ -53,6 +47,13 @@ public class UnitStatsPopup : MonoBehaviour
     public void Populate(UnitData unit)
     {
         PrepareHoverLayout();
+        Place(unitNameText, 20, 16, 310, 32);
+        Place(costText, 350, 16, 130, 32);
+        Place(healthText, 20, 60, 220, 26);
+        Place(attackText, 260, 60, 220, 26);
+        Place(defenseText, 20, 90, 220, 26);
+        Place(moveRangeText, 260, 90, 220, 26);
+        Place(attackRangeText, 20, 120, 460, 26);
         unitNameText.text = unit.name;
         costText.text = CurrencyUI.Amount(unit.cost);
         healthText.text = "HP: " + unit.maxHealth;
@@ -68,12 +69,35 @@ public class UnitStatsPopup : MonoBehaviour
             skillsText.text += $"\nSplash: {unit.splashDamage} damage, radius {unit.splashRadius}";
 
         skillsText.text = skillsText.text.Trim();
-        descriptionText.text = unit.description;
-        float descriptionHeight = string.IsNullOrWhiteSpace(unit.description)
-            ? 0 : descriptionText.GetPreferredValues(unit.description, 460, Mathf.Infinity).y;
-        Place(descriptionText, 20, 158, 460, descriptionHeight);
-        float skillsY = 158 + descriptionHeight + (descriptionHeight > 0 ? 12 : 0);
-        float skillsHeight = skillsText.GetPreferredValues(skillsText.text, 460, Mathf.Infinity).y;
+        LayoutBody(unit.description, 158);
+    }
+
+    // Perks reuse the unit popup's look: title and level, origin line, effect, then unlocks.
+    public void PopulatePerk(string title, string level, string origin, string effect, string unlocks)
+    {
+        PrepareHoverLayout();
+        foreach (var text in new[] { attackText, defenseText, moveRangeText, attackRangeText })
+            text.gameObject.SetActive(false);
+        Place(unitNameText, 20, 16, 340, 32);
+        Place(costText, 360, 16, 120, 32);
+        Place(healthText, 20, 52, 460, 26);
+        costText.alignment = TextAlignmentOptions.TopRight;
+        unitNameText.text = title;
+        costText.text = level;
+        healthText.text = origin;
+        skillsText.text = unlocks ?? "";
+        LayoutBody(effect, 88);
+    }
+
+    private void LayoutBody(string description, float top)
+    {
+        descriptionText.text = description;
+        float descriptionHeight = string.IsNullOrWhiteSpace(description)
+            ? 0 : descriptionText.GetPreferredValues(description, 460, Mathf.Infinity).y;
+        Place(descriptionText, 20, top, 460, descriptionHeight);
+        float skillsY = top + descriptionHeight + (descriptionHeight > 0 ? 12 : 0);
+        float skillsHeight = string.IsNullOrEmpty(skillsText.text)
+            ? 0 : skillsText.GetPreferredValues(skillsText.text, 460, Mathf.Infinity).y;
         Place(skillsText, 20, skillsY, 460, skillsHeight);
         ((RectTransform)transform).sizeDelta = new Vector2(500, skillsY + skillsHeight + 20);
     }

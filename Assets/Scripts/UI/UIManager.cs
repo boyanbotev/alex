@@ -354,10 +354,27 @@ public class UIManager : MonoBehaviour, IUIStyleTarget
 
     public void ShowUnitStatsPopup(UnitData unit)
     {
+        PrepareStatsPopup();
+        unitStatsPopup.Populate(unit);
+        PlaceStatsPopup();
+    }
+
+    public void ShowPerkPopup(string title, string level, string origin, string effect, string unlocks)
+    {
+        PrepareStatsPopup();
+        unitStatsPopup.PopulatePerk(title, level, origin, effect, unlocks);
+        PlaceStatsPopup();
+    }
+
+    private void PrepareStatsPopup()
+    {
         unitStatsPopup.transform.SetParent(spawnPanel.parent, false);
         unitStatsPopup.transform.SetAsLastSibling();
         unitStatsPopup.gameObject.SetActive(true);
-        unitStatsPopup.Populate(unit);
+    }
+
+    private void PlaceStatsPopup()
+    {
         Canvas.ForceUpdateCanvases();
         spawnPanel.GetWorldCorners(unitPanelCorners);
         RectTransform popup = (RectTransform)unitStatsPopup.transform;

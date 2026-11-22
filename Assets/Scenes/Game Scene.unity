@@ -6247,6 +6247,7 @@ MonoBehaviour:
   action: {fileID: 1300803313}
   cancel: {fileID: 1338254367}
   actionLabel: {fileID: 669615459}
+  showPerkCaptions: 0
 --- !u!224 &1946420975
 RectTransform:
   m_ObjectHideFlags: 0
