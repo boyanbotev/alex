@@ -35,6 +35,28 @@ public sealed class CityBondView : MonoBehaviour
     {
         action.onClick.AddListener(Act);
         cancel.onClick.AddListener(Cancel);
+        BlendIntoCityPanel();
+    }
+
+    // Perk sharing is a section of the city panel, not an inset card: span the full width
+    // without a background so its content lines up with the city heading.
+    private void BlendIntoCityPanel()
+    {
+        if (panel.TryGetComponent<Image>(out var background)) background.enabled = false;
+        panel.anchorMin = new Vector2(0, panel.anchorMin.y);
+        panel.anchorMax = new Vector2(1, panel.anchorMax.y);
+        panel.sizeDelta = new Vector2(0, panel.sizeDelta.y);
+        panel.anchoredPosition = new Vector2(0, panel.anchoredPosition.y);
+        // Buttons keep a fixed width at the left rather than stretching across the screen.
+        PlaceButton((RectTransform)action.transform, 16f, 360f);
+        PlaceButton((RectTransform)cancel.transform, 16f + 360f + 16f, 180f);
+    }
+
+    private static void PlaceButton(RectTransform button, float x, float width)
+    {
+        button.anchorMin = button.anchorMax = button.pivot = Vector2.zero;
+        button.anchoredPosition = new Vector2(x, 8f);
+        button.sizeDelta = new Vector2(width, 47f);
     }
     public void ApplyStyle()
     {
