@@ -25,16 +25,6 @@ public sealed class InterludeConversation
             campaign.SetRelation(a, b, relation);
         });
         Story.BindExternalFunction("get_score", (string key) => campaign.scores.Find(s => s.key == key)?.value ?? 0f, true);
-        Story.BindExternalFunction("has_link", (string key) => campaign.cityLinks.Contains(key), true);
-        Story.BindExternalFunction("get_links", () =>
-        {
-            var links = new InkList();
-            if (!Story.listDefinitions.TryListGetDefinition("city_links", out var definition)) return links;
-            links = new InkList("city_links", Story);
-            foreach (string key in campaign.cityLinks)
-                if (definition.ContainsItemWithName(key)) links.AddItem(key);
-            return links;
-        }, true);
         foreach (var score in campaign.scores)
         {
             float value = score.value;

@@ -19,16 +19,14 @@ EXTERNAL get_flag(key)
 EXTERNAL set_flag(key, value)
 EXTERNAL set_relation(a, b, relation)
 EXTERNAL get_score(key)
-EXTERNAL has_link(key)
 ```
 
 - `get_flag` returns a boolean, defaulting to false.
 - `set_flag` records a persistent boolean.
 - `set_relation` records a symmetric persistent faction relationship: `peace`, `war`, or `allied`. Use the **Campaign Id** field on Faction assets. These IDs must be unique and remain stable across renaming assets.
 - `get_score` returns a previous-level faction score by its ending function name, defaulting to zero.
-- `has_link` checks a previous-level city pair using the same pair keys as the level ending.
 
-Existing `get_links()` and faction ending score functions are also available. To use `get_links()`, declare the appropriate `LIST city_links` in the story, as in the existing endings.
+Existing faction ending score functions are also available.
 
 Relations only apply to factions present in the next match and persist for later matches. Runtime decisions never modify Level or Faction assets. In-match diplomatic actions currently stay local to the match; only explicit campaign effects persist.
 

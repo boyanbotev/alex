@@ -33,30 +33,16 @@ public sealed class LevelEnding : MonoBehaviour
     private bool reading;
     private readonly List<GameObject> buttons = new();
 
-    public static string PairKey(string a, string b)
-    {
-        a = a.Trim().ToLowerInvariant().Replace(' ', '_');
-        b = b.Trim().ToLowerInvariant().Replace(' ', '_');
-        return string.CompareOrdinal(a, b) <= 0 ? a + "_" + b : b + "_" + a;
-    }
-
-    public void Show(TextAsset json, IEnumerable<string> pairKeys, IReadOnlyDictionary<string, float> factionSuccess,
-        IEnumerable<string> cityPairs, IReadOnlyDictionary<Faction, float> factionScores)
+    public void Show(TextAsset json, IReadOnlyDictionary<string, float> factionSuccess,
+        IReadOnlyDictionary<Faction, float> factionScores)
     {
         BuildPanel("Level completed");
         text.richText = false;
         var summary = new StringBuilder();
-        bool hasBonds = false;
-        foreach (string pair in cityPairs)
-        {
-            summary.AppendLine(pair);
-            hasBonds = true;
-        }
-        if (hasBonds) summary.AppendLine();
         foreach (var score in factionScores)
             summary.AppendLine($"{score.Key.name}: {score.Value:P0}");
         text.text = summary.ToString().TrimEnd();
-        ShowPassage(() => AddButton("Continue", () => ShowStory(json, null, null, pairKeys, factionSuccess), primary: true), 1);
+        ShowPassage(() => AddButton("Continue", () => ShowStory(json, null, null, factionSuccess), primary: true), 1);
     }
 
     public void ShowPrelude(TextAsset json, Action beginLevel)
@@ -65,7 +51,7 @@ public sealed class LevelEnding : MonoBehaviour
     }
 
     private void ShowStory(TextAsset json, string title, Action completion,
-        IEnumerable<string> pairKeys = null, IReadOnlyDictionary<string, float> factionSuccess = null)
+        IReadOnlyDictionary<string, float> factionSuccess = null)
     {
         onComplete = completion;
         reading = true;
@@ -79,22 +65,6 @@ public sealed class LevelEnding : MonoBehaviour
                 if (type == Ink.ErrorType.Warning) Debug.LogWarning(message);
                 else throw new InvalidOperationException(message);
             };
-            if (pairKeys != null)
-            {
-                var links = new InkList();
-                if (story.listDefinitions.TryListGetDefinition("city_links", out var definition))
-                {
-                    links = new InkList("city_links", story);
-                    foreach (string key in pairKeys)
-                    {
-                        if (definition.ContainsItemWithName(key)) links.AddItem(key);
-                        else Debug.LogWarning($"Ending: active pair '{key}' is missing from Ink LIST city_links.");
-                    }
-                }
-                else Debug.LogWarning("Ending: declare LIST city_links in Ink to receive the active city pairs.");
-
-                story.BindExternalFunction("get_links", () => new InkList(links), true);
-            }
             if (factionSuccess != null)
             {
                 foreach (var score in factionSuccess)

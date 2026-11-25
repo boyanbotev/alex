@@ -8,7 +8,6 @@ public sealed class CampaignState
 {
     public int levelIndex;
     public CampaignPhase phase;
-    public List<string> cityLinks = new();
     public List<CampaignScore> scores = new();
     public List<CampaignFlag> flags = new();
     public List<CampaignRelation> relations = new();
@@ -37,7 +36,6 @@ public sealed class CampaignState
     public void ClearInterlude()
     {
         phase = CampaignPhase.Gameplay;
-        cityLinks.Clear();
         scores.Clear();
         inkState = null;
         messages.Clear();

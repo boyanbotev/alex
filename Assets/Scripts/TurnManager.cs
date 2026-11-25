@@ -172,16 +172,6 @@ public class TurnManager : MonoBehaviour
         SetEnemyTurnsInProgress(false);
         if (endTurnButton != null) endTurnButton.interactable = false;
         StopAllCoroutines();
-        Bonds.Refresh();
-        var links = new SortedSet<string>(System.StringComparer.Ordinal);
-        var cityPairs = new SortedSet<string>(System.StringComparer.Ordinal);
-        foreach (CityBond bond in Bonds.All)
-        {
-            if (!bond.Active) continue;
-            links.Add(LevelEnding.PairKey(bond.a.cityName, bond.b.cityName));
-            string a = bond.a.cityName, b = bond.b.cityName;
-            cityPairs.Add(System.StringComparer.Ordinal.Compare(a, b) <= 0 ? $"{a} — {b}" : $"{b} — {a}");
-        }
         UIManager.Instance?.CloseSpawnPanel();
         UIManager.Instance?.CloseBuildPanel();
         UIManager.Instance?.HideAllCaptureButtons();
@@ -192,12 +182,11 @@ public class TurnManager : MonoBehaviour
             if (!string.IsNullOrWhiteSpace(score.Key.endingSuccessFunction))
                 scores.TryAdd(score.Key.endingSuccessFunction, score.Value);
         var campaign = SaveManager.Campaign;
-        campaign.cityLinks = new List<string>(links);
         campaign.scores.Clear();
         foreach (var score in scores) campaign.scores.Add(new CampaignScore { key = score.Key, value = score.Value });
         // Results become durable when the player leaves the ending for the interlude.
-        gameObject.AddComponent<LevelEnding>().Show(GameManager.Instance.Level.endingStory, links, scores,
-            cityPairs, factionScores);
+        gameObject.AddComponent<LevelEnding>().Show(GameManager.Instance.Level.endingStory, scores,
+            factionScores);
     }
 
     private Dictionary<Faction, float> GetFactionSuccess()
