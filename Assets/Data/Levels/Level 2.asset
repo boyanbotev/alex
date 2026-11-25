@@ -51,7 +51,7 @@ MonoBehaviour:
   tutorial: {fileID: 11400000, guid: 927a821a8a9b4dd3b6bb68dbcf66c529, type: 2}
   turnLimit: 20
   endWhenOnlyPlayerAndAlliesRemain: 1
-  endingStory: {fileID: 4900000, guid: b365f558462ccba48a19f0e409b7e429, type: 3}
-  interludeStory: {fileID: 4900000, guid: 0a56e819eb2ed90409e6bf3087bedba6, type: 3}
+  endingStory: {fileID: 4900000, guid: d514cf1b129c9a74298062b2442728f5, type: 3}
+  interludeStory: {fileID: 4900000, guid: 5a86b133ccdf99e488d89fea73c9c820, type: 3}
   blockDiagonalsBetweenEnemies: 0
   blockDiagonalsBetweenImpassableTiles: 0
