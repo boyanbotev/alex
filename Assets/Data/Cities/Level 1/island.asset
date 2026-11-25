@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: island
   m_EditorClassIdentifier: 
   cityName: island
-  perk: {fileID: 0}
+  perk: {fileID: 11400000, guid: 8fe3fb9c1017a65449535235e43157f0, type: 2}

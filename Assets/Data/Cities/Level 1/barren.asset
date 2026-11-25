@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: barren
   m_EditorClassIdentifier: 
   cityName: barren
-  perk: {fileID: 0}
+  perk: {fileID: 11400000, guid: 78398eccc8f32e64699730c1239d0549, type: 2}

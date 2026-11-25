@@ -1,5 +1,10 @@
+EXTERNAL get_depression()
+EXTERNAL get_conscience()
+
 -> start
 ===start
+~ temp depression = get_depression()
+~ temp conscience = get_conscience()
 School is over. You're at the bus stop, waiting for the E3.
 
 The pavement is crammed with kids from school, kicking and shoving, in their smart, orange-striped navy blazers.
@@ -7,7 +12,7 @@ The pavement is crammed with kids from school, kicking and shoving, in their sma
 A kitkat wrapper flutters in the drain.
 *[Open YouTube while you wait] -> open_youtube
 *[Buy Haribos] -> haribos
-*[Just wait] -> just_wait //(requires limited depression)
+*{depression < 0.5}[Just wait] -> just_wait //(requires limited depression)
 //*[Text Mathew]
 
 
