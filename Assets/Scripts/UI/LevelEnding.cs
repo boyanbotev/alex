@@ -7,13 +7,26 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+// Story screen layout: title on top, footer of buttons pinned to the bottom, and the paged text filling
+// whatever height is left. The footer reserves room for the passage's choices before pagination, so
+// choices can never be pushed below the screen edge.
 public sealed class LevelEnding : MonoBehaviour
 {
+    private const float RowHeight = 56;
+    private const float MinRowHeight = 36;
+    private const float RowSpacing = 12;
+    private const float MaxFooterShare = 0.5f;
+
     private Story story;
     private TextMeshProUGUI text;
-    private RectTransform content;
-    private ScrollRect scroll;
+    private RectTransform area;
+    private RectTransform footer;
+    private LayoutElement footerSize;
     private Action onComplete;
+    private Action addFinalButtons;
+    private int finalRows;
+    private float rowHeight = RowHeight;
+    private Vector2 measuredSize;
     private GameObject panel;
     private TextMeshProUGUI pageNumber;
     private TMP_FontAsset readingFont;
@@ -43,7 +56,7 @@ public sealed class LevelEnding : MonoBehaviour
         foreach (var score in factionScores)
             summary.AppendLine($"{score.Key.name}: {score.Value:P0}");
         text.text = summary.ToString().TrimEnd();
-        AddButton("Continue", () => ShowStory(json, null, null, pairKeys, factionSuccess), primary: true);
+        ShowPassage(() => AddButton("Continue", () => ShowStory(json, null, null, pairKeys, factionSuccess), primary: true), 1);
     }
 
     public void ShowPrelude(TextAsset json, Action beginLevel)
@@ -96,7 +109,7 @@ public sealed class LevelEnding : MonoBehaviour
         {
             Debug.LogError($"Could not play the Ink story: {exception.Message}");
             text.text = "The story could not be loaded. Check the Unity Console for details.";
-            AddEndButtons();
+            ShowPassage(AddEndButtons, 1);
         }
     }
 
@@ -107,18 +120,72 @@ public sealed class LevelEnding : MonoBehaviour
             var output = new StringBuilder();
             while (story.canContinue) output.Append(story.Continue());
             text.text = output.ToString().Trim();
-            text.pageToDisplay = 1;
-            Canvas.ForceUpdateCanvases();
-            text.ForceMeshUpdate();
-            ShowPage();
+            var choices = story.currentChoices;
+            if (choices.Count == 0) ShowPassage(AddEndButtons, 1);
+            else ShowPassage(() =>
+            {
+                foreach (Choice choice in choices)
+                {
+                    int index = choice.index;
+                    AddButton(choice.text, () =>
+                    {
+                        story.ChooseChoiceIndex(index);
+                        ContinueStory();
+                    });
+                }
+            }, choices.Count);
         }
         catch (Exception exception)
         {
             Debug.LogError($"Ink story error: {exception.Message}");
             text.text = "The story could not be read. Check the Unity Console for details.";
-            ClearButtons();
-            AddEndButtons();
+            ShowPassage(AddEndButtons, 1);
         }
+    }
+
+    // finalRows: how many button rows the last page needs (one per choice, or one for a single row of buttons).
+    private void ShowPassage(Action addButtons, int rows)
+    {
+        addFinalButtons = addButtons;
+        finalRows = Mathf.Max(1, rows);
+        text.pageToDisplay = 1;
+        Paginate();
+        ShowPage();
+    }
+
+    // Reserve footer space for the busiest page, then let TMP paginate the text into the remaining height.
+    private void Paginate()
+    {
+        Canvas.ForceUpdateCanvases();
+        ReserveFooter(finalRows);
+        // A multi-page passage also shows "Previous" above the choices on its last page.
+        if (PageCount() > 1) ReserveFooter(finalRows + 1);
+        text.pageToDisplay = Mathf.Clamp(text.pageToDisplay, 1, PageCount());
+        measuredSize = area.rect.size;
+    }
+
+    private void ReserveFooter(int rows)
+    {
+        LayoutRebuilder.ForceRebuildLayoutImmediate(area);
+        float available = area.rect.height * MaxFooterShare - RowSpacing * (rows - 1);
+        rowHeight = Mathf.Clamp(available / rows, MinRowHeight, RowHeight);
+        footerSize.minHeight = footerSize.preferredHeight = rows * rowHeight + (rows - 1) * RowSpacing;
+        LayoutRebuilder.ForceRebuildLayoutImmediate(area);
+    }
+
+    private int PageCount()
+    {
+        text.ForceMeshUpdate();
+        return Mathf.Max(1, text.textInfo.pageCount);
+    }
+
+    private void Update()
+    {
+        // Re-flow the text when the reading area changes size (window resize, canvas scaler settling).
+        if (panel == null || addFinalButtons == null) return;
+        if ((area.rect.size - measuredSize).sqrMagnitude < 1f) return;
+        Paginate();
+        ShowPage();
     }
 
     private void ClearButtons()
@@ -134,33 +201,28 @@ public sealed class LevelEnding : MonoBehaviour
     private void ShowPage()
     {
         ClearButtons();
-        int pages = Mathf.Max(1, text.textInfo.pageCount);
+        int pages = PageCount();
         pageNumber.text = pages > 1 ? $"{text.pageToDisplay} / {pages}" : "";
-        if (text.pageToDisplay > 1)
-            AddButton("Previous", () => { text.pageToDisplay--; ShowPage(); });
         if (text.pageToDisplay < pages)
-            AddButton("Next", () => { text.pageToDisplay++; ShowPage(); }, primary: true);
+        {
+            RectTransform row = Row();
+            if (text.pageToDisplay > 1)
+                AddButton("Previous", () => { text.pageToDisplay--; ShowPage(); }, row);
+            AddButton("Next", () => { text.pageToDisplay++; ShowPage(); }, row, true);
+        }
         else
         {
-            if (story.currentChoices.Count == 0) AddEndButtons();
-            else foreach (Choice choice in story.currentChoices)
-            {
-                int index = choice.index;
-                AddButton(choice.text, () =>
-                {
-                    story.ChooseChoiceIndex(index);
-                    ContinueStory();
-                });
-            }
+            if (pages > 1) AddButton("Previous", () => { text.pageToDisplay--; ShowPage(); });
+            addFinalButtons?.Invoke();
         }
-        Canvas.ForceUpdateCanvases();
-        scroll.verticalNormalizedPosition = 1f;
     }
 
-    private void AddEndButtons()
+    private RectTransform Row()
     {
-        RectTransform row = Rect("Navigation", content);
-        row.gameObject.AddComponent<LayoutElement>().preferredHeight = 56;
+        RectTransform row = Rect("Navigation", footer);
+        LayoutElement size = row.gameObject.AddComponent<LayoutElement>();
+        size.minHeight = size.preferredHeight = rowHeight;
+        size.flexibleHeight = 0;
         HorizontalLayoutGroup layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
         layout.spacing = 24;
         layout.childControlWidth = true;
@@ -168,6 +230,12 @@ public sealed class LevelEnding : MonoBehaviour
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = true;
         buttons.Add(row.gameObject);
+        return row;
+    }
+
+    private void AddEndButtons()
+    {
+        RectTransform row = Row();
         if (onComplete != null)
             AddButton("Begin level 1", () => onComplete(), row, true);
         else if (GameManager.Instance.HasNextLevel)
@@ -184,6 +252,7 @@ public sealed class LevelEnding : MonoBehaviour
             Destroy(panel);
         }
         buttons.Clear();
+        addFinalButtons = null;
         var root = new GameObject(heading ?? "Ending story", typeof(RectTransform), typeof(Canvas),
             typeof(CanvasScaler), typeof(GraphicRaycaster));
         panel = root;
@@ -202,57 +271,63 @@ public sealed class LevelEnding : MonoBehaviour
         UIStyleBinding.Bind(background, UIStyleBinding.Role.Background);
         background.gameObject.AddComponent<UIInputBlocker>();
 
-        RectTransform viewport = Rect("Reading area", background);
-        Stretch(viewport, new Vector2(24, 40), new Vector2(-24, -40));
-        viewport.anchorMin = new Vector2(0.14f, 0);
-        viewport.anchorMax = new Vector2(0.86f, 1);
-        viewport.gameObject.AddComponent<Image>().color = Color.clear;
-        viewport.gameObject.AddComponent<RectMask2D>();
-        scroll = viewport.gameObject.AddComponent<ScrollRect>();
-        scroll.horizontal = false;
-        scroll.movementType = ScrollRect.MovementType.Clamped;
-        scroll.viewport = viewport;
-
-        content = Rect("Content", viewport);
-        content.anchorMin = new Vector2(0, 1);
-        content.anchorMax = Vector2.one;
-        content.pivot = new Vector2(0.5f, 1);
-        content.sizeDelta = Vector2.zero;
-        VerticalLayoutGroup layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 24;
+        area = Rect("Reading area", background);
+        Stretch(area, new Vector2(24, 40), new Vector2(-24, -40));
+        area.anchorMin = new Vector2(0.14f, 0);
+        area.anchorMax = new Vector2(0.86f, 1);
+        VerticalLayoutGroup layout = area.gameObject.AddComponent<VerticalLayoutGroup>();
+        layout.spacing = 20;
         layout.padding = new RectOffset(12, 12, 12, 12);
         layout.childControlWidth = true;
         layout.childControlHeight = true;
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
-        content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-        scroll.content = content;
 
         if (!string.IsNullOrEmpty(heading))
         {
-            TextMeshProUGUI title = Label("Title", content, 44);
+            TextMeshProUGUI title = Label("Title", area, 44);
             title.text = heading;
             title.alignment = TextAlignmentOptions.Center;
         }
-        text = Label("Story", content, 32);
+        text = Label("Story", area, 32);
         text.richText = true;
         text.lineSpacing = 10;
         text.paragraphSpacing = 22;
+        text.overflowMode = TextOverflowModes.Page;
+        // Zero preferred height so the text only takes the space left after the title and footer.
+        LayoutElement textSize = text.gameObject.AddComponent<LayoutElement>();
+        textSize.minHeight = 0;
+        textSize.preferredHeight = 0;
+        textSize.flexibleHeight = 1;
+
+        pageNumber = Label("Page number", area, 20);
+        UIStyleBinding.Bind(pageNumber, UIStyleBinding.Role.MutedText);
+        pageNumber.alignment = TextAlignmentOptions.Center;
+
+        footer = Rect("Choices", area);
+        footerSize = footer.gameObject.AddComponent<LayoutElement>();
+        // Child rows force-expand their buttons, which would otherwise report flexible height up through the
+        // footer and make it share the spare space with the story text.
+        footerSize.flexibleHeight = 0;
+        VerticalLayoutGroup footerLayout = footer.gameObject.AddComponent<VerticalLayoutGroup>();
+        footerLayout.spacing = RowSpacing;
+        footerLayout.childControlWidth = true;
+        footerLayout.childControlHeight = true;
+        footerLayout.childForceExpandWidth = true;
+        footerLayout.childForceExpandHeight = false;
+        footerLayout.childAlignment = TextAnchor.LowerCenter;
+
         if (reading)
         {
-            Canvas.ForceUpdateCanvases();
             var source = Resources.Load<Font>("Fonts/EBGaramond");
             if (UIStyle.Shared.narrativeFont == null && source != null && readingFont == null) readingFont = TMP_FontAsset.CreateFontAsset(source);
-            foreach (var label in content.GetComponentsInChildren<TextMeshProUGUI>())
+            foreach (var label in new[] { area.Find("Title")?.GetComponent<TextMeshProUGUI>(), text })
+            {
+                if (label == null) continue;
                 if (UIStyle.Shared.narrativeFont != null) label.font = UIStyle.Shared.narrativeFont;
                 else if (readingFont != null) label.font = readingFont;
-            foreach (var label in content.GetComponentsInChildren<TextMeshProUGUI>())
                 UIStyleBinding.Bind(label, UIStyleBinding.Role.NarrativeText);
-            text.overflowMode = TextOverflowModes.Page;
-            text.gameObject.AddComponent<LayoutElement>().preferredHeight = Mathf.Max(180, viewport.rect.height - 220);
-            pageNumber = Label("Page number", content, 20);
-            UIStyleBinding.Bind(pageNumber, UIStyleBinding.Role.MutedText);
-            pageNumber.alignment = TextAlignmentOptions.Center;
+            }
         }
     }
 
@@ -267,16 +342,20 @@ public sealed class LevelEnding : MonoBehaviour
 
     private void AddButton(string caption, UnityEngine.Events.UnityAction action, RectTransform parent = null, bool primary = false)
     {
-        RectTransform rect = Rect("Ending button", parent != null ? parent : content);
+        RectTransform rect = Rect("Ending button", parent != null ? parent : footer);
         rect.gameObject.AddComponent<Image>();
         LayoutElement size = rect.gameObject.AddComponent<LayoutElement>();
-        size.preferredHeight = 56;
+        size.minHeight = size.preferredHeight = rowHeight;
         size.flexibleWidth = 1;
         var button = rect.gameObject.AddComponent<Button>();
         button.onClick.AddListener(action);
         TextMeshProUGUI label = Label("Label", rect, 24);
         Stretch(label.rectTransform, new Vector2(12, 4), new Vector2(-12, -4));
         label.alignment = TextAlignmentOptions.Center;
+        // Long choices shrink to fit their row instead of spilling out of the button.
+        label.enableAutoSizing = true;
+        label.fontSizeMin = 14;
+        label.fontSizeMax = 24;
         label.text = caption;
         UIStyleBinding.Bind(button, primary ? UIStyleBinding.Role.PrimaryButton : UIStyleBinding.Role.SecondaryButton);
         if (parent == null) buttons.Add(rect.gameObject);
